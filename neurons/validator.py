@@ -5,16 +5,17 @@ from substrateinterface import Keypair
 from fiber.logging_utils import get_logger
 from fiber.validator import client as vali_client
 from fiber.validator import handshake
+from fiber.miner.server import Server
 from protocol.base import TwitterMetrics, TokenMetrics
 from typing import Optional, Dict
-import logging
 from protocol.twitter import TwitterService
+from fiber.chain import chain_utils, interface
 
 logger = get_logger(__name__)
 
 class AgentValidator:
     def __init__(self, twitter_service: TwitterService):
-        """Initialize validator with scoring weights and Twitter service"""
+        """Initialize validator"""
         self.scoring_weights = {
             'impressions': 0.25,
             'likes': 0.25,
@@ -23,39 +24,95 @@ class AgentValidator:
         }
         self.twitter_service = twitter_service
         self.httpx_client: Optional[httpx.AsyncClient] = None
-        self.fernet: Optional[Fernet] = None
-        self.symmetric_key_uuid: Optional[str] = None
-        self.keypair: Optional[Keypair] = None
-        self.miner_address: Optional[str] = None
-        self.registered_agents: Dict[str, str] = {}  # hotkey -> twitter_handle mapping
+        self.registered_miners: Dict[str, Dict] = {}  # hotkey -> miner_info mapping
+        self.registered_agents: Dict[str, str] = {}   # hotkey -> twitter_handle mapping
+        self.keypair = None
+        self.server: Optional[Server] = None
+        self.substrate = interface.get_substrate(subtensor_network="finney")
         
-    async def start(self, keypair, miner_address: str = "http://localhost:8080"):
-        """Start the validator and establish connection with miner"""
-        self.httpx_client = httpx.AsyncClient()
-        
-        # Perform handshake with miner
-        symmetric_key_str, self.symmetric_key_uuid = await handshake.perform_handshake(
-            keypair=keypair,
-            httpx_client=self.httpx_client,
-            server_address=miner_address
-        )
-        
-        if not symmetric_key_str or not self.symmetric_key_uuid:
-            raise ValueError("Failed to establish secure connection with miner")
+    async def start(self, keypair: Keypair, port: int = 8081):
+        """Start the validator"""
+        try:
+            self.keypair = keypair
+            self.httpx_client = httpx.AsyncClient()
             
-        self.fernet = Fernet(symmetric_key_str)
-        logger.info("Successfully connected to miner")
+            # Start the validator server
+            self.server = Server(keypair=keypair, port=port)
+            await self.server.start()
+            
+            logger.info(f"Validator started with hotkey {self.keypair.ss58_address} on port {port}")
+            
+        except Exception as e:
+            logger.error(f"Failed to start validator: {str(e)}")
+            raise
 
-    async def get_agent_metrics(self, hotkey: str) -> Optional[TwitterMetrics]:
+    @Server.endpoint("/get_twitter_handle")
+    async def handle_get_twitter_handle(self, hotkey: str) -> Dict:
+        """Handle request for getting Twitter handle"""
+        try:
+            twitter_handle = self.registered_agents.get(hotkey)
+            return {"twitter_handle": twitter_handle}
+        except Exception as e:
+            logger.error(f"Error handling get_twitter_handle: {str(e)}")
+            return {"twitter_handle": None}
+
+    @Server.endpoint("/register_agent")
+    async def handle_register_agent(self, twitter_handle: str, hotkey: str) -> Dict:
+        """Handle agent registration request"""
+        try:
+            success = await self.register_agent(twitter_handle, hotkey)
+            return {"success": success}
+        except Exception as e:
+            logger.error(f"Error handling register_agent: {str(e)}")
+            return {"success": False}
+
+    async def connect_to_miner(self, miner_address: str, miner_hotkey: str) -> bool:
+        """Connect to a miner"""
+        try:
+            # Perform handshake with miner
+            symmetric_key_str, symmetric_key_uuid = await handshake.perform_handshake(
+                keypair=self.keypair,
+                httpx_client=self.httpx_client,
+                server_address=miner_address,
+                miner_hotkey_ss58_address=miner_hotkey
+            )
+            
+            if not symmetric_key_str or not symmetric_key_uuid:
+                logger.error(f"Failed to establish secure connection with miner {miner_hotkey}")
+                return False
+                
+            # Store miner information
+            self.registered_miners[miner_hotkey] = {
+                'address': miner_address,
+                'symmetric_key': symmetric_key_str,
+                'symmetric_key_uuid': symmetric_key_uuid,
+                'fernet': Fernet(symmetric_key_str)
+            }
+            
+            logger.info(f"Connected to miner {miner_hotkey} at {miner_address}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to connect to miner: {str(e)}")
+            return False
+
+    async def get_agent_metrics(self, hotkey: str, miner_hotkey: str) -> Optional[TwitterMetrics]:
         """Fetch metrics directly from Twitter API"""
         try:
+            miner = self.registered_miners.get(miner_hotkey)
+            if not miner:
+                logger.error(f"No registered miner found with hotkey {miner_hotkey}")
+                return None
+
             # Get twitter handle from miner
             response = await vali_client.make_non_streamed_post(
                 httpx_client=self.httpx_client,
-                server_address=self.miner_address,
-                fernet=self.fernet,
+                server_address=miner['address'],
+                fernet=miner['fernet'],
                 keypair=self.keypair,
-                symmetric_key_uuid=self.symmetric_key_uuid,
+                symmetric_key_uuid=miner['symmetric_key_uuid'],
+                validator_ss58_address=self.keypair.ss58_address,
+                miner_ss58_address=miner_hotkey,
                 payload={"hotkey": hotkey},
                 endpoint="/get_handle"
             )
@@ -96,8 +153,9 @@ class AgentValidator:
         """Cleanup validator resources"""
         if self.httpx_client:
             await self.httpx_client.aclose()
+        if self.server:
+            await self.server.stop()
 
-    @Server.endpoint("/register_agent")
     async def register_agent(self, twitter_handle: str, hotkey: str) -> bool:
         """Register an agent with their Twitter handle"""
         try:
@@ -111,3 +169,24 @@ class AgentValidator:
     async def get_twitter_handle(self, hotkey: str) -> Optional[str]:
         """Get Twitter handle for a registered agent"""
         return self.registered_agents.get(hotkey)
+
+    @Server.endpoint("/register_miner")
+    async def handle_miner_registration(self, miner_hotkey: str, port: int) -> Dict:
+        """Handle miner registration request"""
+        try:
+            # Verify miner registration on subnet
+            if not self.substrate.is_hotkey_registered(
+                ss58_address=miner_hotkey,
+                netuid=self.config.netuid
+            ):
+                return {"success": False, "error": "Miner not registered on subnet"}
+
+            # Connect to miner
+            success = await self.connect_to_miner(
+                miner_address=f"http://localhost:{port}",
+                miner_hotkey=miner_hotkey
+            )
+            return {"success": success}
+        except Exception as e:
+            logger.error(f"Error registering miner: {str(e)}")
+            return {"success": False}
