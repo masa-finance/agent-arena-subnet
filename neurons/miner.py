@@ -3,6 +3,7 @@ from fiber.miner.server import Server
 from typing import Optional
 import logging
 import httpx
+import asyncio
 from cryptography.fernet import Fernet
 from fiber.chain import chain_utils, interface
 
@@ -112,3 +113,47 @@ class AgentMiner:
         """Cleanup and shutdown"""
         if self.server:
             await self.server.stop()
+
+    async def verify_registration(self) -> bool:
+        """Verify registration with validator"""
+        try:
+            if not self.registered_with_validator:
+                return False
+
+            # Check registration on chain
+            if not self.substrate.is_hotkey_registered(
+                ss58_address=self.keypair.ss58_address,
+                netuid=self.netuid
+            ):
+                logger.error("Miner no longer registered on chain")
+                return False
+
+            # Ping validator to verify connection
+            response = await vali_client.make_non_streamed_post(
+                httpx_client=self.httpx_client,
+                server_address=self.validator_address,
+                fernet=self.fernet,
+                keypair=self.keypair,
+                symmetric_key_uuid=self.symmetric_key_uuid,
+                payload={"ping": True},
+                endpoint="/ping"
+            )
+            
+            return response.json().get('success', False)
+
+        except Exception as e:
+            logger.error(f"Failed to verify registration: {str(e)}")
+            return False
+
+    async def registration_check_loop(self):
+        """Periodically verify registration"""
+        while True:
+            try:
+                if not await self.verify_registration():
+                    logger.warning("Registration invalid, attempting to re-register...")
+                    # Attempt to re-register
+                    await self.register_with_validator()
+                await asyncio.sleep(60)  # Check every minute
+            except Exception as e:
+                logger.error(f"Error in registration check: {str(e)}")
+                await asyncio.sleep(30)

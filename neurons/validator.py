@@ -10,6 +10,8 @@ from protocol.base import TwitterMetrics, TokenMetrics
 from typing import Optional, Dict
 from protocol.twitter import TwitterService
 from fiber.chain import chain_utils, interface
+import asyncio
+import time
 
 logger = get_logger(__name__)
 
@@ -29,6 +31,7 @@ class AgentValidator:
         self.keypair = None
         self.server: Optional[Server] = None
         self.substrate = interface.get_substrate(subtensor_network="finney")
+        self.netuid = 1  # Your subnet's netuid
         
     async def start(self, keypair: Keypair, port: int = 8081):
         """Start the validator"""
@@ -41,6 +44,9 @@ class AgentValidator:
             await self.server.start()
             
             logger.info(f"Validator started with hotkey {self.keypair.ss58_address} on port {port}")
+            
+            # Start background tasks
+            asyncio.create_task(self.status_check_loop())
             
         except Exception as e:
             logger.error(f"Failed to start validator: {str(e)}")
@@ -170,23 +176,97 @@ class AgentValidator:
         """Get Twitter handle for a registered agent"""
         return self.registered_agents.get(hotkey)
 
+    async def is_miner_registered(self, miner_hotkey: str) -> bool:
+        """Check if miner is registered on the network"""
+        try:
+            # Check local registration
+            if miner_hotkey not in self.registered_miners:
+                return False
+
+            # Sync metagraph to get latest state
+            await self.sync_metagraph()
+            
+            # Get UID from metagraph
+            uid = self.metagraph.hotkeys.index(miner_hotkey)
+            
+            # Check if registered and active on metagraph
+            is_registered = uid in self.metagraph.uids
+            is_active = self.metagraph.active[uid].item() == 1
+            
+            return is_registered and is_active
+            
+        except ValueError:  # Hotkey not found in metagraph
+            return False
+        except Exception as e:
+            logger.error(f"Error checking miner registration: {str(e)}")
+            return False
+
     @Server.endpoint("/register_miner")
     async def handle_miner_registration(self, miner_hotkey: str, port: int) -> Dict:
         """Handle miner registration request"""
         try:
-            # Verify miner registration on subnet
-            if not self.substrate.is_hotkey_registered(
-                ss58_address=miner_hotkey,
-                netuid=self.config.netuid
-            ):
-                return {"success": False, "error": "Miner not registered on subnet"}
+            # Check registration on chain
+            if not await self.is_miner_registered(miner_hotkey):
+                return {
+                    "success": False, 
+                    "error": "Miner not registered or not active on subnet"
+                }
+
+            # Get UID from metagraph
+            uid = self.metagraph.hotkeys.index(miner_hotkey)
 
             # Connect to miner
             success = await self.connect_to_miner(
                 miner_address=f"http://localhost:{port}",
                 miner_hotkey=miner_hotkey
             )
+
+            if success:
+                # Update miner info
+                self.registered_miners[miner_hotkey].update({
+                    'uid': uid,
+                    'last_active': time.time(),
+                    'status': 'active'
+                })
+
             return {"success": success}
+
         except Exception as e:
             logger.error(f"Error registering miner: {str(e)}")
             return {"success": False}
+
+    async def check_miners_status(self):
+        """Periodic check of miners' status"""
+        try:
+            await self.sync_metagraph()
+            
+            for hotkey, miner_info in self.registered_miners.items():
+                try:
+                    uid = miner_info['uid']
+                    
+                    # Check if still active on metagraph
+                    is_active = self.metagraph.active[uid].item() == 1
+                    
+                    # Check last activity
+                    is_responsive = (time.time() - miner_info['last_active']) < 300  # 5 min timeout
+                    
+                    if not is_active or not is_responsive:
+                        miner_info['status'] = 'inactive'
+                        logger.warning(f"Miner {hotkey} marked as inactive")
+                    
+                except Exception as e:
+                    logger.error(f"Error checking miner {hotkey} status: {str(e)}")
+                    miner_info['status'] = 'error'
+
+        except Exception as e:
+            logger.error(f"Error in miners status check: {str(e)}")
+
+    async def status_check_loop(self):
+        """Background task to check miners status"""
+        while True:
+            try:
+                await self.check_miners_status()
+                await asyncio.sleep(60)  # Check every minute
+            except Exception as e:
+                logger.error(f"Error in status check loop: {str(e)}")
+                await asyncio.sleep(30)  # Wait before retrying
