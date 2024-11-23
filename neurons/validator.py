@@ -1,4 +1,3 @@
-import os
 import httpx
 from cryptography.fernet import Fernet
 from substrateinterface import Keypair
