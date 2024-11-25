@@ -5,3 +5,5 @@ currentwork.md
 userstories.md
 /btcli
 /bittensor
+/protocol/__pycache__
+/neurons/__pycache__

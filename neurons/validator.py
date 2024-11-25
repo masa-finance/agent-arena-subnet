@@ -4,18 +4,20 @@ from substrateinterface import Keypair
 from fiber.logging_utils import get_logger
 from fiber.validator import client as vali_client
 from fiber.validator import handshake
-from fiber.miner.server import Server
+from fiber.miner.server import factory_app
 from protocol.base import TwitterMetrics, TokenMetrics
 from typing import Optional, Dict
 from protocol.twitter import TwitterService
 from fiber.chain import chain_utils, interface
 import asyncio
 import time
+from fastapi import FastAPI
+import uvicorn
 
 logger = get_logger(__name__)
 
 class AgentValidator:
-    def __init__(self, twitter_service: TwitterService):
+    def __init__(self):
         """Initialize validator"""
         self.scoring_weights = {
             'impressions': 0.25,
@@ -23,14 +25,14 @@ class AgentValidator:
             'replies': 0.25,
             'followers': 0.25
         }
-        self.twitter_service = twitter_service
         self.httpx_client: Optional[httpx.AsyncClient] = None
         self.registered_miners: Dict[str, Dict] = {}  # hotkey -> miner_info mapping
         self.registered_agents: Dict[str, str] = {}   # hotkey -> twitter_handle mapping
         self.keypair = None
-        self.server: Optional[Server] = None
+        self.server: Optional[factory_app] = None
         self.substrate = interface.get_substrate(subtensor_network="finney")
         self.netuid = 1  # Your subnet's netuid
+        self.app: Optional[FastAPI] = None
         
     async def start(self, keypair: Keypair, port: int = 8081):
         """Start the validator"""
@@ -38,20 +40,38 @@ class AgentValidator:
             self.keypair = keypair
             self.httpx_client = httpx.AsyncClient()
             
-            # Start the validator server
-            self.server = Server(keypair=keypair, port=port)
-            await self.server.start()
+            # Create FastAPI app using Fiber's factory
+            self.app = factory_app(debug=False)
+            
+            # Add our custom routes
+            self.register_routes()
             
             logger.info(f"Validator started with hotkey {self.keypair.ss58_address} on port {port}")
             
             # Start background tasks
             asyncio.create_task(self.status_check_loop())
             
+            # Start the FastAPI server
+            uvicorn.run(self.app, host="0.0.0.0", port=port)
+            
         except Exception as e:
             logger.error(f"Failed to start validator: {str(e)}")
             raise
 
-    @Server.endpoint("/get_twitter_handle")
+    def register_routes(self):
+        """Register FastAPI routes"""
+        @self.app.get("/get_twitter_handle")
+        async def get_twitter_handle(hotkey: str):
+            return await self.handle_get_twitter_handle(hotkey)
+
+        @self.app.post("/register_agent")
+        async def register_agent(twitter_handle: str, hotkey: str):
+            return await self.handle_register_agent(twitter_handle, hotkey)
+
+        @self.app.post("/register_miner")
+        async def register_miner(miner_hotkey: str, port: int):
+            return await self.handle_miner_registration(miner_hotkey, port)
+
     async def handle_get_twitter_handle(self, hotkey: str) -> Dict:
         """Handle request for getting Twitter handle"""
         try:
@@ -61,7 +81,6 @@ class AgentValidator:
             logger.error(f"Error handling get_twitter_handle: {str(e)}")
             return {"twitter_handle": None}
 
-    @Server.endpoint("/register_agent")
     async def handle_register_agent(self, twitter_handle: str, hotkey: str) -> Dict:
         """Handle agent registration request"""
         try:
@@ -69,6 +88,39 @@ class AgentValidator:
             return {"success": success}
         except Exception as e:
             logger.error(f"Error handling register_agent: {str(e)}")
+            return {"success": False}
+
+    async def handle_miner_registration(self, miner_hotkey: str, port: int) -> Dict:
+        """Handle miner registration request"""
+        try:
+            # Check registration on chain
+            if not await self.is_miner_registered(miner_hotkey):
+                return {
+                    "success": False, 
+                    "error": "Miner not registered or not active on subnet"
+                }
+
+            # Get UID from metagraph
+            uid = self.metagraph.hotkeys.index(miner_hotkey)
+
+            # Connect to miner
+            success = await self.connect_to_miner(
+                miner_address=f"http://localhost:{port}",
+                miner_hotkey=miner_hotkey
+            )
+
+            if success:
+                # Update miner info
+                self.registered_miners[miner_hotkey].update({
+                    'uid': uid,
+                    'last_active': time.time(),
+                    'status': 'active'
+                })
+
+            return {"success": success}
+
+        except Exception as e:
+            logger.error(f"Error registering miner: {str(e)}")
             return {"success": False}
 
     async def connect_to_miner(self, miner_address: str, miner_hotkey: str) -> bool:
@@ -103,56 +155,15 @@ class AgentValidator:
 
     async def get_agent_metrics(self, hotkey: str, miner_hotkey: str) -> Optional[TwitterMetrics]:
         """Fetch metrics directly from Twitter API"""
-        try:
-            miner = self.registered_miners.get(miner_hotkey)
-            if not miner:
-                logger.error(f"No registered miner found with hotkey {miner_hotkey}")
-                return None
-
-            # Get twitter handle from miner
-            response = await vali_client.make_non_streamed_post(
-                httpx_client=self.httpx_client,
-                server_address=miner['address'],
-                fernet=miner['fernet'],
-                keypair=self.keypair,
-                symmetric_key_uuid=miner['symmetric_key_uuid'],
-                validator_ss58_address=self.keypair.ss58_address,
-                miner_ss58_address=miner_hotkey,
-                payload={"hotkey": hotkey},
-                endpoint="/get_handle"
-            )
-            
-            twitter_handle = response.json().get('twitter_handle')
-            if not twitter_handle:
-                logger.error(f"No Twitter handle found for hotkey {hotkey}")
-                return None
-
-            # Get metrics directly from Twitter
-            metrics = await self.twitter_service.get_user_metrics(twitter_handle)
-            return metrics
-
-        except Exception as e:
-            logger.error(f"Failed to get metrics for agent {hotkey}: {str(e)}")
-            return None
+        logger.warning("Twitter service not configured - metrics collection disabled")
+        return None
 
     async def score_agent(self, 
                          metrics: TwitterMetrics,
                          token_metrics: Optional[TokenMetrics] = None) -> float:
         """Calculate agent score based on metrics"""
-        base_score = self.calculate_base_score(metrics)
-        if token_metrics:
-            multiplier = self.calculate_token_multiplier(token_metrics)
-            return base_score * multiplier
-        return base_score
-        
-    def calculate_base_score(self, metrics: TwitterMetrics) -> float:
-        """Calculate base score from Twitter metrics"""
-        score = 0.0
-        score += metrics.impressions * self.scoring_weights['impressions']
-        score += metrics.likes * self.scoring_weights['likes'] 
-        score += metrics.replies * self.scoring_weights['replies']
-        score += metrics.followers * self.scoring_weights['followers']
-        return score
+        logger.warning("Scoring disabled - Twitter service not configured")
+        return 0.0
 
     async def stop(self):
         """Cleanup validator resources"""
@@ -199,40 +210,6 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Error checking miner registration: {str(e)}")
             return False
-
-    @Server.endpoint("/register_miner")
-    async def handle_miner_registration(self, miner_hotkey: str, port: int) -> Dict:
-        """Handle miner registration request"""
-        try:
-            # Check registration on chain
-            if not await self.is_miner_registered(miner_hotkey):
-                return {
-                    "success": False, 
-                    "error": "Miner not registered or not active on subnet"
-                }
-
-            # Get UID from metagraph
-            uid = self.metagraph.hotkeys.index(miner_hotkey)
-
-            # Connect to miner
-            success = await self.connect_to_miner(
-                miner_address=f"http://localhost:{port}",
-                miner_hotkey=miner_hotkey
-            )
-
-            if success:
-                # Update miner info
-                self.registered_miners[miner_hotkey].update({
-                    'uid': uid,
-                    'last_active': time.time(),
-                    'status': 'active'
-                })
-
-            return {"success": success}
-
-        except Exception as e:
-            logger.error(f"Error registering miner: {str(e)}")
-            return {"success": False}
 
     async def check_miners_status(self):
         """Periodic check of miners' status"""
