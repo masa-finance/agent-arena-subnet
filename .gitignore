@@ -7,3 +7,4 @@ userstories.md
 /bittensor
 /protocol/__pycache__
 /neurons/__pycache__
+.env

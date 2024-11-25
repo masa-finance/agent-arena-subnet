@@ -13,12 +13,17 @@ import asyncio
 import time
 from fastapi import FastAPI
 import uvicorn
+import os
+from fiber.chain.metagraph import Metagraph
 
 logger = get_logger(__name__)
 
 class AgentValidator:
     def __init__(self):
         """Initialize validator"""
+        # Set NETUID environment variable
+        os.environ["NETUID"] = "1"  # Your subnet's netuid
+        
         self.scoring_weights = {
             'impressions': 0.25,
             'likes': 0.25,
@@ -30,9 +35,17 @@ class AgentValidator:
         self.registered_agents: Dict[str, str] = {}   # hotkey -> twitter_handle mapping
         self.keypair = None
         self.server: Optional[factory_app] = None
-        self.substrate = interface.get_substrate(subtensor_network="finney")
-        self.netuid = 1  # Your subnet's netuid
+        
+        # Get network configuration from environment
+        network = os.getenv("SUBTENSOR_NETWORK", "finney")
+        network_address = os.getenv("SUBTENSOR_ADDRESS")
+        self.substrate = interface.get_substrate(
+            subtensor_network=network,
+            subtensor_address=network_address
+        )
+        self.netuid = int(os.getenv("NETUID", "1"))
         self.app: Optional[FastAPI] = None
+        self.metagraph = None
         
     async def start(self, keypair: Keypair, port: int = 8081):
         """Start the validator"""
@@ -40,19 +53,30 @@ class AgentValidator:
             self.keypair = keypair
             self.httpx_client = httpx.AsyncClient()
             
-            # Create FastAPI app using Fiber's factory
+            # Create FastAPI app using standard factory
             self.app = factory_app(debug=False)
             
             # Add our custom routes
             self.register_routes()
             
+            # Initialize metagraph before starting server
+            await self.sync_metagraph()
+            
+            logger.info(f"Validator started with hotkey {self.keypair.ss58_address}")
             logger.info(f"Validator started with hotkey {self.keypair.ss58_address} on port {port}")
             
             # Start background tasks
             asyncio.create_task(self.status_check_loop())
             
             # Start the FastAPI server
-            uvicorn.run(self.app, host="0.0.0.0", port=port)
+            config = uvicorn.Config(
+                self.app,
+                host="0.0.0.0",
+                port=port,
+                lifespan="on"
+            )
+            server = uvicorn.Server(config)
+            await server.serve()
             
         except Exception as e:
             logger.error(f"Failed to start validator: {str(e)}")
@@ -246,3 +270,16 @@ class AgentValidator:
             except Exception as e:
                 logger.error(f"Error in status check loop: {str(e)}")
                 await asyncio.sleep(30)  # Wait before retrying
+
+    async def sync_metagraph(self):
+        """Sync the metagraph state"""
+        try:
+            if self.metagraph is None:
+                self.metagraph = Metagraph(
+                    netuid=self.netuid,
+                    substrate=self.substrate
+                )
+            self.metagraph.sync_nodes()
+            logger.info("Metagraph synced successfully")
+        except Exception as e:
+            logger.error(f"Failed to sync metagraph: {str(e)}")
