@@ -8,3 +8,5 @@ userstories.md
 /protocol/__pycache__
 /neurons/__pycache__
 .env
+nodes.json
+*.encrypted

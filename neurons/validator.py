@@ -21,8 +21,8 @@ logger = get_logger(__name__)
 class AgentValidator:
     def __init__(self):
         """Initialize validator"""
-        # Set NETUID environment variable
-        os.environ["NETUID"] = "1"  # Your subnet's netuid
+        # Get NETUID from environment (don't overwrite it)
+        self.netuid = int(os.getenv("NETUID", "1"))
         
         self.scoring_weights = {
             'impressions': 0.25,
