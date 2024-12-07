@@ -13,6 +13,7 @@ from fiber.validator import handshake
 
 logger = logging.getLogger(__name__)
 
+
 class AgentMiner:
     def __init__(self):
         """Initialize miner"""
@@ -38,15 +39,17 @@ class AgentMiner:
             await self.server.start()
 
             # Perform handshake with validator first
-            symmetric_key_str, self.symmetric_key_uuid = await handshake.initiate_handshake(
-                keypair=self.keypair,
-                httpx_client=self.httpx_client,
-                validator_address=self.validator_address
+            symmetric_key_str, self.symmetric_key_uuid = (
+                await handshake.initiate_handshake(
+                    keypair=self.keypair,
+                    httpx_client=self.httpx_client,
+                    validator_address=self.validator_address,
+                )
             )
-            
+
             if not symmetric_key_str or not self.symmetric_key_uuid:
                 raise ValueError("Failed to establish secure connection with validator")
-                
+
             self.fernet = Fernet(symmetric_key_str)
 
             # Register with validator after handshake
@@ -56,19 +59,18 @@ class AgentMiner:
                 fernet=self.fernet,
                 keypair=self.keypair,
                 symmetric_key_uuid=self.symmetric_key_uuid,
-                payload={
-                    "miner_hotkey": self.keypair.ss58_address,
-                    "port": port
-                },
-                endpoint="/register_miner"
+                payload={"miner_hotkey": self.keypair.ss58_address, "port": port},
+                endpoint="/register_miner",
             )
-            
-            if not registration_response.json().get('success'):
+
+            if not registration_response.json().get("success"):
                 raise ValueError("Failed to register with validator")
 
             self.registered_with_validator = True
-            
-            logger.info(f"Miner started on port {port} and registered with validator at {validator_address}")
+
+            logger.info(
+                f"Miner started on port {port} and registered with validator at {validator_address}"
+            )
         except Exception as e:
             logger.error(f"Failed to start miner: {str(e)}")
             raise
@@ -84,9 +86,9 @@ class AgentMiner:
                 keypair=self.keypair,
                 symmetric_key_uuid=self.symmetric_key_uuid,
                 payload={"hotkey": hotkey},
-                endpoint="/get_twitter_handle"
+                endpoint="/get_twitter_handle",
             )
-            return response.json().get('twitter_handle')
+            return response.json().get("twitter_handle")
         except Exception as e:
             logger.error(f"Failed to get Twitter handle: {str(e)}")
             return None
@@ -102,9 +104,9 @@ class AgentMiner:
                 keypair=self.keypair,
                 symmetric_key_uuid=self.symmetric_key_uuid,
                 payload={"twitter_handle": twitter_handle, "hotkey": hotkey},
-                endpoint="/register_agent"
+                endpoint="/register_agent",
             )
-            return response.json().get('success', False)
+            return response.json().get("success", False)
         except Exception as e:
             logger.error(f"Failed to forward registration: {str(e)}")
             return False
@@ -122,8 +124,7 @@ class AgentMiner:
 
             # Check registration on chain
             if not self.substrate.is_hotkey_registered(
-                ss58_address=self.keypair.ss58_address,
-                netuid=self.netuid
+                ss58_address=self.keypair.ss58_address, netuid=self.netuid
             ):
                 logger.error("Miner no longer registered on chain")
                 return False
@@ -136,10 +137,10 @@ class AgentMiner:
                 keypair=self.keypair,
                 symmetric_key_uuid=self.symmetric_key_uuid,
                 payload={"ping": True},
-                endpoint="/ping"
+                endpoint="/ping",
             )
-            
-            return response.json().get('success', False)
+
+            return response.json().get("success", False)
 
         except Exception as e:
             logger.error(f"Failed to verify registration: {str(e)}")

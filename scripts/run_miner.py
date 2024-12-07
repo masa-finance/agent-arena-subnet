@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fiber.chain import chain_utils, interface
 from neurons.miner import AgentMiner
 
+
 async def main():
     # Load env
     load_dotenv("dev.env")
@@ -18,9 +19,7 @@ async def main():
     # Initialize miner
     miner = AgentMiner()
     await miner.start(
-        keypair=keypair,
-        validator_address="http://localhost:8081",
-        port=8080
+        keypair=keypair, validator_address="http://localhost:8081", port=8080
     )
 
     try:
@@ -28,6 +27,7 @@ async def main():
             await asyncio.sleep(1)
     except KeyboardInterrupt:
         await miner.stop()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
