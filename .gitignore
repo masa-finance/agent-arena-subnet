@@ -10,3 +10,5 @@ userstories.md
 .env
 nodes.json
 *.encrypted
+/tests/__pycache__
+/protocol/x/__pycache__
