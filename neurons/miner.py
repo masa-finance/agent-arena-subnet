@@ -1,11 +1,12 @@
 from substrateinterface import Keypair
-from fiber.miner.server import Server
+from fiber.miner.server import factory_app
 from typing import Optional
 import logging
 import httpx
 import asyncio
 from cryptography.fernet import Fernet
-from fiber.chain import chain_utils, interface
+from fiber.chain import interface
+from fastapi import FastAPI
 
 # Import the vali_client module or object
 from fiber.validator import client as vali_client
@@ -17,16 +18,20 @@ logger = logging.getLogger(__name__)
 class AgentMiner:
     def __init__(self):
         """Initialize miner"""
-        self.server: Optional[Server] = None
+        self.server: Optional[FastAPI] = None
         self.httpx_client = None
         self.validator_address = None
         self.fernet = None
         self.keypair = None
         self.symmetric_key_uuid = None
         self.registered_with_validator = False
-        self.substrate = interface.get_substrate(subtensor_network="finney")
+        self.substrate = interface.get_substrate(
+            subtensor_network="finney"
+        )
 
-    async def start(self, keypair: Keypair, validator_address: str, port: int = 8080):
+    async def start(
+        self, keypair: Keypair, validator_address: str, port: int = 8080
+    ):
         """Start the Fiber server and register with validator"""
         try:
             # Initialize httpx client first
@@ -35,8 +40,20 @@ class AgentMiner:
             self.validator_address = validator_address
 
             # Start Fiber server before handshake
-            self.server = Server(keypair=keypair, port=port)
-            await self.server.start()
+            self.server = factory_app(debug=True)
+            await self.server.setup()
+
+            # Instead of decorators, use add_api_route to register endpoints
+            self.server.add_api_route(
+                path="/get_handle",
+                endpoint=self.get_twitter_handle,
+                methods=["GET"]
+            )
+            self.server.add_api_route(
+                path="/register",
+                endpoint=self.forward_registration,
+                methods=["POST"]
+            )
 
             # Perform handshake with validator first
             symmetric_key_str, self.symmetric_key_uuid = (
@@ -59,7 +76,10 @@ class AgentMiner:
                 fernet=self.fernet,
                 keypair=self.keypair,
                 symmetric_key_uuid=self.symmetric_key_uuid,
-                payload={"miner_hotkey": self.keypair.ss58_address, "port": port},
+                payload={
+                    "miner_hotkey": self.keypair.ss58_address,
+                    "port": port
+                },
                 endpoint="/register_miner",
             )
 
@@ -69,13 +89,13 @@ class AgentMiner:
             self.registered_with_validator = True
 
             logger.info(
-                f"Miner started on port {port} and registered with validator at {validator_address}"
+                f"Miner started on port {port} and registered with "
+                f"validator at {validator_address}"
             )
         except Exception as e:
             logger.error(f"Failed to start miner: {str(e)}")
             raise
 
-    @Server.endpoint("/get_handle")
     async def get_twitter_handle(self, hotkey: str) -> Optional[str]:
         """Get Twitter handle for a registered agent from the validator"""
         try:
@@ -90,10 +110,11 @@ class AgentMiner:
             )
             return response.json().get("twitter_handle")
         except Exception as e:
-            logger.error(f"Failed to get Twitter handle: {str(e)}")
+            logger.error(
+                f"Failed to get Twitter handle: {str(e)}"
+            )
             return None
 
-    @Server.endpoint("/register")
     async def forward_registration(self, twitter_handle: str, hotkey: str) -> bool:
         """Forward agent registration request to the validator"""
         try:
@@ -108,7 +129,9 @@ class AgentMiner:
             )
             return response.json().get("success", False)
         except Exception as e:
-            logger.error(f"Failed to forward registration: {str(e)}")
+            logger.error(
+                f"Failed to forward registration: {str(e)}"
+            )
             return False
 
     async def stop(self):
@@ -151,7 +174,9 @@ class AgentMiner:
         while True:
             try:
                 if not await self.verify_registration():
-                    logger.warning("Registration invalid, attempting to re-register...")
+                    logger.warning(
+                        "Registration invalid, attempting to re-register..."
+                    )
                     # Attempt to re-register
                     await self.register_with_validator()
                 await asyncio.sleep(60)  # Check every minute
