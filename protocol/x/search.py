@@ -29,7 +29,11 @@ def search_x(
         additional_params (Dict[str, Any], optional): Additional parameters to include in the request
         
     Returns:
-        Dict[str, Any]: The JSON response from the API
+        Dict[str, Any]: The JSON response from the API with structure:
+            {
+                "data": List[Dict] | None,
+                "recordCount": int
+            }
         
     Raises:
         requests.exceptions.RequestException: If the request fails
@@ -65,6 +69,27 @@ def search_x(
         # Try to get detailed error message from response
         try:
             response.raise_for_status()
+            
+            # Parse response
+            response_data = response.json()
+            
+            # Ensure consistent response structure
+            if response_data is None:
+                return {
+                    "data": None,
+                    "recordCount": 0
+                }
+            
+            # If data is missing or None, ensure it's properly structured
+            if "data" not in response_data or response_data["data"] is None:
+                response_data["data"] = None
+                response_data["recordCount"] = 0
+            else:
+                # Update recordCount based on actual data length
+                response_data["recordCount"] = len(response_data["data"])
+            
+            return response_data
+            
         except requests.exceptions.HTTPError as e:
             error_detail = ""
             try:
@@ -76,9 +101,6 @@ def search_x(
             raise Exception(
                 f"API request failed with status {response.status_code}{error_detail}"
             ) from e
-        
-        # Return JSON response
-        return response.json()
         
     except requests.exceptions.RequestException as e:
         # Handle connection errors (timeout, DNS failure, etc.)

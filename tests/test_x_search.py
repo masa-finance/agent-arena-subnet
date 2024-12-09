@@ -1,5 +1,5 @@
 import pytest
-from protocol.x.masa_protocol import search_x
+from protocol.x.search import search_x
 
 def test_search_x_live():
     """Test live X search request to local API"""
