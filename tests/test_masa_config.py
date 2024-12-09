@@ -1,5 +1,5 @@
 from masa_ai.masa import Masa as MasaSDK
-from protocol.x.masa import Masa
+from protocol.x.masa.masa import Masa
 from loguru import logger
 import pytest
 

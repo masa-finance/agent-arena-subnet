@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timedelta
-from protocol.x.masa import Masa
+from protocol.x.masa.masa import Masa
 import time
 from unittest.mock import patch
 import os

@@ -10,30 +10,28 @@ load_dotenv()
 # Get environment variables with fallbacks
 DEFAULT_BASE_URL = os.getenv('MASA_BASE_URL', "http://localhost:8080")
 DEFAULT_API_BASE = os.getenv('MASA_API_PATH', "/api/v1/data")
-DEFAULT_API_PATH = f"{DEFAULT_API_BASE}/twitter/tweets/recent"
+DEFAULT_API_PATH = f"{DEFAULT_API_BASE}/twitter/profile"
 
-def search_x(
+def get_x_profile(
+    username: str,
     base_url: str = DEFAULT_BASE_URL,
     api_path: str = DEFAULT_API_PATH,
-    query: str = "#Bitcoin",
-    count: int = 10,
     additional_params: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Send a POST request to the Masa API endpoint to search recent tweets.
+    Send a GET request to the Masa API endpoint to fetch a Twitter profile.
     
     Args:
+        username (str): The Twitter username to fetch (without @ symbol)
         base_url (str): The base URL of the API (default: "http://localhost:8080")
-        api_path (str): The API endpoint path (default: "/api/v1/data/twitter/tweets/recent")
-        query (str): The search query (default: "#Bitcoin")
-        count (int): Number of tweets to retrieve (default: 10)
+        api_path (str): The API endpoint path (default: "/api/v1/data/twitter/profile")
         additional_params (Dict[str, Any], optional): Additional parameters to include in the request
         
     Returns:
         Dict[str, Any]: The JSON response from the API with structure:
             {
-                "data": List[Dict] | None,
-                "recordCount": int
+                "data": Dict | None,  # Profile data or None if not found
+                "recordCount": int    # 1 if profile found, 0 if not
             }
         
     Raises:
@@ -41,7 +39,7 @@ def search_x(
     """
     
     # Construct full URL
-    api_url = f"{base_url.rstrip('/')}/{api_path.lstrip('/')}"
+    api_url = f"{base_url.rstrip('/')}/{api_path.lstrip('/')}/{username}"
     
     # Prepare headers
     headers = {
@@ -49,22 +47,15 @@ def search_x(
         "Content-Type": "application/json"
     }
     
-    # Prepare request body
-    body = {
-        "query": query,
-        "count": count
-    }
-    
     # Add any additional parameters if provided
-    if additional_params:
-        body.update(additional_params)
+    params = additional_params if additional_params else {}
     
     try:
-        # Send POST request
-        response = requests.post(
+        # Send GET request
+        response = requests.get(
             api_url,
             headers=headers,
-            json=body
+            params=params
         )
         
         # Try to get detailed error message from response
@@ -86,8 +77,8 @@ def search_x(
                 response_data["data"] = None
                 response_data["recordCount"] = 0
             else:
-                # Update recordCount based on actual data length
-                response_data["recordCount"] = len(response_data["data"])
+                # Set recordCount to 1 since this is a single profile
+                response_data["recordCount"] = 1
             
             return response_data
             
