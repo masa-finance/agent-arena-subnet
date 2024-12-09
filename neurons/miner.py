@@ -6,11 +6,12 @@ import httpx
 import asyncio
 from cryptography.fernet import Fernet
 from fiber.chain import interface
-from fastapi import FastAPI
+import uvicorn
 
 # Import the vali_client module or object
 from fiber.validator import client as vali_client
 from fiber.validator import handshake
+from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,9 @@ logger = logging.getLogger(__name__)
 class AgentMiner:
     def __init__(self):
         """Initialize miner"""
-        self.server: Optional[FastAPI] = None
+        self.server: Optional[factory_app] = None
+        self.app: Optional[FastAPI] = None
+        
         self.httpx_client = None
         self.validator_address = None
         self.fernet = None
@@ -31,7 +34,7 @@ class AgentMiner:
         )
 
     async def start(
-        self, keypair: Keypair, validator_address: str, miner_hotkey_ss58_address: bytes, port: int = 8080
+        self, keypair: Keypair, validator_address: str, miner_hotkey_ss58_address: str, port: int = 8080
     ):
         """Start the Fiber server and register with validator"""
         try:
@@ -41,61 +44,25 @@ class AgentMiner:
             self.validator_address = validator_address
             self.miner_hotkey_ss58_address = miner_hotkey_ss58_address
             # Start Fiber server before handshake
-            self.server = factory_app(debug=True)
+            self.app = factory_app(debug=False)
 
-            # Instead of decorators, use add_api_route to register endpoints
-            self.server.add_api_route(
-                path="/get_handle",
-                endpoint=self.get_twitter_handle,
-                methods=["GET"]
+            # Start the FastAPI server
+            config = uvicorn.Config(
+                self.app,
+                host="0.0.0.0",
+                port=port,
+                lifespan="on"
             )
-            self.server.add_api_route(
-                path="/register",
-                endpoint=self.forward_registration,
-                methods=["POST"]
-            )
-
-            # Perform handshake with validator first
-            symmetric_key_str, self.symmetric_key_uuid = (
-                await handshake.perform_handshake(
-                    miner_hotkey_ss58_address=self.miner_hotkey_ss58_address,
-                    keypair=self.keypair,
-                    httpx_client=self.httpx_client,
-                    server_address=self.validator_address,
-                )
-            )
-
-            if not symmetric_key_str or not self.symmetric_key_uuid:
-                raise ValueError("Failed to establish secure connection with validator")
-
-            self.fernet = Fernet(symmetric_key_str)
-
-            # Register with validator after handshake
-            registration_response = await vali_client.make_non_streamed_post(
-                httpx_client=self.httpx_client,
-                server_address=self.validator_address,
-                fernet=self.fernet,
-                keypair=self.keypair,
-                symmetric_key_uuid=self.symmetric_key_uuid,
-                payload={
-                    "miner_hotkey": self.keypair.ss58_address,
-                    "port": port
-                },
-                endpoint="/register_miner",
-            )
-
-            if not registration_response.json().get("success"):
-                raise ValueError("Failed to register with validator")
-
-            self.registered_with_validator = True
-
-            logger.info(
-                f"Miner started on port {port} and registered with "
-                f"validator at {validator_address}"
-            )
+            server = uvicorn.Server(config)
+            await server.serve()
         except Exception as e:
             logger.error(f"Failed to start miner: {str(e)}")
             raise
+             
+    def register_routes(self):
+        @self.app.get("/get_handle")
+        async def get_handle(hotkey: str):
+            return await self.get_twitter_handle(hotkey)
 
     async def get_twitter_handle(self, hotkey: str) -> Optional[str]:
         """Get Twitter handle for a registered agent from the validator"""
@@ -116,6 +83,11 @@ class AgentMiner:
             )
             return None
 
+    
+        
+        
+        
+        
     async def forward_registration(self, twitter_handle: str, hotkey: str) -> bool:
         """Forward agent registration request to the validator"""
         try:

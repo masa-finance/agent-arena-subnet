@@ -13,7 +13,7 @@ async def main():
     hotkey_name = os.getenv("HOTKEY_NAME", "default")
 
     # Initialize substrate using Fiber (not Bittensor)
-    substrate = interface.get_substrate(subtensor_network="finney")
+    substrate = interface.get_substrate(subtensor_network="test")
     keypair = chain_utils.load_hotkey_keypair(wallet_name, hotkey_name)
 
     # Initialize miner

@@ -116,6 +116,7 @@ class AgentValidator:
 
     async def handle_miner_registration(self, miner_hotkey: str, port: int) -> Dict:
         """Handle miner registration request"""
+        
         try:
             # Check registration on chain
             if not await self.is_miner_registered(miner_hotkey):
