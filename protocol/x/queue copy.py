@@ -23,13 +23,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Constants
-DEFAULT_MAX_CONCURRENT_REQUESTS = 5     # Maximum parallel requests
-DEFAULT_API_REQUESTS_PER_SECOND = 20    # Default to 20 RPS
-DEFAULT_RETRIES = 10                    # Number of retry attempts
-DEFAULT_PRIORITY = 100                  # Base priority level (higher = lower priority)
-BACKOFF_BASE_SLEEP = 1                  # Base delay (seconds) for exponential backoff
-THREAD_DAEMON = True                    # Run worker threads as daemons
-
+DEFAULT_MAX_CONCURRENT_REQUESTS = 5    # Maximum parallel requests
+DEFAULT_RETRIES = 3                    # Number of retry attempts
+DEFAULT_PRIORITY = 100                 # Base priority level (higher = lower priority)
+BACKOFF_BASE_SLEEP = 1                 # Base delay (seconds) for exponential backoff
+THREAD_DAEMON = True                   # Run worker threads as daemons
+DEFAULT_REQUESTS_PER_SECOND = 5.0      # Default to 2 RPS
 
 class RequestQueue:
     """A thread-safe priority queue system for handling different types of API requests.
@@ -66,7 +65,7 @@ class RequestQueue:
         self.counter = itertools.count()  # Unique sequence count
         
         # Rate limiting attributes
-        self.requests_per_second = DEFAULT_API_REQUESTS_PER_SECOND
+        self.requests_per_second = DEFAULT_REQUESTS_PER_SECOND
         self.last_request_time = time.time()
         self.rate_limit_lock = threading.Lock()
         logger.debug(f"Initialized RequestQueue with max_concurrent_requests={max_concurrent_requests}, "
