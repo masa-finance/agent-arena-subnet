@@ -23,6 +23,7 @@ class AgentMiner:
         self.validator_address = None
         self.fernet = None
         self.keypair = None
+        self.miner_hotkey_ss58_address = None
         self.symmetric_key_uuid = None
         self.registered_with_validator = False
         self.substrate = interface.get_substrate(
@@ -30,7 +31,7 @@ class AgentMiner:
         )
 
     async def start(
-        self, keypair: Keypair, validator_address: str, port: int = 8080
+        self, keypair: Keypair, validator_address: str, miner_hotkey_ss58_address: bytes, port: int = 8080
     ):
         """Start the Fiber server and register with validator"""
         try:
@@ -38,10 +39,9 @@ class AgentMiner:
             self.httpx_client = httpx.AsyncClient()
             self.keypair = keypair
             self.validator_address = validator_address
-
+            self.miner_hotkey_ss58_address = miner_hotkey_ss58_address
             # Start Fiber server before handshake
             self.server = factory_app(debug=True)
-            await self.server.setup()
 
             # Instead of decorators, use add_api_route to register endpoints
             self.server.add_api_route(
@@ -57,10 +57,11 @@ class AgentMiner:
 
             # Perform handshake with validator first
             symmetric_key_str, self.symmetric_key_uuid = (
-                await handshake.initiate_handshake(
+                await handshake.perform_handshake(
+                    miner_hotkey_ss58_address=self.miner_hotkey_ss58_address,
                     keypair=self.keypair,
                     httpx_client=self.httpx_client,
-                    validator_address=self.validator_address,
+                    server_address=self.validator_address,
                 )
             )
 
