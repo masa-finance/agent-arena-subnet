@@ -1,11 +1,26 @@
 import queue
 import threading
 import time
+import logging
+import os
 from typing import Any, Dict, Callable, Optional
+from dotenv import load_dotenv
+import itertools
 
 # Import the functions from their respective modules
 from protocol.x.profile import get_x_profile
 from protocol.x.search import search_x
+
+# Load environment variables
+load_dotenv()
+
+# Configure logging based on environment variable
+log_level = logging.DEBUG if os.getenv('DEBUG', '').lower() == 'true' else logging.INFO
+logging.basicConfig(
+    level=log_level,
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Constants
 DEFAULT_MAX_CONCURRENT_REQUESTS = 5  # Maximum parallel requests
@@ -42,6 +57,8 @@ class RequestQueue:
         self.max_concurrent_requests = max_concurrent_requests
         self.lock = threading.Lock()
         self.active_requests = 0
+        self.counter = itertools.count()  # Unique sequence count
+        logger.debug(f"Initialized RequestQueue with max_concurrent_requests={max_concurrent_requests}")
 
     def add_request(self, request_type: str, request_data: Dict[str, Any], priority: int = DEFAULT_PRIORITY):
         """Add a new request to the specified queue with given priority.
@@ -53,8 +70,10 @@ class RequestQueue:
                 Defaults to DEFAULT_PRIORITY (100).
         """
         if request_type in self.queues:
-            self.queues[request_type].put((priority, request_data))
-            print(f"Request added to {request_type} queue with priority {priority}")
+            # Add a unique count to ensure the items are always comparable
+            count = next(self.counter)
+            self.queues[request_type].put((priority, count, request_data))
+            logger.info(f"Request added to {request_type} queue with priority {priority}")
 
     def process_requests(self):
         """Continuously process requests from all queues in a separate thread.
@@ -62,10 +81,12 @@ class RequestQueue:
         This method runs in an infinite loop, checking each queue for pending requests
         and processing them if the concurrent request limit hasn't been reached.
         """
+        logger.debug("Starting to process requests")
         while True:
             for request_type, q in self.queues.items():
                 if not q.empty() and self.active_requests < self.max_concurrent_requests:
-                    priority, request_data = q.get()
+                    priority, count, request_data = q.get()
+                    logger.debug(f"Processing {request_type} request with priority {priority}")
                     threading.Thread(target=self._handle_request, args=(request_type, request_data), daemon=THREAD_DAEMON).start()
 
     def _handle_request(self, request_type: str, request_data: Dict[str, Any]):
@@ -85,13 +106,14 @@ class RequestQueue:
             else:
                 raise ValueError(f"Unknown request type: {request_type}")
 
-            print(f"Processed {request_type} request: {response}")
+            logger.info(f"Processed {request_type} request: {response}")
         except Exception as e:
-            print(f"Error processing request: {e}")
+            logger.error(f"Error processing request: {e}")
             self._retry_request(request_type, request_data)
         finally:
             with self.lock:
                 self.active_requests -= 1
+                logger.debug(f"Active requests count decremented: {self.active_requests}")
 
     def _retry_request(self, request_type: str, request_data: Dict[str, Any], retries: int = DEFAULT_RETRIES):
         """Retry failed requests with exponential backoff.
@@ -108,12 +130,12 @@ class RequestQueue:
         """
         for attempt in range(retries):
             try:
-                print(f"Retrying {request_type} request: {request_data}, attempt {attempt + 1}")
+                logger.warning(f"Retrying {request_type} request: {request_data}, attempt {attempt + 1}")
                 time.sleep(BACKOFF_BASE_SLEEP * (2 ** attempt))  # Exponential backoff
                 return
             except Exception as e:
-                print(f"Retry failed: {e}")
-        print(f"Request failed after {retries} attempts: {request_data}")
+                logger.error(f"Retry failed: {e}")
+        logger.error(f"Request failed after {retries} attempts: {request_data}")
 
     def start(self):
         """Start the request processing thread as a daemon thread.
@@ -121,6 +143,7 @@ class RequestQueue:
         Note:
             Thread daemon status is controlled by THREAD_DAEMON constant.
         """
+        logger.debug("Starting request processing thread")
         threading.Thread(target=self.process_requests, daemon=THREAD_DAEMON).start()
 
 # Example usage
