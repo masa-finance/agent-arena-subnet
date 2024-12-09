@@ -47,12 +47,13 @@ class XSearchScheduler:
     """Scheduler for processing X search terms from validator database.
     
     This scheduler periodically fetches search terms from a validator's database
-    and queues them for processing. Each search term is combined with a time range
-    and configured count before being added to the processing queue.
+    and queues them for processing. Each search term is processed with a 1-day
+    lookback period, regardless of the scheduler's interval. The scheduler's
+    interval only controls how often new terms are fetched from the database.
     
     Attributes:
         request_queue (RequestQueue): Queue for processing search requests
-        interval_minutes (int): How often to run the scheduler in minutes
+        interval_minutes (int): How often to check for new search terms (minutes)
         batch_size (int): Maximum number of search terms to process per batch
         priority (int): Priority level for queue requests (lower = higher priority)
         search_count (int): Number of results to request for each search term
@@ -71,7 +72,7 @@ class XSearchScheduler:
         
         Args:
             request_queue (RequestQueue): Queue instance for processing requests
-            interval_minutes (int): How often to run the scheduler in minutes
+            interval_minutes (int): How often to check for new search terms
             batch_size (int): Maximum number of search terms to process per batch
             priority (int): Priority level for queue requests (lower = higher priority)
             search_count (int): Number of results to request for each search term
@@ -118,29 +119,29 @@ class XSearchScheduler:
         """Prepare search query with time range parameters.
         
         Takes a search term from the database and prepares it for processing by adding
-        time range parameters and the configured result count.
+        a 1-day lookback period and the configured result count. The time range is
+        formatted as dates only (no time component) to match X's search syntax.
         
         Args:
             term (Dict[str, Any]): Search term configuration from database containing
                 'id' and 'search_term' keys
             
         Returns:
-            Dict[str, Any]: Prepared search query parameters including the query string
-                with time range and the configured result count
+            Dict[str, Any]: Prepared search query parameters including:
+                - query: Search string with date range (YYYY-MM-DD format)
+                - count: Number of results to request
+                - miner_id: ID of the miner who provided the search term
         """
         current_time = datetime.now(UTC)
         
-        # If this is the first run, use a lookback period matching the interval
-        if not self.last_run_time:
-            start_time = current_time - timedelta(minutes=self.interval_minutes)
-        else:
-            start_time = self.last_run_time
+        # Always use a 1-day lookback period
+        start_time = current_time - timedelta(days=1)
             
-        # Format the query string with time range including time component
+        # Format the query string with date range only (no time component)
         query = (
             f"{term['search_term']} "
-            f"until:{current_time.strftime('%Y-%m-%d_%H:%M:%S')} "
-            f"since:{start_time.strftime('%Y-%m-%d_%H:%M:%S')}"
+            f"until:{current_time.strftime('%Y-%m-%d')} "
+            f"since:{start_time.strftime('%Y-%m-%d')}"
         )
         
         return {
@@ -152,8 +153,9 @@ class XSearchScheduler:
     def process_search_terms(self):
         """Process a batch of search terms and add them to the queue.
         
-        Fetches search terms from the database, prepares them with time ranges
-        and configured count, then adds them to the processing queue.
+        Fetches search terms from the database, prepares them with a 1-day
+        lookback period and configured count, then adds them to the processing
+        queue. Each term is processed independently with its own date range.
         """
         try:
             current_time = datetime.now(UTC)
@@ -181,8 +183,9 @@ class XSearchScheduler:
         """Start the scheduler.
         
         Initiates the scheduler to run at the configured interval. The scheduler
-        will immediately process search terms once, then continue processing at
-        the specified interval.
+        will immediately process search terms once, then continue checking for
+        new terms at the specified interval. Each search term is processed with
+        a 1-day lookback period, regardless of the scheduler's interval.
         """
         logger.info(f"Starting XSearchScheduler with {self.interval_minutes} minute interval")
         
