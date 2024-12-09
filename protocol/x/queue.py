@@ -47,6 +47,24 @@ class RequestQueue:
         requests_per_second (float): Maximum number of requests allowed per second.
         last_request_time (float): Timestamp of the last processed request.
         rate_limit_lock (threading.Lock): Thread lock for rate limiting.
+
+    Example:
+        >>> rq = RequestQueue(max_concurrent_requests=5)
+        >>> rq.start()
+        >>> 
+        >>> # Add a search request
+        >>> rq.add_request(
+        ...     request_type='search',
+        ...     request_data={'query': '#Bitcoin'},
+        ...     priority=1
+        ... )
+        >>> 
+        >>> # Add a profile request
+        >>> rq.add_request(
+        ...     request_type='profile',
+        ...     request_data={'username': 'elonmusk'},
+        ...     priority=2
+        ... )
     """
 
     def __init__(self, max_concurrent_requests: int = DEFAULT_MAX_CONCURRENT_REQUESTS):
@@ -78,8 +96,25 @@ class RequestQueue:
         Args:
             request_type (str): Type of request ('search' or 'profile').
             request_data (Dict[str, Any]): Request payload data.
+                For search: {'query': 'search_term'}
+                For profile: {'username': 'twitter_username'}
             priority (int, optional): Priority level (lower number = higher priority). 
                 Defaults to DEFAULT_PRIORITY (100).
+
+        Example:
+            >>> # Search request example
+            >>> rq.add_request(
+            ...     request_type='search',
+            ...     request_data={'query': '#AI AND #ML'},
+            ...     priority=1
+            ... )
+            >>> 
+            >>> # Profile request example
+            >>> rq.add_request(
+            ...     request_type='profile',
+            ...     request_data={'username': 'naval'},
+            ...     priority=2
+            ... )
         """
         if request_type in self.queues:
             count = next(self.counter)
@@ -186,6 +221,14 @@ class RequestQueue:
             Thread daemon status is controlled by THREAD_DAEMON constant.
             The processing thread will handle requests according to their priority
             and respect both concurrency limits and rate limiting settings.
+
+        Example:
+            >>> rq = RequestQueue(max_concurrent_requests=5)
+            >>> rq.start()  # Starts processing thread
+            >>> 
+            >>> # Add requests after starting the queue
+            >>> rq.add_request('search', {'query': '#Bitcoin'}, priority=1)
+            >>> rq.add_request('profile', {'username': 'vitalikbuterin'}, priority=2)
         """
         logger.debug("Starting request processing thread")
         threading.Thread(target=self.process_requests, daemon=THREAD_DAEMON).start()
