@@ -4,14 +4,16 @@ import asyncio
 from dotenv import load_dotenv
 from fiber.chain import chain_utils
 from neurons.miner import AgentMiner
+from fiber.logging_utils import get_logger
 
+logger = get_logger(__name__)
 
 async def main():
     # Load env
     load_dotenv()
-    wallet_name = os.getenv("MINER_WALLET_NAME", "miner")
-    hotkey_name = os.getenv("MINER_HOTKEY_NAME", "default")
 
+    wallet_name = os.getenv("WALLET_NAME", "miner")
+    hotkey_name = os.getenv("HOTKEY_NAME", "default")
     keypair = chain_utils.load_hotkey_keypair(wallet_name, hotkey_name)
 
     # Initialize miner

@@ -13,15 +13,7 @@ async def main():
     try:
         # Load environment variables from .env file
         load_dotenv()
-        
-        # Get network configuration from environment variables
-        network = os.getenv("SUBTENSOR_NETWORK", "finney")
-        network_address = os.getenv("SUBTENSOR_ADDRESS", "wss://entrypoint-finney.opentensor.ai:443")
-        
-        # Get NETUID from environment variable
-        netuid = os.getenv("NETUID", "1")  # Default to 1 if not set
-        os.environ["NETUID"] = netuid
-
+    
         wallet_name = os.getenv("VALIDATOR_WALLET_NAME", "validator")
         hotkey_name = os.getenv("VALIDATOR_HOTKEY_NAME", "default")
 
