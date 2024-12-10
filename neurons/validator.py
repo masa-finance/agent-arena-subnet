@@ -36,7 +36,7 @@ class AgentValidator:
         # hotkey -> miner_info mapping
         self.registered_miners: Dict[str, Dict] = {}
         # hotkey -> twitter_handle mapping
-        self.registered_agents: Dict[str, str] = {}
+        self.registered_agents: Dict[str, Dict] = {}
         self.keypair = None
         self.server: Optional[factory_app] = None
 
@@ -156,7 +156,6 @@ class AgentValidator:
 
     async def register_agent(self, node: Node, verified_tweet: Dict):
         """Register an agent"""
-        # TODO register...
         registration_data = {
             "hotkey": node.hotkey,
             # "uid": node.uid,
@@ -166,6 +165,8 @@ class AgentValidator:
             "verification_tweet": verified_tweet,
         }
         logger.info("Registration data: %s", json.dumps(registration_data))
+        # TODO just to ensure this runs once for now...
+        self.registered_agents[node.hotkey] = registration_data
         return registration_data
 
     async def registration_check_loop(self):
@@ -271,6 +272,8 @@ class AgentValidator:
             tweet_data_result = (
                 result.get("data", {}).get("tweetResult", {}).get("result", {})
             )
+            created_at = tweet_data_result.get("legacy", {}).get("created_at")
+            tweet_id = tweet_data_result.get("rest_id")
             user = (
                 tweet_data_result.get("core", {})
                 .get("user_results", {})
@@ -278,10 +281,7 @@ class AgentValidator:
             )
             screen_name = user.get("legacy", {}).get("screen_name")
             user_id = user.get("rest_id")
-
             full_text = tweet_data_result.get("legacy", {}).get("full_text")
-            # TODO need to get addtional fields from the verification tweet
-            # need to get the tweet_id, url, timestamp
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
                 logger.error(
@@ -298,9 +298,9 @@ class AgentValidator:
 
             verification_tweet = {
                 "user_id": user_id,  # for primary key
-                "tweet_id": "1866550265262071880",
-                "url": "https://twitter.com/BrendanPlayford/status/1866550265262071880",
-                "timestamp": "2024-12-10T18:27:16Z",
+                "tweet_id": tweet_id,
+                "url": f"https://twitter.com/{screen_name}/status/{tweet_id}",
+                "timestamp": created_at,
                 "full_text": full_text,
             }
             return verification_tweet
@@ -361,6 +361,6 @@ class AgentValidator:
     def register_routes(self):
         """Register FastAPI routes"""
 
-        @self.app.post("/verify_tweet")
-        async def verify_tweet(id: str):
-            return await self.verify_tweet(id)
+        # @self.app.post("/verify_tweet")
+        # async def verify_tweet(id: str):
+        #     return await self.verify_tweet(id)
