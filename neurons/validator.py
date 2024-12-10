@@ -158,9 +158,9 @@ class AgentValidator:
         """Register an agent"""
         registration_data = {
             "hotkey": node.hotkey,
-            # "uid": node.uid,
+            "uid": node.node_id,
             "subnet_id": self.netuid,
-            # "version": node.version,
+            "version": node.protocol,  # TODO implement versioning...
             "isActive": True,
             "verification_tweet": verified_tweet,
         }
@@ -293,8 +293,6 @@ class AgentValidator:
             if not self.registered_miners.get(full_text):
                 logger.error(f"Hotkey {full_text} is not registered on the metagraph")
                 return None
-
-            # TODO need to get the profile data from the screen_name (using sdk?)
 
             verification_tweet = {
                 "user_id": user_id,  # for primary key
