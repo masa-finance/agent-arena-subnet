@@ -11,6 +11,7 @@ import asyncio
 import time
 from fastapi import FastAPI
 import uvicorn
+import json
 import os
 from masa_ai.tools.validator import TweetValidator
 from fiber.chain.metagraph import Metagraph
@@ -122,10 +123,10 @@ class AgentValidator:
                                     node}: {str(e)}"
                         )
 
-                await asyncio.sleep(60)  # Check every minute
+                await asyncio.sleep(10)  # Check every minute
             except Exception as e:
                 logger.error("Error checking registered nodes: %s", str(e))
-                await asyncio.sleep(30)
+                await asyncio.sleep(5)
 
     async def get_agent_registration_info(self, node: Node):
         registered_miner = self.registered_miners.get(node.hotkey)
@@ -143,10 +144,15 @@ class AgentValidator:
             validator_ss58_address=self.keypair.ss58_address,
         )
 
-        if not registration_response.json().get("success"):
-            raise ValueError("Failed to register with validator")
-
-        print("Registration response", registration_response.json())
+        if registration_response.status_code == 200:
+            registration_data = registration_response.json()
+            x_registration_id = registration_data.get("x_registration_id")
+            verified_tweet = await self.verify_tweet(x_registration_id)
+            logger.info("Verified tweet: %s", json.dumps(verified_tweet))
+        else:
+            logger.error(
+                f"Failed to get registration info, status code: {registration_response.status_code}"
+            )
 
     async def registration_check_loop(self):
         """Periodically verify registration"""
@@ -301,10 +307,6 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
-
-    async def get_twitter_handle(self, hotkey: str) -> Optional[str]:
-        """Get Twitter handle for a registered agent"""
-        return self.registered_agents.get(hotkey)
 
     async def check_miners_status(self):
         """Periodic check of miners' status"""
