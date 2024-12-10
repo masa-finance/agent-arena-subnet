@@ -95,8 +95,12 @@ class AgentValidator:
             try:
                 miners = await fetch_nodes_from_substrate(self.substrate, self.netuid)
                 for miner in miners:
-                    logger.info(f"Miner Hotkey: {miner.hotkey}, IP: {
-                                miner.ip}, Port: {miner.port}")
+                    logger.info(f"Miner Hotkey: {miner.hotkey}, IP: {miner.ip}, Port: {miner.port}")
+
+                # Filter miners based on environment
+                if os.getenv("ENV", "prod").lower() == "dev":
+                    whitelist = os.getenv("MINER_WHITELIST", "").split(",")
+                    miners = [miner for miner in miners if miner.hotkey in whitelist]
 
                 miners_found = filter_nodes_with_ip_and_port(miners)
 
@@ -116,8 +120,7 @@ class AgentValidator:
                         miner_hotkey=miner.hotkey
                     )
                     if success:
-                        logger.info(f"Successfully connected to miner {
-                                    miner.hotkey}")
+                        logger.info(f"Successfully connected to miner {miner.hotkey}")
                     else:
                         logger.warning(
                             f"Failed to connect to miner {miner.hotkey}")
