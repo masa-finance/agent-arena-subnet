@@ -231,21 +231,24 @@ class AgentValidator:
         if self.server:
             await self.server.stop()
 
-    async def fetch_tweet(self, id: str) -> Optional[Dict[str, str]]:
+    async def verify_tweet(self, id: str) -> Optional[Dict[str, str]]:
         """Fetch tweet from Twitter API"""
         try:
             result = TweetValidator().fetch_tweet(id)
             tweet_data_result = (
                 result.get("data", {}).get("tweetResult", {}).get("result", {})
             )
-            screen_name = (
+            user = (
                 tweet_data_result.get("core", {})
                 .get("user_results", {})
                 .get("result", {})
-                .get("legacy", {})
-                .get("screen_name")
             )
+            screen_name = user.get("legacy", {}).get("screen_name")
+            user_id = user.get("rest_id")
+
             full_text = tweet_data_result.get("legacy", {}).get("full_text")
+            # TODO need to get addtional fields from the verification tweet
+            # need to get the tweet_id, url, timestamp
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
                 logger.error(
@@ -258,8 +261,30 @@ class AgentValidator:
                 logger.error(f"Hotkey {full_text} is not registered on the metagraph")
                 return None
 
-            logger.info(f"Tweet fetched: {screen_name} - {full_text}")
-            return {"screen_name": screen_name, "full_text": full_text}
+            # TODO need to get the profile data from the screen_name (using sdk?)
+
+            # registration_data = {
+            #     "hotkey": "5DXrRZikw1vD2po35yukUkQuPNxHSxhfwvTdvFHEZPhbZnYg",
+            #     "uid": "28",
+            #     "subnet_id": 59,
+            #     "version": "1.0.0",
+            #     "isActive": True,
+            #     "verification_tweet": {
+            #         "tweet_id": "1866550265262071880",
+            #         "url": "https://twitter.com/BrendanPlayford/status/1866550265262071880",
+            #         "timestamp": "2024-12-10T18:27:16Z",
+            #         "full_text": "@getmasafi 5DXrRZikw1vD2po35yukUkQuPNxHSxhfwvTdvFHEZPhbZnYg @CatLordLaffyDev",
+            #     },
+            # }
+
+            verification_tweet = {
+                "user_id": user_id,  # for primary key
+                "tweet_id": "1866550265262071880",
+                "url": "https://twitter.com/BrendanPlayford/status/1866550265262071880",
+                "timestamp": "2024-12-10T18:27:16Z",
+                "full_text": full_text,
+            }
+            return verification_tweet
         except Exception as e:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
@@ -321,6 +346,6 @@ class AgentValidator:
     def register_routes(self):
         """Register FastAPI routes"""
 
-        @self.app.post("/fetch_tweet")
-        async def fetch_tweet(id: str):
-            return await self.fetch_tweet(id)
+        @self.app.post("/verify_tweet")
+        async def verify_tweet(id: str):
+            return await self.verify_tweet(id)
