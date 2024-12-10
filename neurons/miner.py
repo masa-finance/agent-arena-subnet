@@ -4,6 +4,8 @@ from typing import Optional
 import logging
 import httpx
 import asyncio
+import os
+
 from cryptography.fernet import Fernet
 from fiber.chain import interface
 import uvicorn
@@ -12,6 +14,7 @@ import uvicorn
 from fiber.validator import client as vali_client
 from fiber.validator import handshake
 from fastapi import FastAPI
+from fiber.miner.middleware import configure_extra_logging_middleware
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,9 @@ class AgentMiner:
             self.miner_hotkey_ss58_address = miner_hotkey_ss58_address
             # Start Fiber server before handshake
             self.app = factory_app(debug=False)
+            
+            if os.getenv("ENV", "prod").lower() == "dev":
+                configure_extra_logging_middleware(self.app)
 
             # Start the FastAPI server
             config = uvicorn.Config(
