@@ -74,6 +74,7 @@ class AgentValidator:
             # Start background tasks
             asyncio.create_task(self.status_check_loop())
             asyncio.create_task(self.registration_check_loop())
+            asyncio.create_task(self.check_registered_nodes_agents())
 
             # Start the FastAPI server
             config = uvicorn.Config(
@@ -89,18 +90,77 @@ class AgentValidator:
             logger.error(f"Failed to start validator: {str(e)}")
             raise
 
+    async def check_registered_nodes_agents(self):
+        while True:
+            unregistered_nodes = []
+            try:
+                # Iterate over each registered node to check if it has a registered agent
+                for node in self.registered_miners:
+                    if node not in self.registered_agents:
+                        unregistered_nodes.append(node)
+                        logger.info(
+                            f"Node with hotkey {
+                                node} does not have a registered agent."
+                        )
+
+                # Log the unregistered nodes
+                if unregistered_nodes:
+                    logger.info(
+                        "Unregistered nodes found: %s",
+                        ", ".join(node for node in unregistered_nodes)
+                    )
+                else:
+                    logger.info("All nodes have registered agents.")
+
+                for node in unregistered_nodes:
+                    try:
+                        nodes = await fetch_nodes_from_substrate(self.substrate, self.netuid)
+                        full_node = next((n for n in nodes if n.hotkey == node), None)
+                        if full_node:
+                            await self.get_agent_registration_info(full_node)
+                    except Exception as e:
+                        logger.error(f"Failed to get registration info for node {
+                                    node}: {str(e)}")
+
+                await asyncio.sleep(60)  # Check every minute
+            except Exception as e:
+                logger.error("Error checking registered nodes: %s", str(e))
+                await asyncio.sleep(30)
+
+    async def get_agent_registration_info(self, node: Node):
+        registered_miner = self.registered_miners.get(node.hotkey)
+
+        server_address = vali_client.construct_server_address(
+            node=node,
+            replace_with_docker_localhost=False,
+            replace_with_localhost=True,
+        )
+        registration_response = await vali_client.make_non_streamed_get(httpx_client=self.httpx_client, server_address=server_address, symmetric_key_uuid=registered_miner.get(
+            'symmetric_key_uuid'), endpoint="/get_handle", validator_ss58_address=self.keypair.ss58_address)
+
+        if not registration_response.json().get('success'):
+            raise ValueError("Failed to register with validator")
+
+        print("Registration response", registration_response.json())
+
     async def registration_check_loop(self):
         """Periodically verify registration"""
         while True:
             try:
                 miners = await fetch_nodes_from_substrate(self.substrate, self.netuid)
                 for miner in miners:
-                    logger.info(f"Miner Hotkey: {miner.hotkey}, IP: {miner.ip}, Port: {miner.port}")
+                    logger.info(f"Miner Hotkey: {miner.hotkey}, IP: {
+                                miner.ip}, Port: {miner.port}")
 
                 # Filter miners based on environment
                 if os.getenv("ENV", "prod").lower() == "dev":
                     whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                    miners = [miner for miner in miners if miner.hotkey in whitelist]
+                    miners = [
+                        miner for miner in miners if miner.hotkey in whitelist]
+
+                # Filter out already registered miners
+                miners = [
+                    miner for miner in miners if miner.hotkey not in self.registered_miners]
 
                 miners_found = filter_nodes_with_ip_and_port(miners)
 
@@ -120,7 +180,8 @@ class AgentValidator:
                         miner_hotkey=miner.hotkey
                     )
                     if success:
-                        logger.info(f"Successfully connected to miner {miner.hotkey}")
+                        logger.info(f"Successfully connected to miner {
+                                    miner.hotkey}")
                     else:
                         logger.warning(
                             f"Failed to connect to miner {miner.hotkey}")
@@ -146,40 +207,6 @@ class AgentValidator:
             return {"success": success}
         except Exception as e:
             logger.error(f"Error handling register_agent: {str(e)}")
-            return {"success": False}
-
-    async def handle_miner_registration(self, miner_hotkey: str, port: int) -> Dict:
-        """Handle miner registration request"""
-
-        try:
-            # Check registration on chain
-            if not await self.is_miner_registered(miner_hotkey):
-                return {
-                    "success": False,
-                    "error": "Miner not registered or not active on subnet"
-                }
-
-            # Get UID from metagraph
-            uid = self.metagraph.hotkeys.index(miner_hotkey)
-
-            # Connect to miner
-            success = await self.connect_to_miner(
-                miner_address=f"http://localhost:{port}",
-                miner_hotkey=miner_hotkey
-            )
-
-            if success:
-                # Update miner info
-                self.registered_miners[miner_hotkey].update({
-                    'uid': uid,
-                    'last_active': time.time(),
-                    'status': 'active'
-                })
-
-            return {"success": success}
-
-        except Exception as e:
-            logger.error(f"Error registering miner: {str(e)}")
             return {"success": False}
 
     async def connect_to_miner(self, miner_address: str, miner_hotkey: str) -> bool:
@@ -253,31 +280,6 @@ class AgentValidator:
     async def get_twitter_handle(self, hotkey: str) -> Optional[str]:
         """Get Twitter handle for a registered agent"""
         return self.registered_agents.get(hotkey)
-
-    async def is_miner_registered(self, miner_hotkey: str) -> bool:
-        """Check if miner is registered on the network"""
-        try:
-            # Check local registration
-            if miner_hotkey not in self.registered_miners:
-                return False
-
-            # Sync metagraph to get latest state
-            await self.sync_metagraph()
-
-            # Get UID from metagraph
-            uid = self.metagraph.hotkeys.index(miner_hotkey)
-
-            # Check if registered and active on metagraph
-            is_registered = uid in self.metagraph.uids
-            is_active = self.metagraph.active[uid].item() == 1
-
-            return is_registered and is_active
-
-        except ValueError:  # Hotkey not found in metagraph
-            return False
-        except Exception as e:
-            logger.error(f"Error checking miner registration: {str(e)}")
-            return False
 
     async def check_miners_status(self):
         """Periodic check of miners' status"""

@@ -49,6 +49,8 @@ class AgentMiner:
             # Start Fiber server before handshake
             self.app = factory_app(debug=False)
             
+            self.register_routes()
+            
             if os.getenv("ENV", "prod").lower() == "dev":
                 configure_extra_logging_middleware(self.app)
 
@@ -67,29 +69,22 @@ class AgentMiner:
             raise
              
     def register_routes(self):
-        @self.app.get("/get_handle")
-        async def get_handle(hotkey: str):
-            return await self.get_twitter_handle(hotkey)
+        async def get_handle():
+            return await self.get_x_registration_info()
+        
+        self.app.add_api_route("/get_handle", get_handle, methods=["GET"])
 
-    async def get_twitter_handle(self, hotkey: str) -> Optional[str]:
+    async def get_x_registration_info(self) -> Optional[str]:
         """Get Twitter handle for a registered agent from the validator"""
         try:
-            response = await vali_client.make_non_streamed_post(
-                httpx_client=self.httpx_client,
-                server_address=self.validator_address,
-                fernet=self.fernet,
-                keypair=self.keypair,
-                symmetric_key_uuid=self.symmetric_key_uuid,
-                payload={"hotkey": hotkey},
-                endpoint="/get_twitter_handle",
-            )
-            return response.json().get("twitter_handle")
+            x_registration_id = os.getenv("TWEET_VERIFICATION_ID")
+            return {"x_registration_id": x_registration_id}
         except Exception as e:
             logger.error(
                 f"Failed to get Twitter handle: {str(e)}"
             )
             return None
-  
+
     async def forward_registration(self, twitter_handle: str, hotkey: str) -> bool:
         """Forward agent registration request to the validator"""
         try:
