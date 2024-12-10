@@ -9,8 +9,8 @@ from neurons.miner import AgentMiner
 async def main():
     # Load env
     load_dotenv("dev.env")
-    wallet_name = os.getenv("WALLET_NAME", "default")
-    hotkey_name = os.getenv("HOTKEY_NAME", "default")
+    wallet_name = os.getenv("MINER_WALLET_NAME", "default_miner")
+    hotkey_name = os.getenv("MINER_HOTKEY_NAME", "default_miner")
 
     keypair = chain_utils.load_hotkey_keypair(wallet_name, hotkey_name)
 

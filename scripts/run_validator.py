@@ -22,9 +22,8 @@ async def main():
         netuid = os.getenv("NETUID", "1")  # Default to 1 if not set
         os.environ["NETUID"] = netuid
 
-            
-        wallet_name = os.getenv("WALLET_NAME", "default")
-        hotkey_name = os.getenv("HOTKEY_NAME", "default")
+        wallet_name = os.getenv("VALIDATOR_WALLET_NAME", "default_validator")
+        hotkey_name = os.getenv("VALIDATOR_HOTKEY_NAME", "default_validator")
 
         keypair = chain_utils.load_hotkey_keypair(wallet_name, hotkey_name)
         
