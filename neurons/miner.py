@@ -37,14 +37,14 @@ class AgentMiner:
         )
 
     async def start(
-        self, keypair: Keypair, validator_address: str, miner_hotkey_ss58_address: str, port: int = 8080
+        self, keypair: Keypair, miner_hotkey_ss58_address: str, port: int = 8080
     ):
         """Start the Fiber server and register with validator"""
         try:
             # Initialize httpx client first
             self.httpx_client = httpx.AsyncClient()
             self.keypair = keypair
-            self.validator_address = validator_address
+            self.validator_address = "http://localhost:8081"
             self.miner_hotkey_ss58_address = miner_hotkey_ss58_address
             # Start Fiber server before handshake
             self.app = factory_app(debug=False)

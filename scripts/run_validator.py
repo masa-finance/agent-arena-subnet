@@ -4,6 +4,7 @@ from substrateinterface import Keypair
 from fiber.logging_utils import get_logger
 from neurons.validator import AgentValidator
 from dotenv import load_dotenv
+from fiber.chain import chain_utils
 
 logger = get_logger(__name__)
 
@@ -20,13 +21,12 @@ async def main():
         # Get NETUID from environment variable
         netuid = os.getenv("NETUID", "1")  # Default to 1 if not set
         os.environ["NETUID"] = netuid
-        
-        # Get seed phrase from environment variable
-        seed_phrase = os.getenv("SEED_PHRASE")
-        if not seed_phrase:
-            raise ValueError("SEED_PHRASE environment variable is not set")
+
             
-        keypair = Keypair.create_from_mnemonic(seed_phrase)
+        wallet_name = os.getenv("WALLET_NAME", "default")
+        hotkey_name = os.getenv("HOTKEY_NAME", "default")
+
+        keypair = chain_utils.load_hotkey_keypair(wallet_name, hotkey_name)
         
         # Create validator with network settings
         validator = AgentValidator()

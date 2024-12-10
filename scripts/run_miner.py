@@ -17,7 +17,7 @@ async def main():
     # Initialize miner
     miner = AgentMiner()
     await miner.start(
-        keypair=keypair, validator_address="http://localhost:8081", miner_hotkey_ss58_address=keypair.public_key, port=8080
+        keypair=keypair, miner_hotkey_ss58_address=keypair.public_key, port=8080
     )
 
     try:

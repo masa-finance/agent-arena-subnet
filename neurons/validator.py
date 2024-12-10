@@ -98,7 +98,7 @@ class AgentValidator:
                     logger.info(f"Miner Hotkey: {miner.hotkey}, IP: {
                                 miner.ip}, Port: {miner.port}")
 
-                miners_found = miners
+                miners_found = filter_nodes_with_ip_and_port(miners)
 
                 logger.info(
                     "Checking miners registration for: %s",
@@ -109,7 +109,7 @@ class AgentValidator:
                     server_address = vali_client.construct_server_address(
                         node=miner,
                         replace_with_docker_localhost=False,
-                        replace_with_localhost=False,
+                        replace_with_localhost=True,
                     )
                     success = await self.connect_to_miner(
                         miner_address=server_address,
