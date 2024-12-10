@@ -12,10 +12,10 @@ import time
 from fastapi import FastAPI
 import uvicorn
 import os
-import json
 from masa_ai.tools.validator import TweetValidator
 from fiber.chain.metagraph import Metagraph
 from validator.utils import fetch_nodes_from_substrate, filter_nodes_with_ip_and_port
+from fiber.networking.models import NodeWithFernet as Node
 
 logger = get_logger(__name__)
 
@@ -103,20 +103,24 @@ class AgentValidator:
                 if unregistered_nodes:
                     logger.info(
                         "Unregistered nodes found: %s",
-                        ", ".join(node for node in unregistered_nodes)
+                        ", ".join(node for node in unregistered_nodes),
                     )
                 else:
                     logger.info("All nodes have registered agents.")
 
                 for node in unregistered_nodes:
                     try:
-                        nodes = await fetch_nodes_from_substrate(self.substrate, self.netuid)
+                        nodes = await fetch_nodes_from_substrate(
+                            self.substrate, self.netuid
+                        )
                         full_node = next((n for n in nodes if n.hotkey == node), None)
                         if full_node:
                             await self.get_agent_registration_info(full_node)
                     except Exception as e:
-                        logger.error(f"Failed to get registration info for node {
-                                    node}: {str(e)}")
+                        logger.error(
+                            f"Failed to get registration info for node {
+                                    node}: {str(e)}"
+                        )
 
                 await asyncio.sleep(60)  # Check every minute
             except Exception as e:
@@ -131,10 +135,15 @@ class AgentValidator:
             replace_with_docker_localhost=False,
             replace_with_localhost=True,
         )
-        registration_response = await vali_client.make_non_streamed_get(httpx_client=self.httpx_client, server_address=server_address, symmetric_key_uuid=registered_miner.get(
-            'symmetric_key_uuid'), endpoint="/get_handle", validator_ss58_address=self.keypair.ss58_address)
+        registration_response = await vali_client.make_non_streamed_get(
+            httpx_client=self.httpx_client,
+            server_address=server_address,
+            symmetric_key_uuid=registered_miner.get("symmetric_key_uuid"),
+            endpoint="/get_handle",
+            validator_ss58_address=self.keypair.ss58_address,
+        )
 
-        if not registration_response.json().get('success'):
+        if not registration_response.json().get("success"):
             raise ValueError("Failed to register with validator")
 
         print("Registration response", registration_response.json())
@@ -152,12 +161,14 @@ class AgentValidator:
                 # Filter miners based on environment
                 if os.getenv("ENV", "prod").lower() == "dev":
                     whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                    miners = [
-                        miner for miner in miners if miner.hotkey in whitelist]
+                    miners = [miner for miner in miners if miner.hotkey in whitelist]
 
                 # Filter out already registered miners
                 miners = [
-                    miner for miner in miners if miner.hotkey not in self.registered_miners]
+                    miner
+                    for miner in miners
+                    if miner.hotkey not in self.registered_miners
+                ]
 
                 miners_found = filter_nodes_with_ip_and_port(miners)
 
@@ -176,8 +187,10 @@ class AgentValidator:
                         miner_address=server_address, miner_hotkey=miner.hotkey
                     )
                     if success:
-                        logger.info(f"Successfully connected to miner {
-                                    miner.hotkey}")
+                        logger.info(
+                            f"Successfully connected to miner {
+                                    miner.hotkey}"
+                        )
                     else:
                         logger.warning(f"Failed to connect to miner {miner.hotkey}")
 
