@@ -30,7 +30,7 @@ class AgentMiner:
         self.symmetric_key_uuid = None
         self.registered_with_validator = False
         self.substrate = interface.get_substrate(
-            subtensor_network="finney"
+            subtensor_network="test"
         )
 
     async def start(
@@ -55,6 +55,7 @@ class AgentMiner:
             )
             server = uvicorn.Server(config)
             await server.serve()
+            
         except Exception as e:
             logger.error(f"Failed to start miner: {str(e)}")
             raise
@@ -82,12 +83,7 @@ class AgentMiner:
                 f"Failed to get Twitter handle: {str(e)}"
             )
             return None
-
-    
-        
-        
-        
-        
+  
     async def forward_registration(self, twitter_handle: str, hotkey: str) -> bool:
         """Forward agent registration request to the validator"""
         try:
