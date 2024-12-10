@@ -24,7 +24,7 @@ class AgentMiner:
         """Initialize miner"""
         self.server: Optional[factory_app] = None
         self.app: Optional[FastAPI] = None
-        
+
         self.httpx_client = None
         self.validator_address = None
         self.fernet = None
@@ -32,9 +32,7 @@ class AgentMiner:
         self.miner_hotkey_ss58_address = None
         self.symmetric_key_uuid = None
         self.registered_with_validator = False
-        self.substrate = interface.get_substrate(
-            subtensor_network="test"
-        )
+        self.substrate = interface.get_substrate(subtensor_network="test")
 
     async def start(
         self, keypair: Keypair, miner_hotkey_ss58_address: str, port: int = 8080
@@ -48,31 +46,28 @@ class AgentMiner:
             self.miner_hotkey_ss58_address = miner_hotkey_ss58_address
             # Start Fiber server before handshake
             self.app = factory_app(debug=False)
-            
+
             self.register_routes()
-            
+
             if os.getenv("ENV", "prod").lower() == "dev":
                 configure_extra_logging_middleware(self.app)
 
             # Start the FastAPI server
-            config = uvicorn.Config(
-                self.app,
-                host="0.0.0.0",
-                port=port,
-                lifespan="on"
-            )
+            config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
             server = uvicorn.Server(config)
             await server.serve()
-            
+
         except Exception as e:
             logger.error(f"Failed to start miner: {str(e)}")
             raise
-             
+
     def register_routes(self):
-        async def get_handle():
+        async def get_verification_tweet():
             return await self.get_x_registration_info()
-        
-        self.app.add_api_route("/get_handle", get_handle, methods=["GET"])
+
+        self.app.add_api_route(
+            "/get_verification_tweet", get_verification_tweet, methods=["GET"]
+        )
 
     async def get_x_registration_info(self) -> Optional[str]:
         """Get Twitter handle for a registered agent from the validator"""
@@ -80,9 +75,7 @@ class AgentMiner:
             x_registration_id = os.getenv("TWEET_VERIFICATION_ID")
             return {"x_registration_id": x_registration_id}
         except Exception as e:
-            logger.error(
-                f"Failed to get Twitter handle: {str(e)}"
-            )
+            logger.error(f"Failed to get Twitter handle: {str(e)}")
             return None
 
     async def forward_registration(self, twitter_handle: str, hotkey: str) -> bool:
@@ -99,9 +92,7 @@ class AgentMiner:
             )
             return response.json().get("success", False)
         except Exception as e:
-            logger.error(
-                f"Failed to forward registration: {str(e)}"
-            )
+            logger.error(f"Failed to forward registration: {str(e)}")
             return False
 
     async def stop(self):
@@ -144,9 +135,7 @@ class AgentMiner:
         while True:
             try:
                 if not await self.verify_registration():
-                    logger.warning(
-                        "Registration invalid, attempting to re-register..."
-                    )
+                    logger.warning("Registration invalid, attempting to re-register...")
                     # Attempt to re-register
                     await self.register_with_validator()
                 await asyncio.sleep(60)  # Check every minute

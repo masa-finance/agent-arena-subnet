@@ -140,7 +140,7 @@ class AgentValidator:
             httpx_client=self.httpx_client,
             server_address=server_address,
             symmetric_key_uuid=registered_miner.get("symmetric_key_uuid"),
-            endpoint="/get_handle",
+            endpoint="/get_verification_tweet",
             validator_ss58_address=self.keypair.ss58_address,
         )
 
@@ -148,11 +148,25 @@ class AgentValidator:
             registration_data = registration_response.json()
             x_registration_id = registration_data.get("x_registration_id")
             verified_tweet = await self.verify_tweet(x_registration_id)
-            logger.info("Verified tweet: %s", json.dumps(verified_tweet))
+            await self.register_agent(node, verified_tweet)
         else:
             logger.error(
                 f"Failed to get registration info, status code: {registration_response.status_code}"
             )
+
+    async def register_agent(self, node: Node, verified_tweet: Dict):
+        """Register an agent"""
+        # TODO register...
+        registration_data = {
+            "hotkey": node.hotkey,
+            # "uid": node.uid,
+            "subnet_id": self.netuid,
+            # "version": node.version,
+            "isActive": True,
+            "verification_tweet": verified_tweet,
+        }
+        logger.info("Registration data: %s", json.dumps(registration_data))
+        return registration_data
 
     async def registration_check_loop(self):
         """Periodically verify registration"""
@@ -281,20 +295,6 @@ class AgentValidator:
                 return None
 
             # TODO need to get the profile data from the screen_name (using sdk?)
-
-            # registration_data = {
-            #     "hotkey": "5DXrRZikw1vD2po35yukUkQuPNxHSxhfwvTdvFHEZPhbZnYg",
-            #     "uid": "28",
-            #     "subnet_id": 59,
-            #     "version": "1.0.0",
-            #     "isActive": True,
-            #     "verification_tweet": {
-            #         "tweet_id": "1866550265262071880",
-            #         "url": "https://twitter.com/BrendanPlayford/status/1866550265262071880",
-            #         "timestamp": "2024-12-10T18:27:16Z",
-            #         "full_text": "@getmasafi 5DXrRZikw1vD2po35yukUkQuPNxHSxhfwvTdvFHEZPhbZnYg @CatLordLaffyDev",
-            #     },
-            # }
 
             verification_tweet = {
                 "user_id": user_id,  # for primary key
