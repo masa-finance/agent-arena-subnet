@@ -14,12 +14,14 @@ async def main():
 
     wallet_name = os.getenv("WALLET_NAME", "miner")
     hotkey_name = os.getenv("HOTKEY_NAME", "default")
+    port = int(os.getenv("MINER_PORT", 8080))
+
     keypair = chain_utils.load_hotkey_keypair(wallet_name, hotkey_name)
 
     # Initialize miner
     miner = AgentMiner()
     await miner.start(
-        keypair=keypair, miner_hotkey_ss58_address=keypair.public_key, port=8080
+        keypair=keypair, miner_hotkey_ss58_address=keypair.public_key, port=port
     )
 
     try:

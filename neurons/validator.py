@@ -251,6 +251,15 @@ class AgentValidator:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
 
+    async def fetch_tweet(self, id: str) -> Optional[str]:
+        """Fetch tweet from Twitter API"""
+        result = TweetValidator().fetch_tweet(id)
+        tweet_data_result = result['data']['tweetResult']['result']
+        screen_name = tweet_data_result['core']['user_results']['result']['legacy']['screen_name']
+        full_text = tweet_data_result['legacy']['full_text']
+        logger.info(f"Tweet fetched: {screen_name} - {full_text}")
+        return {"screen_name": screen_name, "full_text": full_text}
+
     async def get_twitter_handle(self, hotkey: str) -> Optional[str]:
         """Get Twitter handle for a registered agent"""
         return self.registered_agents.get(hotkey)
@@ -345,3 +354,7 @@ class AgentValidator:
         @self.app.post("/register_miner")
         async def register_miner(miner_hotkey: str, port: int):
             return await self.handle_miner_registration(miner_hotkey, port)
+        
+        @self.app.post("/fetch_tweet")
+        async def fetch_tweet(id: str):
+            return await self.fetch_tweet(id)
