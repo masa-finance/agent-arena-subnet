@@ -16,7 +16,7 @@ from fiber.chain.metagraph import Metagraph
 from utils.nodes import format_nodes_to_dict, filter_nodes_with_ip_and_port
 from utils.twitter import verify_tweet
 from fiber.networking.models import NodeWithFernet as Node
-from interfaces.types import VerifiedTweet, RegisteredAgent, RegisteredMiner
+from interfaces.types import VerifiedTweet, RegisteredAgent, RegisteredMiner, Profile
 
 logger = get_logger(__name__)
 
@@ -158,19 +158,19 @@ class AgentValidator:
         self, node: Node, verified_tweet: VerifiedTweet, user_id: str
     ):
         """Register an agent"""
-        registration_data = {
-            "hotkey": node.hotkey,
-            "uid": node.node_id,
-            "subnet_id": self.netuid,
-            "version": str(node.protocol),  # TODO implement versioning...
-            "isActive": True,
-            "verification_tweet": verified_tweet,
-            "profile": {
-                "data": {
-                    "UserID": user_id,
-                }
+        registration_data = RegisteredAgent(
+            hotkey=node.hotkey,
+            uid=node.node_id,
+            subnet_id=self.netuid,
+            version=str(node.protocol),  # TODO implement versioning...
+            isActive=True,
+            verification_tweet=verified_tweet,
+            profile={
+                "data": Profile(
+                    UserID=user_id,
+                )
             },
-        }
+        )
         logger.info("Registration data: %s", json.dumps(registration_data))
         # TODO just to ensure this runs once for now...
         self.registered_agents[node.hotkey] = registration_data
@@ -233,12 +233,12 @@ class AgentValidator:
                 return False
 
             # Store miner information
-            self.registered_miners[miner_hotkey] = {
-                "address": miner_address,
-                "symmetric_key": symmetric_key_str,
-                "symmetric_key_uuid": symmetric_key_uuid,
-                "fernet": Fernet(symmetric_key_str),
-            }
+            self.registered_miners[miner_hotkey] = RegisteredMiner(
+                address=miner_address,
+                symmetric_key=symmetric_key_str,
+                symmetric_key_uuid=symmetric_key_uuid,
+                fernet=Fernet(symmetric_key_str),
+            )
 
             return True
 

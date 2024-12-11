@@ -46,14 +46,14 @@ async def verify_tweet(id: str, hotkey: str) -> tuple[VerifiedTweet, str]:
             logger.error(msg)
             raise ValueError(msg)
 
-        verification_tweet = {
-            "tweet_id": tweet_id,
-            "url": f"https://twitter.com/{screen_name}/status/{tweet_id}",
-            "timestamp": datetime.strptime(
-                created_at, "%a %b %d %H:%M:%S %z %Y"
-            ).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "full_text": full_text,
-        }
+        verification_tweet = VerifiedTweet(
+            tweet_id=tweet_id,
+            url=f"https://twitter.com/{screen_name}/status/{tweet_id}",
+            timestamp=datetime.strptime(created_at, "%a %b %d %H:%M:%S %z %Y").strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
+            full_text=full_text,
+        )
         return verification_tweet, user_id
     except Exception as e:
         logger.error(f"Failed to register agent: {str(e)}")
