@@ -16,7 +16,13 @@ from fiber.chain.metagraph import Metagraph
 from utils.nodes import format_nodes_to_dict, filter_nodes_with_ip_and_port
 from utils.twitter import verify_tweet
 from fiber.networking.models import NodeWithFernet as Node
-from interfaces.types import VerifiedTweet, RegisteredAgent, RegisteredMiner, Profile
+from interfaces.types import (
+    VerifiedTweet,
+    RegisteredAgentRequest,
+    RegisteredAgentResponse,
+    RegisteredMiner,
+    Profile,
+)
 
 logger = get_logger(__name__)
 
@@ -33,7 +39,7 @@ class AgentValidator:
         self.httpx_client: Optional[httpx.AsyncClient] = None
 
         self.registered_miners: Dict[str, RegisteredMiner] = {}
-        self.registered_agents: Dict[str, RegisteredAgent] = {}
+        self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.keypair = None
         self.server: Optional[factory_app] = None
@@ -57,9 +63,9 @@ class AgentValidator:
             if response.status_code == 200:
                 active_agents = response.json()
                 self.registered_agents = {
-                    agent["hotkey"]: RegisteredAgent(**agent) for agent in active_agents
+                    agent["HotKey"]: RegisteredAgentResponse(**agent)
+                    for agent in active_agents
                 }
-                logger.info(json.dumps(self.registered_agents, indent=4))
                 logger.info("Successfully fetched and updated active agents.")
 
             else:
@@ -179,7 +185,7 @@ class AgentValidator:
         self, node: Node, verified_tweet: VerifiedTweet, user_id: str
     ):
         """Register an agent"""
-        registration_data = RegisteredAgent(
+        registration_data = RegisteredAgentRequest(
             hotkey=node.hotkey,
             uid=str(node.node_id),
             subnet_id=int(self.netuid),
@@ -313,3 +319,9 @@ class AgentValidator:
 
     def register_routes(self):
         """Register FastAPI routes"""
+
+        # self.app.add_api_route(
+        #     "/get_registered_agents",
+        #     format_registered_agents,
+        #     methods=["GET"],
+        # )

@@ -39,7 +39,7 @@ class Profile:
 
 
 @dataclass
-class RegisteredAgent:
+class RegisteredAgentRequest:
     hotkey: str
     uid: int
     subnet_id: int
@@ -47,6 +47,42 @@ class RegisteredAgent:
     isActive: bool
     verification_tweet: VerifiedTweet
     profile: Optional[dict[str, Profile]]
+
+
+@dataclass
+class RegisteredAgentResponse:
+    ID: int
+    HotKey: str
+    UID: str
+    UserID: str
+    SubnetID: int
+    Version: str
+    IsActive: bool
+    CreatedAt: str
+    UpdatedAt: str
+    Avatar: Optional[str]
+    Banner: Optional[str]
+    Biography: Optional[str]
+    Birthday: Optional[str]
+    FollowersCount: int
+    FollowingCount: int
+    FriendsCount: int
+    IsPrivate: bool
+    IsVerified: bool
+    Joined: str
+    LikesCount: int
+    ListedCount: int
+    Location: Optional[str]
+    Name: Optional[str]
+    PinnedTweetIDs: list[str]
+    TweetsCount: int
+    URL: Optional[str]
+    Username: Optional[str]
+    Website: Optional[str]
+    VerificationTweetID: str
+    VerificationTweetURL: str
+    VerificationTweetTimestamp: str
+    VerificationTweetText: str
 
 
 @dataclass
