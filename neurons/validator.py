@@ -1,3 +1,4 @@
+from typing import TypedDict
 import httpx
 from cryptography.fernet import Fernet
 from substrateinterface import Keypair
@@ -17,10 +18,10 @@ from masa_ai.tools.validator import TweetValidator
 from fiber.chain.metagraph import Metagraph
 from utils.nodes import fetch_nodes_from_substrate, filter_nodes_with_ip_and_port
 from fiber.networking.models import NodeWithFernet as Node
+from protocol.x.scheduler import XSearchScheduler
+from protocol.x.queue import RequestQueue
 
 logger = get_logger(__name__)
-
-from typing import TypedDict
 
 
 class Tweet(TypedDict):
@@ -65,6 +66,8 @@ class AgentValidator:
         self.keypair = None
         self.server: Optional[factory_app] = None
 
+        self.scheduler = None
+
         # Get network configuration from environment
         network = os.getenv("SUBTENSOR_NETWORK", "finney")
         network_address = os.getenv("SUBTENSOR_ADDRESS")
@@ -86,8 +89,25 @@ class AgentValidator:
             # Add our custom routes
             self.register_routes()
 
-            # Initialize metagraph before starting server
-            await self.sync_metagraph()
+            request_queue = RequestQueue()
+
+            request_queue.add_request(
+                request_type='search',
+                request_data={'query': '#Bitcoin'},
+                priority=1
+            )
+            request_queue.start()
+
+            self.scheduler = XSearchScheduler(
+                request_queue=request_queue,
+                interval_minutes=15,
+                batch_size=100,
+                priority=100,
+                search_count=10
+            )
+            self.scheduler.start()
+
+            # TODO: fetch registered agents from API
 
             # Start background tasks
             asyncio.create_task(self.status_check_loop())
@@ -95,7 +115,8 @@ class AgentValidator:
             asyncio.create_task(self.check_registered_nodes_agents_loop())
 
             # Start the FastAPI server
-            config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
+            config = uvicorn.Config(
+                self.app, host="0.0.0.0", port=port, lifespan="on")
             server = uvicorn.Server(config)
             await server.serve()
 
@@ -130,13 +151,14 @@ class AgentValidator:
                         nodes = await fetch_nodes_from_substrate(
                             self.substrate, self.netuid
                         )
-                        full_node = next((n for n in nodes if n.hotkey == node), None)
+                        full_node = next(
+                            (n for n in nodes if n.hotkey == node), None)
                         if full_node:
                             await self.register_agent_for_node(full_node)
                     except Exception as e:
                         logger.error(
                             f"Failed to get registration info for node {
-                                    node}: {str(e)}"
+                                node}: {str(e)}"
                         )
 
                 await asyncio.sleep(REGISTRATION_CHECK_CADENCE_SECONDS)
@@ -166,7 +188,8 @@ class AgentValidator:
             await self.register_agent(node, verified_tweet)
         else:
             logger.error(
-                f"Failed to get registration info, status code: {registration_response.status_code}"
+                f"Failed to get registration info, status code: {
+                    registration_response.status_code}"
             )
 
     async def register_agent(self, node: Node, verified_tweet: Dict):
@@ -191,13 +214,15 @@ class AgentValidator:
                 miners = await fetch_nodes_from_substrate(self.substrate, self.netuid)
                 for miner in miners:
                     logger.info(
-                        f"Miner Hotkey: {miner.hotkey}, IP: {miner.ip}, Port: {miner.port}"
+                        f"Miner Hotkey: {miner.hotkey}, IP: {
+                            miner.ip}, Port: {miner.port}"
                     )
 
                 # Filter miners based on environment
                 if os.getenv("ENV", "prod").lower() == "dev":
                     whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                    miners = [miner for miner in miners if miner.hotkey in whitelist]
+                    miners = [
+                        miner for miner in miners if miner.hotkey in whitelist]
 
                 # Filter out already registered miners
                 miners = [
@@ -225,10 +250,11 @@ class AgentValidator:
                     if success:
                         logger.info(
                             f"Successfully connected to miner {
-                                    miner.hotkey}"
+                                miner.hotkey}"
                         )
                     else:
-                        logger.warning(f"Failed to connect to miner {miner.hotkey}")
+                        logger.warning(
+                            f"Failed to connect to miner {miner.hotkey}")
 
                 await asyncio.sleep(60)  # Check every minute
             except Exception as e:
@@ -238,7 +264,8 @@ class AgentValidator:
     async def connect_to_miner(self, miner_address: str, miner_hotkey: str) -> bool:
         """Connect to a miner"""
         try:
-            logger.info(f"Attempting to do handshake {miner_address} - {miner_hotkey}")
+            logger.info(f"Attempting to do handshake {
+                        miner_address} - {miner_hotkey}")
 
             # Perform handshake with miner
             symmetric_key_str, symmetric_key_uuid = await handshake.perform_handshake(
@@ -249,7 +276,8 @@ class AgentValidator:
 
             if not symmetric_key_str or not symmetric_key_uuid:
                 logger.error(
-                    f"Failed to establish secure connection with miner {miner_hotkey}"
+                    f"Failed to establish secure connection with miner {
+                        miner_hotkey}"
                 )
                 return False
 
@@ -263,7 +291,8 @@ class AgentValidator:
                 "status": "active",
             }
 
-            logger.info(f"Connected to miner {miner_hotkey} at {miner_address}")
+            logger.info(f"Connected to miner {
+                        miner_hotkey} at {miner_address}")
             return True
 
         except Exception as e:
@@ -332,7 +361,8 @@ class AgentValidator:
 
                     # Check last activity
                     # 5 min timeout
-                    is_responsive = (time.time() - miner_info["last_active"]) < 300
+                    is_responsive = (
+                        time.time() - miner_info["last_active"]) < 300
 
                     if not is_active or not is_responsive:
                         miner_info["status"] = "inactive"
@@ -341,7 +371,7 @@ class AgentValidator:
                 except Exception as e:
                     logger.error(
                         f"Error checking miner {
-                                 hotkey} status: {str(e)}"
+                            hotkey} status: {str(e)}"
                     )
                     miner_info["status"] = "error"
 
@@ -364,7 +394,8 @@ class AgentValidator:
         """Sync the metagraph state"""
         try:
             if self.metagraph is None:
-                self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
+                self.metagraph = Metagraph(
+                    netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
             logger.info("Metagraph synced successfully")
         except Exception as e:
