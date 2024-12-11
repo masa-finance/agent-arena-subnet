@@ -39,7 +39,8 @@ class AgentMiner:
                 configure_extra_logging_middleware(self.app)
 
             # Start the FastAPI server
-            config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
+            config = uvicorn.Config(
+                self.app, host="0.0.0.0", port=port, lifespan="on")
             server = uvicorn.Server(config)
             await server.serve()
 
