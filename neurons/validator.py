@@ -138,7 +138,7 @@ class AgentValidator:
         registration_response = await vali_client.make_non_streamed_get(
             httpx_client=self.httpx_client,
             server_address=server_address,
-            symmetric_key_uuid=str(registered_miner.symmetric_key_uuid),
+            symmetric_key_uuid=registered_miner.symmetric_key_uuid,
             endpoint="/get_verification_tweet_id",
             validator_ss58_address=self.keypair.ss58_address,
         )
