@@ -8,7 +8,6 @@ from fiber.miner.server import factory_app
 from typing import Optional, Dict
 from fiber.chain import interface
 import asyncio
-import time
 from fastapi import FastAPI
 import uvicorn
 import json
@@ -45,12 +44,11 @@ class RegisteredMiner(TypedDict):
     symmetric_key: str
     symmetric_key_uuid: str
     fernet: Fernet
-    status: str
-    last_active: float
 
 
-REGISTRATION_CHECK_CADENCE_SECONDS = 10
-MINER_STATUS_CHECK_CADENCE_SECONDS = 60
+MINER_REGISTRATION_CADENCE_SECONDS = 10
+AGENT_REGISTRATION_CADENCE_SECONDS = 10
+SYNC_METAGRAPH_CADENCE_SECONDS = 60
 
 
 class AgentValidator:
@@ -86,13 +84,12 @@ class AgentValidator:
             # Add our custom routes
             self.register_routes()
 
-            # Initialize metagraph before starting server
-            await self.sync_metagraph()
-
             # Start background tasks
-            asyncio.create_task(self.status_check_loop())
-            asyncio.create_task(self.registration_check_loop())
-            asyncio.create_task(self.check_registered_nodes_agents_loop())
+            asyncio.create_task(self.sync_metagraph_loop())  # sync metagraph
+            asyncio.create_task(self.registration_check_loop())  # encrypted handshakes
+            asyncio.create_task(
+                self.check_registered_nodes_agents_loop()
+            )  # agent registration
 
             # Start the FastAPI server
             config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
@@ -139,10 +136,10 @@ class AgentValidator:
                                     node}: {str(e)}"
                         )
 
-                await asyncio.sleep(REGISTRATION_CHECK_CADENCE_SECONDS)
+                await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS)
             except Exception as e:
                 logger.error("Error checking registered nodes: %s", str(e))
-                await asyncio.sleep(REGISTRATION_CHECK_CADENCE_SECONDS / 2)
+                await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS / 2)
 
     async def register_agent_for_node(self, node: Node):
         registered_miner = self.registered_miners.get(node.hotkey)
@@ -189,12 +186,8 @@ class AgentValidator:
         while True:
             try:
                 miners = await fetch_nodes_from_substrate(self.substrate, self.netuid)
-                for miner in miners:
-                    logger.info(
-                        f"Miner Hotkey: {miner.hotkey}, IP: {miner.ip}, Port: {miner.port}"
-                    )
 
-                # Filter miners based on environment
+                # Filter to specific miners if in dev environment
                 if os.getenv("ENV", "prod").lower() == "dev":
                     whitelist = os.getenv("MINER_WHITELIST", "").split(",")
                     miners = [miner for miner in miners if miner.hotkey in whitelist]
@@ -208,44 +201,36 @@ class AgentValidator:
 
                 miners_found = filter_nodes_with_ip_and_port(miners)
 
-                logger.info(
-                    "Checking miners registration for: %s",
-                    ", ".join(miner.hotkey for miner in miners_found),
-                )
-
                 for miner in miners_found:
                     server_address = vali_client.construct_server_address(
                         node=miner,
                         replace_with_docker_localhost=False,
                         replace_with_localhost=True,
                     )
-                    success = await self.connect_to_miner(
+                    success = await self.handshake_with_miner(
                         miner_address=server_address, miner_hotkey=miner.hotkey
                     )
                     if success:
                         logger.info(
-                            f"Successfully connected to miner {
-                                    miner.hotkey}"
+                            f"Connected to miner: {miner.hotkey}, IP: {miner.ip}, Port: {miner.port}"
                         )
                     else:
                         logger.warning(f"Failed to connect to miner {miner.hotkey}")
 
-                await asyncio.sleep(60)  # Check every minute
+                await asyncio.sleep(MINER_REGISTRATION_CADENCE_SECONDS)
             except Exception as e:
                 logger.error("Error in registration check: %s", str(e))
-                await asyncio.sleep(30)
+                await asyncio.sleep(MINER_REGISTRATION_CADENCE_SECONDS / 2)
 
-    async def connect_to_miner(self, miner_address: str, miner_hotkey: str) -> bool:
-        """Connect to a miner"""
+    async def handshake_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
+        """Handshake with a miner"""
         try:
-            logger.info(f"Attempting to do handshake {miner_address} - {miner_hotkey}")
-
             # Perform handshake with miner
             symmetric_key_str, symmetric_key_uuid = await handshake.perform_handshake(
                 self.httpx_client, miner_address, self.keypair, miner_hotkey
             )
 
-            logger.info("Symmetric key passes")
+            logger.info(f"Handshake successful with miner {miner_hotkey}")
 
             if not symmetric_key_str or not symmetric_key_uuid:
                 logger.error(
@@ -259,11 +244,8 @@ class AgentValidator:
                 "symmetric_key": symmetric_key_str,
                 "symmetric_key_uuid": symmetric_key_uuid,
                 "fernet": Fernet(symmetric_key_str),
-                "last_active": time.time(),
-                "status": "active",
             }
 
-            logger.info(f"Connected to miner {miner_hotkey} at {miner_address}")
             return True
 
         except Exception as e:
@@ -318,46 +300,16 @@ class AgentValidator:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
 
-    async def check_miners_status(self):
-        """Periodic check of miners' status"""
-        try:
-            await self.sync_metagraph()
-
-            for hotkey, miner_info in self.registered_miners.items():
-                try:
-                    uid = miner_info.get("uid", None)
-
-                    # Check if still active on metagraph
-                    is_active = self.metagraph.active[uid].item() == 1
-
-                    # Check last activity
-                    # 5 min timeout
-                    is_responsive = (time.time() - miner_info["last_active"]) < 300
-
-                    if not is_active or not is_responsive:
-                        miner_info["status"] = "inactive"
-                        logger.warning(f"Miner {hotkey} marked as inactive")
-
-                except Exception as e:
-                    logger.error(
-                        f"Error checking miner {
-                                 hotkey} status: {str(e)}"
-                    )
-                    miner_info["status"] = "error"
-
-        except Exception as e:
-            logger.error(f"Error in miners status check: {str(e)}")
-
-    async def status_check_loop(self):
-        """Background task to check miners status"""
+    async def sync_metagraph_loop(self):
+        """Background task to sync metagraph"""
         while True:
             try:
-                await self.check_miners_status()
-                await asyncio.sleep(MINER_STATUS_CHECK_CADENCE_SECONDS)
+                await self.sync_metagraph()
+                await asyncio.sleep(SYNC_METAGRAPH_CADENCE_SECONDS)
             except Exception as e:
-                logger.error(f"Error in status check loop: {str(e)}")
+                logger.error(f"Error in sync metagraph: {str(e)}")
                 await asyncio.sleep(
-                    MINER_STATUS_CHECK_CADENCE_SECONDS / 2
+                    SYNC_METAGRAPH_CADENCE_SECONDS / 2
                 )  # Wait before retrying
 
     async def sync_metagraph(self):
@@ -366,6 +318,7 @@ class AgentValidator:
             if self.metagraph is None:
                 self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
+            # TODO we should update registered miners with the new metagraph state
             logger.info("Metagraph synced successfully")
         except Exception as e:
             logger.error(f"Failed to sync metagraph: {str(e)}")
