@@ -49,7 +49,7 @@ class AgentValidator:
         self.app: Optional[FastAPI] = None
         self.metagraph = None
 
-    async def fetch_active_agents(self):
+    async def fetch_registered_agents(self):
         """Fetch active agents from the API and update registered_agents"""
         try:
             endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
@@ -76,7 +76,7 @@ class AgentValidator:
             self.httpx_client = httpx.AsyncClient()
 
             # Fetch registered agents from API
-            await self.fetch_active_agents()
+            await self.fetch_registered_agents()
 
             # Create FastAPI app using standard factory
             self.app = factory_app(debug=False)
@@ -202,7 +202,7 @@ class AgentValidator:
             response = await self.httpx_client.post(endpoint, json=registration_data)
             if response.status_code == 200:
                 logger.info("Successfully registered agent!")
-                await self.fetch_active_agents()
+                await self.fetch_registered_agents()
             else:
                 logger.error(
                     f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
