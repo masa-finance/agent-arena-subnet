@@ -23,13 +23,21 @@ logger = get_logger(__name__)
 from typing import TypedDict
 
 
+class Tweet(TypedDict):
+    user_id: str
+    tweet_id: str
+    url: str
+    timestamp: str
+    full_text: str
+
+
 class RegisteredAgent(TypedDict):
     hotkey: str
     uid: int
     subnet_id: int
     version: str
     isActive: bool
-    verification_tweet: Optional[str]
+    verification_tweet: Optional[Tweet]
 
 
 class RegisteredMiner(TypedDict):
@@ -317,7 +325,7 @@ class AgentValidator:
 
             for hotkey, miner_info in self.registered_miners.items():
                 try:
-                    uid = miner_info["uid"]
+                    uid = miner_info.get("uid", None)
 
                     # Check if still active on metagraph
                     is_active = self.metagraph.active[uid].item() == 1
