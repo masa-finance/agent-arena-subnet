@@ -11,7 +11,8 @@ class LoadPosts:
                   uid: Optional[str] = None,
                   user_id: Optional[str] = None,
                   subnet_id: Optional[str] = None,
-                  timestamp_range: Optional[tuple[int, int]] = None) -> List[Dict[str, Any]]:
+                  timestamp_range: Optional[tuple[int, int]] = None,
+                  created_at_range: Optional[tuple[int, int]] = None) -> List[Dict[str, Any]]:
         """
         Loads and filters posts based on provided parameters.
         All parameters are optional - if none are provided, returns all posts.
@@ -20,7 +21,8 @@ class LoadPosts:
             uid (str, optional): Filter by specific UID
             user_id (str, optional): Filter by specific user ID
             subnet_id (str, optional): Filter by specific subnet ID
-            timestamp_range (tuple[int, int], optional): Filter by timestamp range (start, end)
+            timestamp_range (tuple[int, int], optional): Filter by post timestamp range (start, end)
+            created_at_range (tuple[int, int], optional): Filter by search request created_at range (start, end)
             
         Returns:
             List[Dict[str, Any]]: Filtered list of posts/tweets
@@ -49,7 +51,19 @@ class LoadPosts:
                     
                 if timestamp_range:
                     start_time, end_time = timestamp_range
-                    if not (start_time <= post["timestamp"] <= end_time):
+                    # Check if any tweet in the post falls within the timestamp range
+                    tweet_matches = False
+                    for tweet_data in post["tweets"]:
+                        tweet_timestamp = tweet_data["Tweet"]["Timestamp"]
+                        if start_time <= tweet_timestamp <= end_time:
+                            tweet_matches = True
+                            break
+                    if not tweet_matches:
+                        matches = False
+                        
+                if created_at_range:
+                    start_time, end_time = created_at_range
+                    if not (start_time <= post["created_at"] <= end_time):
                         matches = False
                 
                 if matches:
