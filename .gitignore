@@ -12,3 +12,4 @@ nodes.json
 *.encrypted
 /tests/__pycache__
 /protocol/x/__pycache__
+*.pyc
