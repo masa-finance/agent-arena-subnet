@@ -171,6 +171,10 @@ class AgentValidator:
                 )
             },
         )
+        # prep for json
+        registration_data = json.loads(
+            json.dumps(registration_data, default=lambda o: o.__dict__)
+        )
         logger.info("Registration data: %s", json.dumps(registration_data))
         # TODO just to ensure this runs once for now...
         self.registered_agents[node.hotkey] = registration_data
