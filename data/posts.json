@@ -5,7 +5,7 @@
         "subnet_id": "59",
         "query": "(dogecoin) until:2024-12-11 since:2024-12-10",
         "count": 2,
-        "timestamp": 1725519123,
+        "created_at": 1725519123,
         "tweets": [
             {
                 "Tweet": {
