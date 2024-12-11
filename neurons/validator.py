@@ -15,7 +15,7 @@ import json
 import os
 from masa_ai.tools.validator import TweetValidator
 from fiber.chain.metagraph import Metagraph
-from validator.utils import fetch_nodes_from_substrate, filter_nodes_with_ip_and_port
+from utils.nodes import fetch_nodes_from_substrate, filter_nodes_with_ip_and_port
 from fiber.networking.models import NodeWithFernet as Node
 
 logger = get_logger(__name__)
