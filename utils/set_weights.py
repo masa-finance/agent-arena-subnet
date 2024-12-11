@@ -20,8 +20,8 @@ async def set_weights():
     nodes = get_nodes_for_netuid(substrate=substrate, netuid=netuid)
     
     # Load keypair
-    wallet_name = os.getenv("WALLET_NAME", "testnet")
-    hotkey_name = os.getenv("HOTKEY_NAME", "testnet")
+    wallet_name = os.getenv("VALIDATOR_WALLET_NAME", "testnet")
+    hotkey_name = os.getenv("VALIDATOR_HOTKEY_NAME", "testnet")
     keypair = chain_utils.load_hotkey_keypair(wallet_name=wallet_name, hotkey_name=hotkey_name)
     
     # Get validator UID
