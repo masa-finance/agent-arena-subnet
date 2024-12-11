@@ -1,4 +1,3 @@
-from typing import TypedDict
 import httpx
 from cryptography.fernet import Fernet
 from substrateinterface import Keypair
@@ -13,36 +12,13 @@ from fastapi import FastAPI
 import uvicorn
 import json
 import os
-from masa_ai.tools.validator import TweetValidator
 from fiber.chain.metagraph import Metagraph
 from utils.nodes import format_nodes_to_dict, filter_nodes_with_ip_and_port
 from utils.twitter import verify_tweet
 from fiber.networking.models import NodeWithFernet as Node
+from interfaces.types import VerifiedTweet, RegisteredAgent, RegisteredMiner
 
 logger = get_logger(__name__)
-
-
-class VerifiedTweet(TypedDict):
-    tweet_id: str
-    url: str
-    timestamp: str  # Format: 2024-12-10T18:27:16Z
-    full_text: str
-
-
-class RegisteredAgent(TypedDict):
-    hotkey: str
-    uid: int
-    subnet_id: int
-    version: str
-    isActive: bool
-    verification_tweet: Optional[VerifiedTweet]
-
-
-class RegisteredMiner(TypedDict):
-    address: str
-    symmetric_key: str
-    symmetric_key_uuid: str
-    fernet: Fernet
 
 
 MINER_REGISTRATION_CADENCE_SECONDS = 10

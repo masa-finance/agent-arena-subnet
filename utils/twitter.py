@@ -1,7 +1,7 @@
 from fiber.logging_utils import get_logger
 from masa_ai.tools.validator import TweetValidator
 from datetime import datetime
-from neurons.validator import VerifiedTweet
+from interfaces.types import VerifiedTweet
 
 
 logger = get_logger(__name__)
