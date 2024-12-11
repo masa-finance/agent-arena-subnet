@@ -20,10 +20,8 @@ class AgentMiner:
         """Initialize miner"""
         self.server: Optional[factory_app] = None
         self.app: Optional[FastAPI] = None
-
         self.httpx_client = None
         self.keypair = None
-        # self.substrate = interface.get_substrate(subtensor_network="test")
 
     async def start(self, keypair: Keypair, port: int):
         """Start the Fiber server and register with validator"""
@@ -36,6 +34,7 @@ class AgentMiner:
 
             self.register_routes()
 
+            # note, better logging - thanks Namoray!
             if os.getenv("ENV", "prod").lower() == "dev":
                 configure_extra_logging_middleware(self.app)
 
