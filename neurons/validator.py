@@ -15,7 +15,7 @@ import json
 import os
 from masa_ai.tools.validator import TweetValidator
 from fiber.chain.metagraph import Metagraph
-from utils.nodes import fetch_nodes_from_substrate, filter_nodes_with_ip_and_port
+from utils.nodes import format_nodes_to_dict, filter_nodes_with_ip_and_port
 from utils.twitter import verify_tweet
 from fiber.networking.models import NodeWithFernet as Node
 
@@ -88,8 +88,6 @@ class AgentValidator:
 
             # Start background tasks
             asyncio.create_task(self.sync_metagraph_loop())  # sync metagraph
-            # encrypted handshakes
-            asyncio.create_task(self.registration_check_loop())
             asyncio.create_task(
                 self.check_agents_registration_loop()
             )  # agent registration
@@ -124,9 +122,9 @@ class AgentValidator:
 
                 for node_hotkey in unregistered_nodes:
                     try:
-                        nodes = await fetch_nodes_from_substrate(
-                            self.substrate, self.netuid
-                        )
+                        raw_nodes = self.metagraph.nodes
+                        nodes = format_nodes_to_dict(raw_nodes)
+
                         full_node = next(
                             (n for n in nodes if n.hotkey == node_hotkey), None)
                         if full_node:
@@ -139,7 +137,7 @@ class AgentValidator:
                     except Exception as e:
                         logger.error(
                             f"Failed to get registration info for node {
-                                node}: {str(e)}"
+                                node_hotkey}: {str(e)}"
                         )
 
                 await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS)
@@ -190,49 +188,48 @@ class AgentValidator:
         self.registered_agents[node.hotkey] = registration_data
         return registration_data
 
-    async def registration_check_loop(self):
-        """Periodically verify registration"""
-        while True:
-            try:
-                miners = await fetch_nodes_from_substrate(self.substrate, self.netuid)
+    async def node_registration_check(self, raw_nodes: Dict[str, Node]):
+        """Verify node registration"""
 
-                # Filter to specific miners if in dev environment
-                if os.getenv("ENV", "prod").lower() == "dev":
-                    whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                    miners = [
-                        miner for miner in miners if miner.hotkey in whitelist]
+        logger.info("Attempting nodes registration")
+        try:
+            miners = format_nodes_to_dict(raw_nodes)
 
-                # Filter out already registered miners
+            # Filter to specific miners if in dev environment
+            if os.getenv("ENV", "prod").lower() == "dev":
+                whitelist = os.getenv("MINER_WHITELIST", "").split(",")
                 miners = [
-                    miner
-                    for miner in miners
-                    if miner.hotkey not in self.registered_miners
-                ]
+                    miner for miner in miners if miner.hotkey in whitelist]
 
-                miners_found = filter_nodes_with_ip_and_port(miners)
+            # Filter out already registered miners
+            miners = [
+                miner
+                for miner in miners
+                if miner.hotkey not in self.registered_miners
+            ]
 
-                for miner in miners_found:
-                    server_address = vali_client.construct_server_address(
-                        node=miner,
-                        replace_with_docker_localhost=False,
-                        replace_with_localhost=True,
+            miners_found = filter_nodes_with_ip_and_port(miners)
+
+            for miner in miners_found:
+                server_address = vali_client.construct_server_address(
+                    node=miner,
+                    replace_with_docker_localhost=False,
+                    replace_with_localhost=True,
+                )
+                success = await self.handshake_with_miner(
+                    miner_address=server_address, miner_hotkey=miner.hotkey
+                )
+                if success:
+                    logger.info(
+                        f"Connected to miner: {miner.hotkey}, IP: {
+                            miner.ip}, Port: {miner.port}"
                     )
-                    success = await self.handshake_with_miner(
-                        miner_address=server_address, miner_hotkey=miner.hotkey
-                    )
-                    if success:
-                        logger.info(
-                            f"Connected to miner: {miner.hotkey}, IP: {
-                                miner.ip}, Port: {miner.port}"
-                        )
-                    else:
-                        logger.warning(
-                            f"Failed to connect to miner {miner.hotkey}")
+                else:
+                    logger.warning(
+                        f"Failed to connect to miner {miner.hotkey}")
 
-                await asyncio.sleep(MINER_REGISTRATION_CADENCE_SECONDS)
-            except Exception as e:
-                logger.error("Error in registration check: %s", str(e))
-                await asyncio.sleep(MINER_REGISTRATION_CADENCE_SECONDS / 2)
+        except Exception as e:
+            logger.error("Error in registration check: %s", str(e))
 
     async def handshake_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
         """Handshake with a miner"""
@@ -336,7 +333,8 @@ class AgentValidator:
                 self.metagraph = Metagraph(
                     netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
-            # TODO we should update registered miners with the new metagraph state
+
+            await self.node_registration_check(self.metagraph.nodes)
             logger.info("Metagraph synced successfully")
         except Exception as e:
             logger.error(f"Failed to sync metagraph: {str(e)}")
