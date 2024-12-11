@@ -22,7 +22,7 @@ from fiber.networking.models import NodeWithFernet as Node
 logger = get_logger(__name__)
 
 
-class Tweet(TypedDict):
+class VerifiedTweet(TypedDict):
     user_id: str
     tweet_id: str
     url: str
@@ -36,7 +36,7 @@ class RegisteredAgent(TypedDict):
     subnet_id: int
     version: str
     isActive: bool
-    verification_tweet: Optional[Tweet]
+    verification_tweet: Optional[VerifiedTweet]
 
 
 class RegisteredMiner(TypedDict):
@@ -173,7 +173,7 @@ class AgentValidator:
             )
             return None
 
-    async def register_agent(self, node: Node, verified_tweet: Dict):
+    async def register_agent(self, node: Node, verified_tweet: VerifiedTweet):
         """Register an agent"""
         registration_data = {
             "hotkey": node.hotkey,
