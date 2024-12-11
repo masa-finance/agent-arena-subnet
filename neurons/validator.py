@@ -65,7 +65,7 @@ class AgentValidator:
         self.keypair = None
         self.server: Optional[factory_app] = None
 
-        self.queues = None
+        self.queue = None
         self.scheduler = None
 
         # Get network configuration from environment
