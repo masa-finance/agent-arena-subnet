@@ -19,8 +19,7 @@ from fiber.chain.metagraph import Metagraph
 from utils.nodes import fetch_nodes_from_substrate, filter_nodes_with_ip_and_port
 from fiber.networking.models import NodeWithFernet as Node
 from protocol.x.scheduler import XSearchScheduler
-from protocol.x.queue import RequestQueue
-
+from x.queues import generate_queue
 logger = get_logger(__name__)
 
 
@@ -66,6 +65,7 @@ class AgentValidator:
         self.keypair = None
         self.server: Optional[factory_app] = None
 
+        self.queues = None
         self.scheduler = None
 
         # Get network configuration from environment
@@ -89,24 +89,6 @@ class AgentValidator:
             # Add our custom routes
             self.register_routes()
 
-            request_queue = RequestQueue()
-
-            request_queue.add_request(
-                request_type='search',
-                request_data={'query': '#Bitcoin'},
-                priority=1
-            )
-            request_queue.start()
-
-            self.scheduler = XSearchScheduler(
-                request_queue=request_queue,
-                interval_minutes=15,
-                batch_size=100,
-                priority=100,
-                search_count=10
-            )
-            self.scheduler.start()
-
             # TODO: fetch registered agents from API
 
             # Start background tasks
@@ -123,6 +105,19 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Failed to start validator: {str(e)}")
             raise
+
+    def create_scheduler(self):
+        logger.info("Generating queue...")
+        self.queue = generate_queue(self.registered_agents)
+        logger.info("Queue generated.")
+        self.scheduler = XSearchScheduler(
+            request_queue=self.queue,
+            interval_minutes=15,
+            batch_size=100,
+            priority=100,
+            search_count=10
+        )
+        self.scheduler.start()
 
     async def check_registered_nodes_agents_loop(self):
         while True:
@@ -160,6 +155,8 @@ class AgentValidator:
                             f"Failed to get registration info for node {
                                 node}: {str(e)}"
                         )
+
+                    self.create_scheduler()
 
                 await asyncio.sleep(REGISTRATION_CHECK_CADENCE_SECONDS)
             except Exception as e:
