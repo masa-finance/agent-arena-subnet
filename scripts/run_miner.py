@@ -17,6 +17,8 @@ async def main():
     hotkey_name = os.getenv("HOTKEY_NAME", "default")
     port = int(os.getenv("MINER_PORT", 8080))
 
+    # TODO post IP to chain using the fiber chain utils?
+
     keypair = chain_utils.load_hotkey_keypair(wallet_name, hotkey_name)
 
     # Initialize miner

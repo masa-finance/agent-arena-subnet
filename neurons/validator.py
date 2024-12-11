@@ -49,19 +49,40 @@ class AgentValidator:
         self.app: Optional[FastAPI] = None
         self.metagraph = None
 
+    async def fetch_active_agents(self):
+        """Fetch active agents from the API and update registered_agents"""
+        try:
+            endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
+            response = await self.httpx_client.get(endpoint)
+            if response.status_code == 200:
+                active_agents = response.json()
+                self.registered_agents = {
+                    agent["hotkey"]: RegisteredAgent(**agent) for agent in active_agents
+                }
+                logger.info(json.dumps(self.registered_agents, indent=4))
+                logger.info("Successfully fetched and updated active agents.")
+
+            else:
+                logger.error(
+                    f"Failed to fetch active agents, status code: {response.status_code}, message: {response.text}"
+                )
+        except Exception as e:
+            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
+
     async def start(self, keypair: Keypair, port: int):
         """Start the validator"""
         try:
             self.keypair = keypair
             self.httpx_client = httpx.AsyncClient()
 
+            # Fetch registered agents from API
+            await self.fetch_active_agents()
+
             # Create FastAPI app using standard factory
             self.app = factory_app(debug=False)
 
             # Add our custom routes
             self.register_routes()
-
-            # TODO: fetch registered agents from API
 
             # Start background tasks
             asyncio.create_task(self.sync_metagraph_loop())  # sync metagraph
@@ -160,8 +181,8 @@ class AgentValidator:
         """Register an agent"""
         registration_data = RegisteredAgent(
             hotkey=node.hotkey,
-            uid=node.node_id,
-            subnet_id=self.netuid,
+            uid=str(node.node_id),
+            subnet_id=int(self.netuid),
             version=str(node.protocol),  # TODO implement versioning...
             isActive=True,
             verification_tweet=verified_tweet,
@@ -175,10 +196,19 @@ class AgentValidator:
         registration_data = json.loads(
             json.dumps(registration_data, default=lambda o: o.__dict__)
         )
-        logger.info("Registration data: %s", json.dumps(registration_data))
-        # TODO just to ensure this runs once for now...
-        self.registered_agents[node.hotkey] = registration_data
-        return registration_data
+        logger.info("Registration data: %s", registration_data)
+        endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
+        try:
+            response = await self.httpx_client.post(endpoint, json=registration_data)
+            if response.status_code == 200:
+                logger.info("Successfully registered agent!")
+                await self.fetch_active_agents()
+            else:
+                logger.error(
+                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
+                )
+        except Exception as e:
+            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     async def node_registration_check(self, raw_nodes: Dict[str, Node]):
         """Verify node registration"""
