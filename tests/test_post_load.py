@@ -1,5 +1,5 @@
 import pytest
-from protocol.data_processing.post_load import LoadPosts
+from protocol.data_processing.post_loader import LoadPosts
 from pathlib import Path
 import json
 
