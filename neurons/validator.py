@@ -23,10 +23,9 @@ logger = get_logger(__name__)
 
 
 class VerifiedTweet(TypedDict):
-    user_id: str
     tweet_id: str
     url: str
-    timestamp: str
+    timestamp: str  # Format: 2024-12-10T18:27:16Z
     full_text: str
 
 
@@ -62,10 +61,12 @@ class AgentValidator:
 
         self.keypair = None
         self.server: Optional[factory_app] = None
+        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
 
         # Get network configuration from environment
         network = os.getenv("SUBTENSOR_NETWORK", "finney")
         network_address = os.getenv("SUBTENSOR_ADDRESS")
+
         self.substrate = interface.get_substrate(
             subtensor_network=network, subtensor_address=network_address
         )
@@ -93,8 +94,7 @@ class AgentValidator:
             )  # agent registration
 
             # Start the FastAPI server
-            config = uvicorn.Config(
-                self.app, host="0.0.0.0", port=port, lifespan="on")
+            config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
             server = uvicorn.Server(config)
             await server.serve()
 
@@ -126,13 +126,18 @@ class AgentValidator:
                         nodes = format_nodes_to_dict(raw_nodes)
 
                         full_node = next(
-                            (n for n in nodes if n.hotkey == node_hotkey), None)
+                            (n for n in nodes if n.hotkey == node_hotkey), None
+                        )
                         if full_node:
                             tweet_id = await self.get_agent_tweet_id(full_node)
 
-                            verified_tweet = await verify_tweet(tweet_id, node_hotkey)
-                            if verified_tweet:
-                                await self.register_agent(full_node, verified_tweet)
+                            verified_tweet, user_id = await verify_tweet(
+                                tweet_id, node_hotkey
+                            )
+                            if verified_tweet and user_id:
+                                await self.register_agent(
+                                    full_node, verified_tweet, user_id
+                                )
 
                     except Exception as e:
                         logger.error(
@@ -173,15 +178,22 @@ class AgentValidator:
             )
             return None
 
-    async def register_agent(self, node: Node, verified_tweet: VerifiedTweet):
+    async def register_agent(
+        self, node: Node, verified_tweet: VerifiedTweet, user_id: str
+    ):
         """Register an agent"""
         registration_data = {
             "hotkey": node.hotkey,
             "uid": node.node_id,
             "subnet_id": self.netuid,
-            "version": node.protocol,  # TODO implement versioning...
+            "version": str(node.protocol),  # TODO implement versioning...
             "isActive": True,
             "verification_tweet": verified_tweet,
+            "profile": {
+                "data": {
+                    "UserID": user_id,
+                }
+            },
         }
         logger.info("Registration data: %s", json.dumps(registration_data))
         # TODO just to ensure this runs once for now...
@@ -198,14 +210,11 @@ class AgentValidator:
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
                 whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                miners = [
-                    miner for miner in miners if miner.hotkey in whitelist]
+                miners = [miner for miner in miners if miner.hotkey in whitelist]
 
             # Filter out already registered miners
             miners = [
-                miner
-                for miner in miners
-                if miner.hotkey not in self.registered_miners
+                miner for miner in miners if miner.hotkey not in self.registered_miners
             ]
 
             miners_found = filter_nodes_with_ip_and_port(miners)
@@ -225,8 +234,7 @@ class AgentValidator:
                             miner.ip}, Port: {miner.port}"
                     )
                 else:
-                    logger.warning(
-                        f"Failed to connect to miner {miner.hotkey}")
+                    logger.warning(f"Failed to connect to miner {miner.hotkey}")
 
         except Exception as e:
             logger.error("Error in registration check: %s", str(e))
@@ -269,51 +277,6 @@ class AgentValidator:
         if self.server:
             await self.server.stop()
 
-    async def verify_tweet(self, id: str) -> Optional[Dict[str, str]]:
-        """Fetch tweet from Twitter API"""
-        try:
-            logger.info(f"Verifying tweet: {id}")
-            result = TweetValidator().fetch_tweet(id)
-            tweet_data_result = (
-                result.get("data", {}).get("tweetResult", {}).get("result", {})
-            )
-            created_at = tweet_data_result.get("legacy", {}).get("created_at")
-            tweet_id = tweet_data_result.get("rest_id")
-            user = (
-                tweet_data_result.get("core", {})
-                .get("user_results", {})
-                .get("result", {})
-            )
-            screen_name = user.get("legacy", {}).get("screen_name")
-            user_id = user.get("rest_id")
-            full_text = tweet_data_result.get("legacy", {}).get("full_text")
-
-            logger.info(f"Got tweet result: {
-                        tweet_id} - {screen_name} **** {full_text}")
-
-            if not isinstance(screen_name, str) or not isinstance(full_text, str):
-                msg = "Invalid tweet data: screen_name or full_text is not a string"
-                logger.error(msg)
-                raise ValueError(msg)
-
-            # Ensure that the hotkey (full_text) is registered on the metagraph
-            if not self.registered_miners.get(full_text):
-                msg = f"Hotkey {full_text} is not registered on the metagraph"
-                logger.error(msg)
-                raise ValueError(msg)
-
-            verification_tweet = {
-                "user_id": user_id,  # for primary key
-                "tweet_id": tweet_id,
-                "url": f"https://twitter.com/{screen_name}/status/{tweet_id}",
-                "timestamp": created_at,
-                "full_text": full_text,
-            }
-            return verification_tweet
-        except Exception as e:
-            logger.error(f"Failed to register agent: {str(e)}")
-            return False
-
     async def sync_metagraph_loop(self):
         """Background task to sync metagraph"""
         while True:
@@ -330,8 +293,7 @@ class AgentValidator:
         """Sync the metagraph state"""
         try:
             if self.metagraph is None:
-                self.metagraph = Metagraph(
-                    netuid=self.netuid, substrate=self.substrate)
+                self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
 
             await self.node_registration_check(self.metagraph.nodes)

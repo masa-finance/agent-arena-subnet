@@ -1,20 +1,13 @@
 from fiber.logging_utils import get_logger
 from masa_ai.tools.validator import TweetValidator
-from typing import TypedDict
-from cryptography.fernet import Fernet
-from fiber.networking.models import NodeWithFernet as Node
+from datetime import datetime
+from neurons.validator import VerifiedTweet
+
 
 logger = get_logger(__name__)
 
 
-class RegisteredMiner(TypedDict):
-    address: str
-    symmetric_key: str
-    symmetric_key_uuid: str
-    fernet: Fernet
-
-
-async def verify_tweet(id: str, hotkey: str):
+async def verify_tweet(id: str, hotkey: str) -> tuple[VerifiedTweet, str]:
     """Fetch tweet from Twitter API"""
     try:
         logger.info(f"Verifying tweet: {id}")
@@ -30,16 +23,16 @@ async def verify_tweet(id: str, hotkey: str):
         created_at = tweet_data_result.get("legacy", {}).get("created_at")
         tweet_id = tweet_data_result.get("rest_id")
         user = (
-            tweet_data_result.get("core", {})
-            .get("user_results", {})
-            .get("result", {})
+            tweet_data_result.get("core", {}).get("user_results", {}).get("result", {})
         )
         screen_name = user.get("legacy", {}).get("screen_name")
         user_id = user.get("rest_id")
         full_text = tweet_data_result.get("legacy", {}).get("full_text")
 
-        logger.info(f"Got tweet result: {
-                    tweet_id} - {screen_name} **** {full_text}")
+        logger.info(
+            f"Got tweet result: {
+                    tweet_id} - {screen_name} **** {full_text}"
+        )
 
         if not isinstance(screen_name, str) or not isinstance(full_text, str):
             msg = "Invalid tweet data: screen_name or full_text is not a string"
@@ -54,13 +47,14 @@ async def verify_tweet(id: str, hotkey: str):
             raise ValueError(msg)
 
         verification_tweet = {
-            "user_id": user_id,  # for primary key
             "tweet_id": tweet_id,
             "url": f"https://twitter.com/{screen_name}/status/{tweet_id}",
-            "timestamp": created_at,
+            "timestamp": datetime.strptime(
+                created_at, "%a %b %d %H:%M:%S %z %Y"
+            ).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "full_text": full_text,
         }
-        return verification_tweet
+        return verification_tweet, user_id
     except Exception as e:
         logger.error(f"Failed to register agent: {str(e)}")
         return False
