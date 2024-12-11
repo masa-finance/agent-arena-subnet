@@ -140,14 +140,13 @@ class AgentValidator:
             httpx_client=self.httpx_client,
             server_address=server_address,
             symmetric_key_uuid=registered_miner.get("symmetric_key_uuid"),
-            endpoint="/get_verification_tweet",
+            endpoint="/get_verification_tweet_id",
             validator_ss58_address=self.keypair.ss58_address,
         )
 
         if registration_response.status_code == 200:
-            registration_data = registration_response.json()
-            x_registration_id = registration_data.get("x_registration_id")
-            verified_tweet = await self.verify_tweet(x_registration_id)
+            verification_tweet_id = registration_response.json()
+            verified_tweet = await self.verify_tweet(verification_tweet_id)
             await self.register_agent(node, verified_tweet)
         else:
             logger.error(

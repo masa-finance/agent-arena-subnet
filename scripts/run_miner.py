@@ -8,6 +8,7 @@ from fiber.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
+
 async def main():
     # Load env
     load_dotenv()
@@ -20,9 +21,7 @@ async def main():
 
     # Initialize miner
     miner = AgentMiner()
-    await miner.start(
-        keypair=keypair, miner_hotkey_ss58_address=keypair.public_key, port=port
-    )
+    await miner.start(keypair=keypair, port=port)
 
     try:
         while True:
