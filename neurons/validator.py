@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 
 MINER_REGISTRATION_CADENCE_SECONDS = 10
 AGENT_REGISTRATION_CADENCE_SECONDS = 10
-SYNC_METAGRAPH_CADENCE_SECONDS = 60
+SYNC_LOOP_CADENCE_SECONDS = 60
 
 
 class AgentValidator:
@@ -91,7 +91,7 @@ class AgentValidator:
             self.register_routes()
 
             # Start background tasks
-            asyncio.create_task(self.sync_metagraph_loop())  # sync metagraph
+            asyncio.create_task(self.sync_loop())  # sync metagraph
             asyncio.create_task(
                 self.check_agents_registration_loop()
             )  # agent registration
@@ -293,16 +293,18 @@ class AgentValidator:
         if self.server:
             await self.server.stop()
 
-    async def sync_metagraph_loop(self):
+    async def sync_loop(self):
         """Background task to sync metagraph"""
         while True:
             try:
                 await self.sync_metagraph()
-                await asyncio.sleep(SYNC_METAGRAPH_CADENCE_SECONDS)
+                await self.node_registration_check(self.metagraph.nodes)
+                await self.fetch_registered_agents()
+                await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in sync metagraph: {str(e)}")
                 await asyncio.sleep(
-                    SYNC_METAGRAPH_CADENCE_SECONDS / 2
+                    SYNC_LOOP_CADENCE_SECONDS / 2
                 )  # Wait before retrying
 
     async def sync_metagraph(self):
@@ -311,8 +313,6 @@ class AgentValidator:
             if self.metagraph is None:
                 self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
-
-            await self.node_registration_check(self.metagraph.nodes)
             logger.info("Metagraph synced successfully")
         except Exception as e:
             logger.error(f"Failed to sync metagraph: {str(e)}")
@@ -320,8 +320,21 @@ class AgentValidator:
     def register_routes(self):
         """Register FastAPI routes"""
 
-        # self.app.add_api_route(
-        #     "/get_registered_agents",
-        #     format_registered_agents,
-        #     methods=["GET"],
-        # )
+        def healthcheck():
+            """Returns validator's keypair, IP, and port in a JSON serializable format"""
+            try:
+                validator_info = {
+                    "ss58_address": str(self.keypair.ss58_address),
+                    "ip": str(self.metagraph.nodes[self.keypair.ss58_address].ip),
+                    "port": str(self.metagraph.nodes[self.keypair.ss58_address].port),
+                }
+                return validator_info
+            except Exception as e:
+                logger.error(f"Failed to get validator info: {str(e)}")
+                return None
+
+        self.app.add_api_route(
+            "/healthcheck",
+            healthcheck,
+            methods=["GET"],
+        )

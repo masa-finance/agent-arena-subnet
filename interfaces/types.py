@@ -1,10 +1,16 @@
 from typing import Optional
 from cryptography.fernet import Fernet
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 
 @dataclass
-class VerifiedTweet:
+class JSONSerializable:
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
+class VerifiedTweet(JSONSerializable):
     tweet_id: str
     url: str
     timestamp: str  # Format: 2024-12-10T18:27:16Z
@@ -12,7 +18,7 @@ class VerifiedTweet:
 
 
 @dataclass
-class Profile:
+class Profile(JSONSerializable):
     UserID: str
     Avatar: Optional[str] = None
     Banner: Optional[str] = None
@@ -39,7 +45,7 @@ class Profile:
 
 
 @dataclass
-class RegisteredAgentRequest:
+class RegisteredAgentRequest(JSONSerializable):
     hotkey: str
     uid: int
     subnet_id: int
@@ -50,7 +56,7 @@ class RegisteredAgentRequest:
 
 
 @dataclass
-class RegisteredAgentResponse:
+class RegisteredAgentResponse(JSONSerializable):
     ID: int
     HotKey: str
     UID: str
@@ -86,7 +92,7 @@ class RegisteredAgentResponse:
 
 
 @dataclass
-class RegisteredMiner:
+class RegisteredMiner(JSONSerializable):
     address: str
     symmetric_key: str
     symmetric_key_uuid: str
