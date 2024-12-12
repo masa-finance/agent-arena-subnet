@@ -22,6 +22,7 @@ async def main():
     validator = AgentValidator()
     await validator.start(keypair=keypair, port=port)
 
+    # Keyboard handler
     try:
         while True:
             await asyncio.sleep(1)
