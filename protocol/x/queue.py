@@ -28,10 +28,8 @@ DEFAULT_MAX_CONCURRENT_REQUESTS = 5     # Maximum parallel requests
 DEFAULT_API_REQUESTS_PER_SECOND = 20    # Default to 20 RPS
 DEFAULT_RETRIES = 10                    # Number of retry attempts
 
-# Base priority level (higher = lower priority)
-DEFAULT_PRIORITY = 100
-# Base delay (seconds) for exponential backoff
-BACKOFF_BASE_SLEEP = 1
+DEFAULT_PRIORITY = 100                  # Base priority level (higher = lower priority)
+BACKOFF_BASE_SLEEP = 1                  # Base delay (seconds) for exponential backoff
 THREAD_DAEMON = True                    # Run worker threads as daemons
 
 POSTS_STORAGE_PATH = os.getenv('POSTS_STORAGE_PATH', 'data/posts.json')
