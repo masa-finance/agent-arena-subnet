@@ -192,7 +192,6 @@ class RequestQueue:
 
             logger.info(f"Processed {request_type} request: {response}")
 
-            # TODO: Store this in data/posts.json without duplication\
             metadata = {
                 "uid": request_data['metadata']['uid'],
                 "user_id": 1,
