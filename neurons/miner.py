@@ -18,7 +18,9 @@ from utils.nodes import format_nodes_to_dict
 # Import the vali_client module or object
 from fastapi import FastAPI
 from fiber.miner.middleware import configure_extra_logging_middleware
-from fiber.chain import chain_utils
+from fiber.chain import chain_utils, post_ip_to_chain
+from dotenv import load_dotenv
+
 
 logger = get_logger(__name__)
 
@@ -26,6 +28,8 @@ logger = get_logger(__name__)
 class AgentMiner:
     def __init__(self):
         """Initialize miner"""
+        load_dotenv()
+
         # load environment variables
         self.netuid = int(os.getenv("NETUID", "249"))
         self.subtensor_network = os.getenv("SUBTENSOR_NETWORK", "test")
@@ -55,14 +59,7 @@ class AgentMiner:
         self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
         self.metagraph.sync_nodes()
 
-        node = self.get_node()
-        if node:
-            if node.get("ip") != self.external_ip or node.get("port") != self.port:
-                logger.info(
-                    f"Metagraph IP: {node.get('ip')}, Metagraph Port: {node.get('port')} vs Local IP: {self.external_ip}, Local Port: {self.port}"
-                )
-                logger.info(f"Local IP: {self.external_ip}, Local port: {self.port}")
-                self.post_ip_to_chain()
+        self.post_ip_to_chain()
 
     async def start(self):
         """Start the Fiber server and register with validator"""
@@ -103,32 +100,35 @@ class AgentMiner:
             logger.error(f"Failed to get external IP: {e}")
 
     def post_ip_to_chain(self):
-        try:
-            result = subprocess.run(
-                [
-                    "fiber-post-ip",
-                    "--netuid",
-                    str(self.netuid),
-                    "--external_ip",
-                    str(self.external_ip),
-                    "--external_port",
-                    str(self.port),
-                    "--subtensor.network",
-                    self.subtensor_network,
-                    "--wallet.name",
-                    self.wallet_name,
-                    "--wallet.hotkey",
-                    self.hotkey_name,
-                ],
-                check=True,
-            )
-
-            if result.returncode != 0:
-                logger.error("Failed to post IP to chain.")
-                return
-            # logger in subprocess will post a success message if passes...
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to post IP to chain: {e}")
+        node = self.get_node()
+        if node:
+            if node.get("ip") != self.external_ip or node.get("port") != self.port:
+                logger.info(
+                    f"Posting IP / Port to Chain: Old IP: {node.get('ip')}, Old Port: {node.get('port')}, New IP: {self.external_ip}, New Port: {self.port}"
+                )
+                try:
+                    coldkey_keypair_pub = chain_utils.load_coldkeypub_keypair(
+                        wallet_name=self.wallet_name
+                    )
+                    success = post_ip_to_chain.post_node_ip_to_chain(
+                        substrate=self.substrate,
+                        keypair=self.keypair,
+                        netuid=self.netuid,
+                        external_ip=self.external_ip,
+                        external_port=self.port,
+                        coldkey_ss58_address=coldkey_keypair_pub.ss58_address,
+                    )
+                    logger.info(f"Post IP to chain: {success}!")
+                except Exception as e:
+                    logger.error(f"Failed to post IP to chain: {e}")
+                    raise Exception("Failed to post IP / Port to chain")
+            else:
+                logger.info(
+                    f"IP / Port already posted to chain: IP: {node.get('ip')}, Port: {node.get('port')}"
+                )
+        else:
+            logger.error("No node found in nodes.json")
+            raise Exception("Hotkey not registered to metagraph")
 
     def get_node(self):
         try:

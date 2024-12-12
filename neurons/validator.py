@@ -68,16 +68,15 @@ class AgentValidator:
 
         self.keypair = None
         self.server: Optional[factory_app] = None
-        self.api_url = os.getenv(
-            "API_URL", "https://test.protocol-api.masa.ai")
+        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
 
         self.queue = None
         self.scheduler = None
         self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
         self.scheduler_interval_minutes = int(
-            os.getenv("SCHEDULER_INTERVAL_MINUTES", "15"))
-        self.scheduler_batch_size = int(
-            os.getenv("SCHEDULER_BATCH_SIZE", "100"))
+            os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
+        )
+        self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         # Get network configuration from environment
@@ -93,9 +92,9 @@ class AgentValidator:
     async def fetch_registered_agents(self):
         """Fetch active agents from the API and update registered_agents"""
         try:
-            endpoint = f"{
-                self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
-            response = await self.httpx_client.get(endpoint, headers={"Authorization": "Bearer sk_test_123456789"})
+            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+            endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
+            response = await self.httpx_client.get(endpoint, headers=headers)
             if response.status_code == 200:
                 active_agents = response.json()
                 self.registered_agents = {
@@ -112,8 +111,7 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(
-                f"Exception occurred while fetching active agents: {str(e)}")
+            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
 
     async def start(self, keypair: Keypair, port: int):
         """Start the validator service.
@@ -145,8 +143,7 @@ class AgentValidator:
             )  # agent registration
 
             # Start the FastAPI server
-            config = uvicorn.Config(
-                self.app, host="0.0.0.0", port=port, lifespan="on")
+            config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
             server = uvicorn.Server(config)
             await server.serve()
 
@@ -174,7 +171,8 @@ class AgentValidator:
             interval_minutes=self.scheduler_interval_minutes,
             batch_size=self.scheduler_batch_size,
             priority=self.scheduler_priority,
-            search_count=self.search_count)
+            search_count=self.search_count,
+        )
         self.scheduler.start()
 
     async def check_agents_registration_loop(self):
@@ -278,7 +276,10 @@ class AgentValidator:
         logger.info("Registration data: %s", registration_data)
         endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
         try:
-            response = await self.httpx_client.post(endpoint, json=registration_data)
+            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+            response = await self.httpx_client.post(
+                endpoint, json=registration_data, headers=headers
+            )
             if response.status_code == 200:
                 logger.info("Successfully registered agent!")
                 await self.fetch_registered_agents()
@@ -288,8 +289,7 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(
-                f"Exception occurred during agent registration: {str(e)}")
+            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     async def node_registration_check(self, raw_nodes: Dict[str, Node]):
         """Verify node registration"""
@@ -325,8 +325,7 @@ class AgentValidator:
                             miner.ip}, Port: {miner.port}"
                     )
                 else:
-                    logger.warning(
-                        f"Failed to connect to miner {miner.hotkey}")
+                    logger.warning(f"Failed to connect to miner {miner.hotkey}")
 
         except Exception as e:
             logger.error("Error in registration check: %s", str(e))
@@ -398,8 +397,7 @@ class AgentValidator:
         """
         try:
             if self.metagraph is None:
-                self.metagraph = Metagraph(
-                    netuid=self.netuid, substrate=self.substrate)
+                self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
             logger.info("Metagraph synced successfully")
         except Exception as e:

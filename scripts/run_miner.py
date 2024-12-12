@@ -1,12 +1,8 @@
 import asyncio
-from dotenv import load_dotenv
 from neurons.miner import AgentMiner
 
 
 async def main():
-    # Load env
-    load_dotenv()
-
     # Initialize miner
     miner = AgentMiner()
     await miner.start()
