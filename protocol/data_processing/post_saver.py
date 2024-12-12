@@ -43,7 +43,7 @@ class PostSaver:
         """
         self.storage_path = Path(storage_path)
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize empty storage file if it doesn't exist
         if not self.storage_path.exists():
             self.storage_path.write_text('[]', encoding='utf-8')
@@ -65,10 +65,13 @@ class PostSaver:
             json.JSONDecodeError: If existing JSON file is malformed
         """
         try:
-            existing_posts = json.loads(self.storage_path.read_text(encoding='utf-8'))
-        except (FileNotFoundError, json.JSONDecodeError):
+            existing_posts = json.loads(
+                self.storage_path.read_text(encoding='utf-8'))
+        except FileNotFoundError:
             existing_posts = []
-
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                "The storage file is not properly formatted as JSON.") from e
         # Prepare new post data
         new_post = {
             **metadata,
@@ -78,7 +81,7 @@ class PostSaver:
         # Check for duplication based on tweet 'ID'
         existing_tweet_ids = {
             tweet['Tweet']['ID']
-            for post in existing_posts 
+            for post in existing_posts
             for tweet in post['tweets']
         }
         new_tweets = [
