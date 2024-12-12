@@ -7,7 +7,7 @@ from interfaces.types import VerifiedTweet
 logger = get_logger(__name__)
 
 
-async def verify_tweet(id: str, hotkey: str) -> tuple[VerifiedTweet, str]:
+async def verify_tweet(id: str, hotkey: str) -> tuple[VerifiedTweet, str, str]:
     """Fetch tweet from Twitter API"""
     try:
         logger.info(f"Verifying tweet: {id}")
@@ -54,7 +54,7 @@ async def verify_tweet(id: str, hotkey: str) -> tuple[VerifiedTweet, str]:
             ),
             full_text=full_text,
         )
-        return verification_tweet, user_id
+        return verification_tweet, user_id, screen_name
     except Exception as e:
         logger.error(f"Failed to register agent: {str(e)}")
         return False

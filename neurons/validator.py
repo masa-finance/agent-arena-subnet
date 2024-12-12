@@ -134,12 +134,12 @@ class AgentValidator:
                         if full_node:
                             tweet_id = await self.get_agent_tweet_id(full_node)
 
-                            verified_tweet, user_id = await verify_tweet(
+                            verified_tweet, user_id, screen_name = await verify_tweet(
                                 tweet_id, node_hotkey
                             )
                             if verified_tweet and user_id:
                                 await self.register_agent(
-                                    full_node, verified_tweet, user_id
+                                    full_node, verified_tweet, user_id, screen_name
                                 )
 
                     except Exception as e:
@@ -182,7 +182,7 @@ class AgentValidator:
             return None
 
     async def register_agent(
-        self, node: Node, verified_tweet: VerifiedTweet, user_id: str
+        self, node: Node, verified_tweet: VerifiedTweet, user_id: str, screen_name: str
     ):
         """Register an agent"""
         registration_data = RegisteredAgentRequest(
@@ -195,6 +195,7 @@ class AgentValidator:
             profile={
                 "data": Profile(
                     UserID=user_id,
+                    Username=screen_name,
                 )
             },
         )
