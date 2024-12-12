@@ -1,3 +1,4 @@
+from typing import TypedDict
 import httpx
 from cryptography.fernet import Fernet
 from substrateinterface import Keypair
@@ -16,6 +17,8 @@ from fiber.chain.metagraph import Metagraph
 from utils.nodes import format_nodes_to_dict, filter_nodes_with_ip_and_port
 from utils.twitter import verify_tweet
 from fiber.networking.models import NodeWithFernet as Node
+from x.queues import generate_queue
+from protocol.x.scheduler import XSearchScheduler
 from interfaces.types import (
     VerifiedTweet,
     RegisteredAgentRequest,
@@ -33,6 +36,28 @@ SYNC_LOOP_CADENCE_SECONDS = 60
 
 
 class AgentValidator:
+    """Validator class for managing agent registration and verification on the Bittensor subnet.
+
+    This class handles the core validator functionality including:
+    - Miner registration and connection management
+    - Agent verification through Twitter
+    - Status monitoring and health checks
+    - Secure communication using MLTS
+
+    Attributes:
+        netuid (int): Network unique identifier
+        httpx_client (Optional[httpx.AsyncClient]): Async HTTP client
+        registered_miners (Dict[str, RegisteredMiner]): Currently registered miners
+        registered_agents (Dict[str, RegisteredAgent]): Currently registered agents
+        keypair (Optional[Keypair]): Validator's keypair for authentication
+        server (Optional[factory_app]): FastAPI server instance
+        queue: Request queue for X search operations
+        scheduler: Scheduler for managing X search requests
+        substrate: Substrate interface for chain interactions
+        app (Optional[FastAPI]): FastAPI application instance
+        metagraph: Network metagraph state
+    """
+
     def __init__(self):
         """Initialize validator"""
         self.netuid = int(os.getenv("NETUID", "249"))
@@ -43,7 +68,17 @@ class AgentValidator:
 
         self.keypair = None
         self.server: Optional[factory_app] = None
-        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
+        self.api_url = os.getenv(
+            "API_URL", "https://test.protocol-api.masa.ai")
+
+        self.queue = None
+        self.scheduler = None
+        self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
+        self.scheduler_interval_minutes = int(
+            os.getenv("SCHEDULER_INTERVAL_MINUTES", "15"))
+        self.scheduler_batch_size = int(
+            os.getenv("SCHEDULER_BATCH_SIZE", "100"))
+        self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         # Get network configuration from environment
         network = os.getenv("SUBTENSOR_NETWORK", "finney")
@@ -58,8 +93,9 @@ class AgentValidator:
     async def fetch_registered_agents(self):
         """Fetch active agents from the API and update registered_agents"""
         try:
-            endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
-            response = await self.httpx_client.get(endpoint)
+            endpoint = f"{
+                self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
+            response = await self.httpx_client.get(endpoint, headers={"Authorization": "Bearer sk_test_123456789"})
             if response.status_code == 200:
                 active_agents = response.json()
                 self.registered_agents = {
@@ -68,15 +104,27 @@ class AgentValidator:
                 }
                 logger.info("Successfully fetched and updated active agents.")
 
+                self.create_scheduler()
+
             else:
                 logger.error(
-                    f"Failed to fetch active agents, status code: {response.status_code}, message: {response.text}"
+                    f"Failed to fetch active agents, status code: {
+                        response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
+            logger.error(
+                f"Exception occurred while fetching active agents: {str(e)}")
 
     async def start(self, keypair: Keypair, port: int):
-        """Start the validator"""
+        """Start the validator service.
+
+        Args:
+            keypair (Keypair): The validator's keypair for authentication
+            port (int): Port number to run the validator service on
+
+        Raises:
+            Exception: If startup fails for any reason
+        """
         try:
             self.keypair = keypair
             self.httpx_client = httpx.AsyncClient()
@@ -97,13 +145,37 @@ class AgentValidator:
             )  # agent registration
 
             # Start the FastAPI server
-            config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
+            config = uvicorn.Config(
+                self.app, host="0.0.0.0", port=port, lifespan="on")
             server = uvicorn.Server(config)
             await server.serve()
 
         except Exception as e:
             logger.error(f"Failed to start validator: {str(e)}")
             raise
+
+    def create_scheduler(self):
+        """Initialize the X search scheduler and request queue.
+
+        Creates a new queue based on registered agents and starts
+        the scheduler with configured parameters.
+        """
+
+        if self.queue:
+            self.queue.clean()
+            self.queue = None
+
+        logger.info("Generating queue...")
+        self.queue = generate_queue(self.registered_agents)
+        logger.info("Queue generated.")
+
+        self.scheduler = XSearchScheduler(
+            request_queue=self.queue,
+            interval_minutes=self.scheduler_interval_minutes,
+            batch_size=self.scheduler_batch_size,
+            priority=self.scheduler_priority,
+            search_count=self.search_count)
+        self.scheduler.start()
 
     async def check_agents_registration_loop(self):
         while True:
@@ -212,10 +284,12 @@ class AgentValidator:
                 await self.fetch_registered_agents()
             else:
                 logger.error(
-                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
+                    f"Failed to register agent, status code: {
+                        response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
+            logger.error(
+                f"Exception occurred during agent registration: {str(e)}")
 
     async def node_registration_check(self, raw_nodes: Dict[str, Node]):
         """Verify node registration"""
@@ -251,7 +325,8 @@ class AgentValidator:
                             miner.ip}, Port: {miner.port}"
                     )
                 else:
-                    logger.warning(f"Failed to connect to miner {miner.hotkey}")
+                    logger.warning(
+                        f"Failed to connect to miner {miner.hotkey}")
 
         except Exception as e:
             logger.error("Error in registration check: %s", str(e))
@@ -288,7 +363,12 @@ class AgentValidator:
             return False
 
     async def stop(self):
-        """Cleanup validator resources"""
+        """Cleanup validator resources and shutdown gracefully.
+
+        Closes:
+        - HTTP client connections
+        - Server instances
+        """
         if self.httpx_client:
             await self.httpx_client.aclose()
         if self.server:
@@ -309,10 +389,17 @@ class AgentValidator:
                 )  # Wait before retrying
 
     async def sync_metagraph(self):
-        """Sync the metagraph state"""
+        """Synchronize local metagraph state with chain.
+
+        Creates new metagraph instance if needed and syncs node data.
+
+        Raises:
+            Exception: If metagraph sync fails
+        """
         try:
             if self.metagraph is None:
-                self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
+                self.metagraph = Metagraph(
+                    netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
             logger.info("Metagraph synced successfully")
         except Exception as e:
