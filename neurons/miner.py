@@ -110,7 +110,7 @@ class AgentMiner:
                     coldkey_keypair_pub = chain_utils.load_coldkeypub_keypair(
                         wallet_name=self.wallet_name
                     )
-                    success = post_ip_to_chain.post_node_ip_to_chain(
+                    post_ip_to_chain.post_node_ip_to_chain(
                         substrate=self.substrate,
                         keypair=self.keypair,
                         netuid=self.netuid,
@@ -118,7 +118,7 @@ class AgentMiner:
                         external_port=self.port,
                         coldkey_ss58_address=coldkey_keypair_pub.ss58_address,
                     )
-                    logger.info(f"Post IP to chain: {success}!")
+                    # library will log success message
                 except Exception as e:
                     logger.error(f"Failed to post IP to chain: {e}")
                     raise Exception("Failed to post IP / Port to chain")
