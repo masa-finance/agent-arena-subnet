@@ -89,6 +89,8 @@ class AgentValidator:
             # Add our custom routes
             self.register_routes()
 
+            self.sync_metagraph()
+
             # TODO: fetch registered agents from API
 
             # Start background tasks
