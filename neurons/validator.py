@@ -24,6 +24,15 @@ logger = get_logger(__name__)
 
 
 class Tweet(TypedDict):
+    """Type definition for Tweet data structure.
+    
+    Attributes:
+        user_id (str): The Twitter user ID
+        tweet_id (str): The unique tweet identifier
+        url (str): The full URL to the tweet
+        timestamp (str): When the tweet was created
+        full_text (str): The complete text content of the tweet
+    """
     user_id: str
     tweet_id: str
     url: str
@@ -32,6 +41,16 @@ class Tweet(TypedDict):
 
 
 class RegisteredAgent(TypedDict):
+    """Type definition for registered agent information.
+    
+    Attributes:
+        hotkey (str): The agent's hotkey identifier
+        uid (int): Unique identifier on the network
+        subnet_id (int): The subnet this agent belongs to
+        version (str): Agent protocol version
+        isActive (bool): Whether the agent is currently active
+        verification_tweet (Optional[Tweet]): Associated verification tweet data
+    """
     hotkey: str
     uid: int
     subnet_id: int
@@ -41,6 +60,16 @@ class RegisteredAgent(TypedDict):
 
 
 class RegisteredMiner(TypedDict):
+    """Type definition for registered miner information.
+    
+    Attributes:
+        address (str): The miner's network address
+        symmetric_key (str): Encryption key for secure communication
+        symmetric_key_uuid (str): Unique identifier for the symmetric key
+        fernet (Fernet): Fernet encryption instance
+        status (str): Current miner status
+        last_active (float): Timestamp of last activity
+    """
     address: str
     symmetric_key: str
     symmetric_key_uuid: str
@@ -54,6 +83,27 @@ MINER_STATUS_CHECK_CADENCE_SECONDS = 60
 
 
 class AgentValidator:
+    """Validator class for managing agent registration and verification on the Bittensor subnet.
+    
+    This class handles the core validator functionality including:
+    - Miner registration and connection management
+    - Agent verification through Twitter
+    - Status monitoring and health checks
+    - Secure communication using MLTS
+    
+    Attributes:
+        netuid (int): Network unique identifier
+        httpx_client (Optional[httpx.AsyncClient]): Async HTTP client
+        registered_miners (Dict[str, RegisteredMiner]): Currently registered miners
+        registered_agents (Dict[str, RegisteredAgent]): Currently registered agents
+        keypair (Optional[Keypair]): Validator's keypair for authentication
+        server (Optional[factory_app]): FastAPI server instance
+        queue: Request queue for X search operations
+        scheduler: Scheduler for managing X search requests
+        substrate: Substrate interface for chain interactions
+        app (Optional[FastAPI]): FastAPI application instance
+        metagraph: Network metagraph state
+    """
     def __init__(self):
         """Initialize validator"""
         self.netuid = int(os.getenv("NETUID", "249"))
@@ -78,7 +128,15 @@ class AgentValidator:
         self.metagraph = None
 
     async def start(self, keypair: Keypair, port: int):
-        """Start the validator"""
+        """Start the validator service.
+        
+        Args:
+            keypair (Keypair): The validator's keypair for authentication
+            port (int): Port number to run the validator service on
+            
+        Raises:
+            Exception: If startup fails for any reason
+        """
         try:
             self.keypair = keypair
             self.httpx_client = httpx.AsyncClient()
@@ -109,6 +167,11 @@ class AgentValidator:
             raise
 
     def create_scheduler(self):
+        """Initialize the X search scheduler and request queue.
+        
+        Creates a new queue based on registered agents and starts
+        the scheduler with configured parameters.
+        """
         logger.info("Generating queue...")
         self.queue = generate_queue(self.registered_agents)
         logger.info("Queue generated.")
@@ -122,6 +185,11 @@ class AgentValidator:
         self.scheduler.start()
 
     async def check_registered_nodes_agents_loop(self):
+        """Background task to verify node registration status.
+        
+        Continuously monitors nodes to ensure they have registered agents.
+        Attempts to register agents for unregistered nodes.
+        """
         while True:
             unregistered_nodes = []
             try:
@@ -166,6 +234,15 @@ class AgentValidator:
                 await asyncio.sleep(REGISTRATION_CHECK_CADENCE_SECONDS / 2)
 
     async def register_agent_for_node(self, node: Node):
+        """Register an agent for a given node by verifying their tweet.
+        
+        Args:
+            node (Node): The node object containing hotkey and network details
+            
+        Raises:
+            ValueError: If verification tweet cannot be retrieved or validated
+            HTTPError: If connection to miner fails
+        """
         registered_miner = self.registered_miners.get(node.hotkey)
 
         server_address = vali_client.construct_server_address(
@@ -192,7 +269,18 @@ class AgentValidator:
             )
 
     async def register_agent(self, node: Node, verified_tweet: Dict):
-        """Register an agent"""
+        """Register an agent with the validator after tweet verification.
+        
+        Args:
+            node (Node): The node object containing hotkey and network details
+            verified_tweet (Dict): The verified tweet data containing user and content info
+            
+        Returns:
+            Dict: The registration data for the newly registered agent
+            
+        Note:
+            Registration data includes hotkey, uid, subnet_id, version, status and tweet info
+        """
         registration_data = {
             "hotkey": node.hotkey,
             "uid": node.node_id,
@@ -207,7 +295,18 @@ class AgentValidator:
         return registration_data
 
     async def registration_check_loop(self):
-        """Periodically verify registration"""
+        """Periodically verify registration status of miners.
+        
+        Continuously runs to:
+        - Fetch current miners from substrate
+        - Filter based on environment settings
+        - Attempt connection to unregistered miners
+        - Handle registration failures
+        
+        Note:
+            Runs every 60 seconds in normal operation
+            Falls back to 30 second interval on errors
+        """
         while True:
             try:
                 miners = await fetch_nodes_from_substrate(self.substrate, self.netuid)
@@ -261,7 +360,18 @@ class AgentValidator:
                 await asyncio.sleep(30)
 
     async def connect_to_miner(self, miner_address: str, miner_hotkey: str) -> bool:
-        """Connect to a miner"""
+        """Establish secure connection with a miner using MLTS handshake.
+        
+        Args:
+            miner_address (str): Network address of the miner
+            miner_hotkey (str): Miner's hotkey identifier
+            
+        Returns:
+            bool: True if connection successful, False otherwise
+            
+        Note:
+            Stores connection details in registered_miners on success
+        """
         try:
             logger.info(f"Attempting to do handshake {
                         miner_address} - {miner_hotkey}")
@@ -299,14 +409,32 @@ class AgentValidator:
             return False
 
     async def stop(self):
-        """Cleanup validator resources"""
+        """Cleanup validator resources and shutdown gracefully.
+        
+        Closes:
+        - HTTP client connections
+        - Server instances
+        """
         if self.httpx_client:
             await self.httpx_client.aclose()
         if self.server:
             await self.server.stop()
 
     async def verify_tweet(self, id: str) -> Optional[Dict[str, str]]:
-        """Fetch tweet from Twitter API"""
+        """Verify and fetch tweet data from Twitter API.
+        
+        Args:
+            id (str): Twitter tweet ID to verify
+            
+        Returns:
+            Optional[Dict[str, str]]: Verified tweet data if successful, None otherwise
+            
+        Raises:
+            ValueError: If tweet data is invalid or hotkey not registered
+            
+        Note:
+            Tweet must contain valid hotkey in full_text
+        """
         try:
             result = TweetValidator().fetch_tweet(id)
             tweet_data_result = (
@@ -347,7 +475,16 @@ class AgentValidator:
             return False
 
     async def check_miners_status(self):
-        """Periodic check of miners' status"""
+        """Check status of all registered miners.
+        
+        Verifies:
+        - Active status on metagraph
+        - Recent activity (within 5 minutes)
+        - Updates miner status accordingly
+        
+        Note:
+            Marks miners as inactive if either check fails
+        """
         try:
             await self.sync_metagraph()
 
@@ -378,7 +515,14 @@ class AgentValidator:
             logger.error(f"Error in miners status check: {str(e)}")
 
     async def status_check_loop(self):
-        """Background task to check miners status"""
+        """Background task to periodically check miner status.
+        
+        Runs check_miners_status() at regular intervals defined by 
+        MINER_STATUS_CHECK_CADENCE_SECONDS.
+        
+        Note:
+            Halves check interval on errors for faster recovery
+        """
         while True:
             try:
                 await self.check_miners_status()
@@ -390,7 +534,13 @@ class AgentValidator:
                 )  # Wait before retrying
 
     async def sync_metagraph(self):
-        """Sync the metagraph state"""
+        """Synchronize local metagraph state with chain.
+        
+        Creates new metagraph instance if needed and syncs node data.
+        
+        Raises:
+            Exception: If metagraph sync fails
+        """
         try:
             if self.metagraph is None:
                 self.metagraph = Metagraph(
