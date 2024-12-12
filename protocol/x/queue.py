@@ -10,7 +10,7 @@ import itertools
 # Import the functions from their respective modules
 from protocol.x.profile import get_x_profile
 from protocol.x.search import search_x
-from protocol.data_processing.post_saver import save_post
+from protocol.data_processing.post_saver import PostSaver
 # Load environment variables
 load_dotenv()
 
@@ -27,11 +27,14 @@ logger = logging.getLogger(__name__)
 DEFAULT_MAX_CONCURRENT_REQUESTS = 5     # Maximum parallel requests
 DEFAULT_API_REQUESTS_PER_SECOND = 20    # Default to 20 RPS
 DEFAULT_RETRIES = 10                    # Number of retry attempts
+
 # Base priority level (higher = lower priority)
 DEFAULT_PRIORITY = 100
 # Base delay (seconds) for exponential backoff
 BACKOFF_BASE_SLEEP = 1
 THREAD_DAEMON = True                    # Run worker threads as daemons
+
+POSTS_STORAGE_PATH = os.getenv('POSTS_STORAGE_PATH', 'data/posts.json')
 
 
 class RequestQueue:
@@ -90,6 +93,10 @@ class RequestQueue:
         self.requests_per_second = DEFAULT_API_REQUESTS_PER_SECOND
         self.last_request_time = time.time()
         self.rate_limit_lock = threading.Lock()
+
+        # Posts saver
+        self.saver = PostSaver(storage_path=POSTS_STORAGE_PATH)
+
         logger.debug(f"Initialized RequestQueue with max_concurrent_requests={max_concurrent_requests}, "
                      f"rate_limit={self.requests_per_second} RPS")
 
@@ -202,7 +209,7 @@ class RequestQueue:
                 "created_at": int(time.time())
             }
 
-            save_post(response, metadata)
+            self.saver.save_post(response, metadata)
 
         except Exception as e:
             logger.error(f"Error processing request: {e}")
@@ -260,6 +267,9 @@ class RequestQueue:
 
 
 # Example usage
+        saver = PostSaver(storage_path=POSTS_STORAGE_PATH)
+
+
 if __name__ == "__main__":
 
     rq = RequestQueue()
