@@ -28,8 +28,10 @@ DEFAULT_MAX_CONCURRENT_REQUESTS = 5     # Maximum parallel requests
 DEFAULT_API_REQUESTS_PER_SECOND = 20    # Default to 20 RPS
 DEFAULT_RETRIES = 10                    # Number of retry attempts
 
-DEFAULT_PRIORITY = 100                  # Base priority level (higher = lower priority)
-BACKOFF_BASE_SLEEP = 1                  # Base delay (seconds) for exponential backoff
+# Base priority level (higher = lower priority)
+DEFAULT_PRIORITY = 100
+# Base delay (seconds) for exponential backoff
+BACKOFF_BASE_SLEEP = 1
 THREAD_DAEMON = True                    # Run worker threads as daemons
 
 POSTS_STORAGE_PATH = os.getenv('POSTS_STORAGE_PATH', 'data/posts.json')
@@ -195,18 +197,19 @@ class RequestQueue:
             else:
                 raise ValueError(f"Unknown request type: {request_type}")
 
-            logger.info(f"Processed {request_type} request: {response}")
+            if response['data'] is not None:
+                logger.info(f"Processed {request_type} request: {response}")
 
-            metadata = {
-                "uid": request_data['metadata']['uid'],
-                "user_id": 1,
-                "subnet_id": request_data['metadata']['subnet_id'],
-                "query": request_data['query'],
-                "count": len(response),
-                "created_at": int(time.time())
-            }
+                metadata = {
+                    "uid": request_data['metadata'].UID,
+                    "user_id": request_data['metadata'].UserID,
+                    "subnet_id": request_data['metadata'].SubnetID,
+                    "query": request_data['query'],
+                    "count": len(response),
+                    "created_at": int(time.time())
+                }
 
-            self.saver.save_post(response, metadata)
+                self.saver.save_post(response, metadata)
 
         except Exception as e:
             logger.error(f"Error processing request: {e}")
@@ -259,12 +262,34 @@ class RequestQueue:
             >>> rq.add_request('profile', {'username': 'vitalikbuterin'}, priority=2)
         """
         logger.debug("Starting request processing thread")
-        threading.Thread(target=self.process_requests,
-                         daemon=THREAD_DAEMON).start()
+        self.thread = threading.Thread(target=self.process_requests,
+                                       daemon=THREAD_DAEMON)
+        self.thread.start()
 
+    def stop(self):
+        """Stop the request processing thread.
 
-# Example usage
-        saver = PostSaver(storage_path=POSTS_STORAGE_PATH)
+        This method will signal the processing thread to stop and wait for it to finish.
+        It ensures that all active requests are completed before the thread is terminated.
+        """
+        logger.debug("Stopping request processing thread")
+        self.active_requests = 0  # Reset active requests counter
+        self.thread.join()  # Wait for the thread to finish
+
+    def clean(self):
+        """Clean up the request queue and reset its state.
+
+        This method is responsible for cleaning up the request queue by stopping
+        the processing thread and resetting the queues to their initial state.
+        It ensures that all resources are properly released and the queue is
+        ready for a fresh start if needed.
+
+        Note:
+            This method should be called when the queue is no longer needed or
+            before reinitializing it to prevent resource leaks.
+        """
+        self.stop()
+        self.queues = None
 
 
 if __name__ == "__main__":

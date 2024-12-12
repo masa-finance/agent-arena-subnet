@@ -64,41 +64,43 @@ class PostSaver:
             FileNotFoundError: If storage file cannot be created/accessed
             json.JSONDecodeError: If existing JSON file is malformed
         """
-        try:
-            existing_posts = json.loads(
-                self.storage_path.read_text(encoding='utf-8'))
-        except FileNotFoundError:
-            existing_posts = []
-        except json.JSONDecodeError as e:
-            raise ValueError(
-                "The storage file is not properly formatted as JSON.") from e
-        # Prepare new post data
-        new_post = {
-            **metadata,
-            "tweets": response.get("data", [])
-        }
 
-        # Check for duplication based on tweet 'ID'
-        existing_tweet_ids = {
-            tweet['Tweet']['ID']
-            for post in existing_posts
-            for tweet in post['tweets']
-        }
-        new_tweets = [
-            tweet for tweet in new_post['tweets']
-            if tweet['Tweet']['ID'] not in existing_tweet_ids
-        ]
+        if response is not None:
+            try:
+                existing_posts = json.loads(
+                    self.storage_path.read_text(encoding='utf-8'))
+            except FileNotFoundError:
+                existing_posts = []
+            except json.JSONDecodeError as e:
+                raise ValueError(
+                    "The storage file is not properly formatted as JSON.") from e
+            # Prepare new post data
+            new_post = {
+                **metadata,
+                "tweets": response.get("data", [])
+            }
 
-        if new_tweets:
-            new_post['tweets'] = new_tweets
-            existing_posts.append(new_post)
+            # Check for duplication based on tweet 'ID'
+            existing_tweet_ids = {
+                tweet['Tweet']['ID']
+                for post in existing_posts
+                for tweet in post['tweets']
+            }
+            new_tweets = [
+                tweet for tweet in new_post['tweets']
+                if tweet['Tweet']['ID'] not in existing_tweet_ids
+            ]
 
-            # Save updated posts back to storage
-            self.storage_path.write_text(
-                json.dumps(existing_posts, indent=4),
-                encoding='utf-8'
-            )
+            if new_tweets:
+                new_post['tweets'] = new_tweets
+                existing_posts.append(new_post)
 
-            logger.info(f"Stored posts for {metadata.get('query')}")
-        else:
-            logger.info("All tweets are duplicates, not adding to storage")
+                # Save updated posts back to storage
+                self.storage_path.write_text(
+                    json.dumps(existing_posts, indent=4),
+                    encoding='utf-8'
+                )
+
+                logger.info(f"Stored posts for {metadata.get('query')}")
+            else:
+                logger.info("All tweets are duplicates, not adding to storage")

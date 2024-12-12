@@ -8,13 +8,15 @@ from typing import TypedDict
 from typing import Optional, Dict
 from protocol.x.queue import RequestQueue
 from fiber.logging_utils import get_logger
-
+from interfaces.types import (
+    RegisteredAgentResponse,
+)
 logger = get_logger(__name__)
 
 
 class Tweet(TypedDict):
     """Test type definition for Tweet data structure.
-    
+
     Test Attributes:
         user_id (str): Test X user ID
         tweet_id (str): Test tweet identifier
@@ -31,7 +33,7 @@ class Tweet(TypedDict):
 
 class RegisteredAgent(TypedDict):
     """Test type definition for registered agent information.
-    
+
     Test Attributes:
         hotkey (str): Test hotkey identifier
         uid (int): Test unique identifier
@@ -48,33 +50,37 @@ class RegisteredAgent(TypedDict):
     verification_tweet: Optional[Tweet]
 
 
-def generate_queue(agents: Dict[str, RegisteredAgent]):
+def generate_queue(agents: Dict[str, RegisteredAgentResponse]):
     """Test function for generating request queues.
 
     Tests creation of RequestQueue instance and population with test search requests.
     Verifies queue initialization and request addition for test agents.
 
     Args:
-        agents (Dict[str, RegisteredAgent]): Test dictionary of agents
+        agents (Dict[str, RegisteredAgentResponse]): Test dictionary of agents
 
     Returns:
         RequestQueue: Test queue instance for verification
     """
     queue = RequestQueue()
 
+    print(agents)
+
     for agent in agents.values():
-        logger.info(f"Adding request to the queue for id {
-                    agent['uid']} - {agent['hotkey']}")
+        print("AGENT:", agent)
+        logger.info(f"Adding request to the queue for id {agent.UID}")
 
         # TODO: Replace this with the agent username and correct metadata
         queue.add_request(
             request_type='search',
-            request_data={'query': 'to: @getmasafi', 'metadata': agent},
+            request_data={
+                'query': f'to: @{agent.Username}', 'metadata': agent},
             priority=1
         )
         queue.add_request(
             request_type='search',
-            request_data={'query': 'from: @getmasafi', 'metadata': agent},
+            request_data={
+                'query': f'from: @{agent.Username}', 'metadata': agent},
             priority=1
         )
     queue.start()
