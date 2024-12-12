@@ -1,4 +1,5 @@
-from typing import TypedDict
+from dotenv import load_dotenv
+from fiber.chain import chain_utils
 import httpx
 from cryptography.fernet import Fernet
 from substrateinterface import Keypair
@@ -60,6 +61,17 @@ class AgentValidator:
 
     def __init__(self):
         """Initialize validator"""
+        # Load env
+        load_dotenv()
+
+        self.wallet_name = os.getenv("VALIDATOR_WALLET_NAME", "validator")
+        self.hotkey_name = os.getenv("VALIDATOR_HOTKEY_NAME", "default")
+        self.port = int(os.getenv("VALIDATOR_PORT", 8081))
+
+        self.keypair = chain_utils.load_hotkey_keypair(
+            self.wallet_name, self.hotkey_name
+        )
+
         self.netuid = int(os.getenv("NETUID", "249"))
         self.httpx_client: Optional[httpx.AsyncClient] = None
 
@@ -89,6 +101,45 @@ class AgentValidator:
         self.app: Optional[FastAPI] = None
         self.metagraph = None
 
+    async def start(self):
+        """Start the validator service.
+
+        Args:
+            keypair (Keypair): The validator's keypair for authentication
+            port (int): Port number to run the validator service on
+
+        Raises:
+            Exception: If startup fails for any reason
+        """
+        try:
+            self.httpx_client = httpx.AsyncClient()
+
+            # Fetch registered agents from API
+            await self.fetch_registered_agents()
+
+            # Create FastAPI app using standard factory
+            self.app = factory_app(debug=False)
+
+            # Add our custom routes
+            self.register_routes()
+
+            # Start background tasks
+            asyncio.create_task(self.sync_loop())  # sync metagraph
+            asyncio.create_task(
+                self.check_agents_registration_loop()
+            )  # agent registration
+
+            # Start the FastAPI server
+            config = uvicorn.Config(
+                self.app, host="0.0.0.0", port=self.port, lifespan="on"
+            )
+            server = uvicorn.Server(config)
+            await server.serve()
+
+        except Exception as e:
+            logger.error(f"Failed to start validator: {str(e)}")
+            raise
+
     async def fetch_registered_agents(self):
         """Fetch active agents from the API and update registered_agents"""
         try:
@@ -112,44 +163,6 @@ class AgentValidator:
                 )
         except Exception as e:
             logger.error(f"Exception occurred while fetching active agents: {str(e)}")
-
-    async def start(self, keypair: Keypair, port: int):
-        """Start the validator service.
-
-        Args:
-            keypair (Keypair): The validator's keypair for authentication
-            port (int): Port number to run the validator service on
-
-        Raises:
-            Exception: If startup fails for any reason
-        """
-        try:
-            self.keypair = keypair
-            self.httpx_client = httpx.AsyncClient()
-
-            # Fetch registered agents from API
-            await self.fetch_registered_agents()
-
-            # Create FastAPI app using standard factory
-            self.app = factory_app(debug=False)
-
-            # Add our custom routes
-            self.register_routes()
-
-            # Start background tasks
-            asyncio.create_task(self.sync_loop())  # sync metagraph
-            asyncio.create_task(
-                self.check_agents_registration_loop()
-            )  # agent registration
-
-            # Start the FastAPI server
-            config = uvicorn.Config(self.app, host="0.0.0.0", port=port, lifespan="on")
-            server = uvicorn.Server(config)
-            await server.serve()
-
-        except Exception as e:
-            logger.error(f"Failed to start validator: {str(e)}")
-            raise
 
     def create_scheduler(self):
         """Initialize the X search scheduler and request queue.
