@@ -100,11 +100,11 @@ class AgentMiner:
             logger.error(f"Failed to get external IP: {e}")
 
     def post_ip_to_chain(self):
-        node = self.get_node()
+        node = self.node()
         if node:
-            if node.get("ip") != self.external_ip or node.get("port") != self.port:
+            if node.ip != self.external_ip or node.port != self.port:
                 logger.info(
-                    f"Posting IP / Port to Chain: Old IP: {node.get('ip')}, Old Port: {node.get('port')}, New IP: {self.external_ip}, New Port: {self.port}"
+                    f"Posting IP / Port to Chain: Old IP: {node.ip}, Old Port: {node.port}, New IP: {self.external_ip}, New Port: {self.port}"
                 )
                 try:
                     coldkey_keypair_pub = chain_utils.load_coldkeypub_keypair(
@@ -124,29 +124,20 @@ class AgentMiner:
                     raise Exception("Failed to post IP / Port to chain")
             else:
                 logger.info(
-                    f"IP / Port already posted to chain: IP: {node.get('ip')}, Port: {node.get('port')}"
+                    f"IP / Port already posted to chain: IP: {node.ip}, Port: {node.port}"
                 )
         else:
-            logger.error("No node found in nodes.json")
             raise Exception("Hotkey not registered to metagraph")
 
-    def get_node(self):
+    # note, requires metagraph sync
+    def node(self):
         try:
-            with open("nodes.json", "r") as f:
-                nodes_data = json.load(f)
-                node = dict(nodes_data).get(self.keypair.ss58_address)
-                if node is None:
-                    logger.error(
-                        f"Node with address {self.keypair.ss58_address} not found in nodes.json"
-                    )
-                return dict(node)
-        except FileNotFoundError:
-            logger.error("nodes.json file not found")
-        except json.JSONDecodeError:
-            logger.error("Error decoding JSON from nodes.json")
+            nodes = self.metagraph.nodes
+            node = nodes[self.keypair.ss58_address]
+            return node
         except Exception as e:
-            logger.error(f"Unexpected error occurred while getting node: {str(e)}")
-        return None
+            logger.error(f"Failed to get node from metagraph: {e}")
+            return None
 
     async def deregister_agent(self):
         """Register agent with the API"""

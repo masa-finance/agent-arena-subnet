@@ -1,5 +1,3 @@
-import asyncio
-from fiber.chain import fetch_nodes, interface
 from fiber.networking.models import NodeWithFernet as Node
 from typing import Dict
 
