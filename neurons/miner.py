@@ -9,11 +9,9 @@ import json
 import httpx
 import os
 import requests
-import subprocess
 
 # from fiber.chain import interface
 import uvicorn
-from utils.nodes import format_nodes_to_dict
 
 # Import the vali_client module or object
 from fastapi import FastAPI
@@ -141,15 +139,7 @@ class AgentMiner:
 
     async def deregister_agent(self):
         """Register agent with the API"""
-        my_hotkey = self.keypair.ss58_address
-        my_node = next(
-            (
-                node
-                for node in format_nodes_to_dict(self.metagraph.nodes)
-                if node.hotkey == my_hotkey
-            ),
-            None,
-        )
+        my_node = self.node()
 
         try:
             deregistration_data = {
@@ -160,7 +150,10 @@ class AgentMiner:
                 "isActive": False,
             }
             endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-            response = await self.httpx_client.post(endpoint, json=deregistration_data)
+            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+            response = await self.httpx_client.post(
+                endpoint, json=deregistration_data, headers=headers
+            )
             if response.status_code == 200:
                 logger.info("Successfully deregistered agent!")
                 return response.json()

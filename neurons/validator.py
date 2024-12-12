@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 from fiber.chain import chain_utils
 import httpx
 from cryptography.fernet import Fernet
-from substrateinterface import Keypair
 from fiber.logging_utils import get_logger
 from fiber.validator import client as vali_client
 from fiber.validator import handshake
@@ -15,7 +14,6 @@ import uvicorn
 import json
 import os
 from fiber.chain.metagraph import Metagraph
-from utils.nodes import format_nodes_to_dict, filter_nodes_with_ip_and_port
 from utils.twitter import verify_tweet
 from fiber.networking.models import NodeWithFernet as Node
 from x.queues import generate_queue
@@ -33,7 +31,7 @@ logger = get_logger(__name__)
 
 MINER_REGISTRATION_CADENCE_SECONDS = 10
 AGENT_REGISTRATION_CADENCE_SECONDS = 10
-SYNC_LOOP_CADENCE_SECONDS = 60
+SYNC_LOOP_CADENCE_SECONDS = 10
 
 
 class AgentValidator:
@@ -78,7 +76,6 @@ class AgentValidator:
         self.registered_miners: Dict[str, RegisteredMiner] = {}
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
-        self.keypair = None
         self.server: Optional[factory_app] = None
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
 
@@ -115,7 +112,7 @@ class AgentValidator:
             self.httpx_client = httpx.AsyncClient()
 
             # Fetch registered agents from API
-            await self.fetch_registered_agents()
+            # await self.fetch_registered_agents()
 
             # Create FastAPI app using standard factory
             self.app = factory_app(debug=False)
@@ -124,7 +121,7 @@ class AgentValidator:
             self.register_routes()
 
             # Start background tasks
-            asyncio.create_task(self.sync_loop())  # sync metagraph
+            asyncio.create_task(self.sync_loop())  # sync loop
             asyncio.create_task(
                 self.check_agents_registration_loop()
             )  # agent registration
@@ -139,6 +136,16 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Failed to start validator: {str(e)}")
             raise
+
+    # note, requires metagraph sync
+    def node(self):
+        try:
+            nodes = self.metagraph.nodes
+            node = nodes[self.keypair.ss58_address]
+            return node
+        except Exception as e:
+            logger.error(f"Failed to get node from metagraph: {e}")
+            return None
 
     async def fetch_registered_agents(self):
         """Fetch active agents from the API and update registered_agents"""
@@ -209,14 +216,9 @@ class AgentValidator:
                 for node_hotkey in unregistered_nodes:
                     try:
                         raw_nodes = self.metagraph.nodes
-                        nodes = format_nodes_to_dict(raw_nodes)
-
-                        full_node = next(
-                            (n for n in nodes if n.hotkey == node_hotkey), None
-                        )
+                        full_node = raw_nodes[node_hotkey]
                         if full_node:
                             tweet_id = await self.get_agent_tweet_id(full_node)
-
                             verified_tweet, user_id, screen_name = await verify_tweet(
                                 tweet_id, node_hotkey
                             )
@@ -304,12 +306,13 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent registration: {str(e)}")
 
-    async def node_registration_check(self, raw_nodes: Dict[str, Node]):
+    async def node_registration_check(self):
         """Verify node registration"""
 
         logger.info("Attempting nodes registration")
         try:
-            miners = format_nodes_to_dict(raw_nodes)
+            nodes = self.metagraph.nodes
+            miners = nodes.values()
 
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
@@ -317,12 +320,13 @@ class AgentValidator:
                 miners = [miner for miner in miners if miner.hotkey in whitelist]
 
             # Filter out already registered miners
-            miners = [
-                miner for miner in miners if miner.hotkey not in self.registered_miners
+            miners_found = [
+                miner
+                for miner in miners
+                if miner.hotkey not in self.registered_miners and miner.ip != "0.0.0.0"
             ]
 
-            miners_found = filter_nodes_with_ip_and_port(miners)
-
+            logger.info(f"Found {len(miners_found)} miners")
             for miner in miners_found:
                 server_address = vali_client.construct_server_address(
                     node=miner,
@@ -382,7 +386,7 @@ class AgentValidator:
         - Server instances
         """
         if self.httpx_client:
-            await self.httpx_client.aclose()
+            await self.httpx_client.close()
         if self.server:
             await self.server.stop()
 
@@ -391,7 +395,7 @@ class AgentValidator:
         while True:
             try:
                 await self.sync_metagraph()
-                await self.node_registration_check(self.metagraph.nodes)
+                await self.node_registration_check()
                 await self.fetch_registered_agents()
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
