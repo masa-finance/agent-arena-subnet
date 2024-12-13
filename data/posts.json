@@ -1,36 +1,30 @@
 [
     {
-        "uid": "1",
-        "user_id": "1470086780",
-        "subnet_id": "59",
-        "query": "(dogecoin) until:2024-12-11 since:2024-12-10",
+        "uid": "3",
+        "user_id": "249284811",
+        "subnet_id": 249,
+        "query": "to: geeeeeeemoney",
         "count": 2,
-        "created_at": 1725519123,
+        "created_at": 1734053974,
         "tweets": [
             {
                 "Tweet": {
-                    "ConversationID": "1831582820713562141",
+                    "ConversationID": "1867369593251278967",
                     "GIFs": null,
                     "Hashtags": null,
-                    "HTML": "<a href=\"https://twitter.com/Cyber_Dogecoin\">@Cyber_Dogecoin</a> $300",
-                    "ID": "1831586071164907637",
+                    "HTML": "my agent is going to win.",
+                    "ID": "1867369593251278967",
                     "InReplyToStatus": null,
-                    "InReplyToStatusID": "1831582820713562141",
+                    "InReplyToStatusID": "",
                     "IsQuoted": false,
                     "IsPin": false,
-                    "IsReply": true,
+                    "IsReply": false,
                     "IsRetweet": false,
                     "IsSelfThread": false,
                     "Likes": 0,
-                    "Name": "Ifeniboh Onyeka Phillips",
-                    "Mentions": [
-                        {
-                            "ID": "1713362828789465088",
-                            "Username": "Cyber_Dogecoin",
-                            "Name": "CyberDoge"
-                        }
-                    ],
-                    "PermanentURL": "https://twitter.com/stylustica/status/1831586071164907637",
+                    "Name": "Gee Money",
+                    "Mentions": null,
+                    "PermanentURL": "https://twitter.com/geeeeeeemoney/status/1867369593251278967",
                     "Photos": null,
                     "Place": null,
                     "QuotedStatus": null,
@@ -39,102 +33,45 @@
                     "Retweets": 0,
                     "RetweetedStatus": null,
                     "RetweetedStatusID": "",
-                    "Text": "@Cyber_Dogecoin $300",
+                    "Text": "my agent is going to win.",
                     "Thread": null,
-                    "TimeParsed": "2024-09-05T06:52:03Z",
-                    "Timestamp": 1725519123,
+                    "TimeParsed": "2024-12-13T00:42:59Z",
+                    "Timestamp": 1734050579,
                     "URLs": null,
-                    "UserID": "1470086780",
-                    "Username": "stylustica",
+                    "UserID": "249284811",
+                    "Username": "geeeeeeemoney",
                     "Videos": null,
-                    "Views": 0,
+                    "Views": 3,
                     "SensitiveContent": false
                 },
                 "Error": null
             },
             {
                 "Tweet": {
-                    "ConversationID": "1779236421296923088",
-                    "GIFs": null,
-                    "Hashtags": null,
-                    "HTML": "<a href=\"https://twitter.com/444worldeth\">@444worldeth</a> Plot twist: they're actually secret agents for Dogecoin \ud83d\udc15\ud83d\ude80",
-                    "ID": "1831585995717845039",
-                    "InReplyToStatus": null,
-                    "InReplyToStatusID": "1779236421296923088",
-                    "IsQuoted": false,
-                    "IsPin": false,
-                    "IsReply": true,
-                    "IsRetweet": false,
-                    "IsSelfThread": false,
-                    "Likes": 0,
-                    "Name": "Mathias Mateos",
-                    "Mentions": [
-                        {
-                            "ID": "2761277700",
-                            "Username": "444worldeth",
-                            "Name": "444"
-                        }
-                    ],
-                    "PermanentURL": "https://twitter.com/0ce5e50e4efd48c/status/1831585995717845039",
-                    "Photos": null,
-                    "Place": null,
-                    "QuotedStatus": null,
-                    "QuotedStatusID": "",
-                    "Replies": 0,
-                    "Retweets": 0,
-                    "RetweetedStatus": null,
-                    "RetweetedStatusID": "",
-                    "Text": "@444worldeth Plot twist: they're actually secret agents for Dogecoin \ud83d\udc15\ud83d\ude80",
-                    "Thread": null,
-                    "TimeParsed": "2024-09-05T06:51:45Z",
-                    "Timestamp": 1725519105,
-                    "URLs": null,
-                    "UserID": "2953786353",
-                    "Username": "0ce5e50e4efd48c",
-                    "Videos": null,
-                    "Views": 1,
-                    "SensitiveContent": false
-                },
-                "Error": null
-            }
-        ]
-    },
-    {
-        "uid": "3",
-        "user_id": "249284811",
-        "subnet_id": 249,
-        "query": "to: geeeeeeemoney",
-        "count": 3,
-        "created_at": 1734048889,
-        "tweets": [
-            {
-                "Error": null,
-                "Tweet": {
                     "ConversationID": "1867356395420471455",
                     "GIFs": null,
-                    "HTML": "i am going to win on subnet 59",
                     "Hashtags": null,
+                    "HTML": "i am going to win on subnet 59",
                     "ID": "1867356395420471455",
                     "InReplyToStatus": null,
                     "InReplyToStatusID": "",
-                    "IsPin": false,
                     "IsQuoted": false,
+                    "IsPin": false,
                     "IsReply": false,
                     "IsRetweet": false,
                     "IsSelfThread": false,
                     "Likes": 0,
-                    "Mentions": null,
                     "Name": "Gee Money",
+                    "Mentions": null,
                     "PermanentURL": "https://twitter.com/geeeeeeemoney/status/1867356395420471455",
                     "Photos": null,
                     "Place": null,
                     "QuotedStatus": null,
                     "QuotedStatusID": "",
                     "Replies": 0,
+                    "Retweets": 0,
                     "RetweetedStatus": null,
                     "RetweetedStatusID": "",
-                    "Retweets": 0,
-                    "SensitiveContent": false,
                     "Text": "i am going to win on subnet 59",
                     "Thread": null,
                     "TimeParsed": "2024-12-12T23:50:33Z",
@@ -143,43 +80,43 @@
                     "UserID": "249284811",
                     "Username": "geeeeeeemoney",
                     "Videos": null,
-                    "Views": 1
-                }
+                    "Views": 2,
+                    "SensitiveContent": false
+                },
+                "Error": null
             },
             {
-                "Error": null,
                 "Tweet": {
                     "ConversationID": "1866502891273626071",
                     "GIFs": null,
-                    "HTML": "<a href=\"https://twitter.com/getmasafi\">@getmasafi</a>, I am registering my agent to hotkey 5FTXA4jhwxer3LvZDoxQY254Y8H2kNqAPW51zjcxgw9T33LC",
                     "Hashtags": null,
+                    "HTML": "<a href=\"https://twitter.com/getmasafi\">@getmasafi</a>, I am registering my agent to hotkey 5FTXA4jhwxer3LvZDoxQY254Y8H2kNqAPW51zjcxgw9T33LC",
                     "ID": "1866502891273626071",
                     "InReplyToStatus": null,
                     "InReplyToStatusID": "",
-                    "IsPin": false,
                     "IsQuoted": false,
+                    "IsPin": false,
                     "IsReply": false,
                     "IsRetweet": false,
                     "IsSelfThread": false,
                     "Likes": 0,
+                    "Name": "Gee Money",
                     "Mentions": [
                         {
                             "ID": "1419111693112676353",
-                            "Name": "Masa",
-                            "Username": "getmasafi"
+                            "Username": "getmasafi",
+                            "Name": "Masa"
                         }
                     ],
-                    "Name": "Gee Money",
                     "PermanentURL": "https://twitter.com/geeeeeeemoney/status/1866502891273626071",
                     "Photos": null,
                     "Place": null,
                     "QuotedStatus": null,
                     "QuotedStatusID": "",
                     "Replies": 0,
+                    "Retweets": 0,
                     "RetweetedStatus": null,
                     "RetweetedStatusID": "",
-                    "Retweets": 0,
-                    "SensitiveContent": false,
                     "Text": "@getmasafi, I am registering my agent to hotkey 5FTXA4jhwxer3LvZDoxQY254Y8H2kNqAPW51zjcxgw9T33LC",
                     "Thread": null,
                     "TimeParsed": "2024-12-10T15:19:01Z",
@@ -188,8 +125,10 @@
                     "UserID": "249284811",
                     "Username": "geeeeeeemoney",
                     "Videos": null,
-                    "Views": 5
-                }
+                    "Views": 5,
+                    "SensitiveContent": false
+                },
+                "Error": null
             }
         ]
     },
@@ -198,43 +137,41 @@
         "user_id": "2228146154",
         "subnet_id": 249,
         "query": "from: Matintosh",
-        "count": 3,
-        "created_at": 1734048890,
+        "count": 2,
+        "created_at": 1734054068,
         "tweets": [
             {
-                "Error": null,
                 "Tweet": {
                     "ConversationID": "787402224418816000",
                     "GIFs": null,
-                    "HTML": "Just got my free server from <a href=\"https://twitter.com/Trianglegs\">@Trianglegs</a>! Check out <a href=\"http://triangle.gs\">https://t.co/LsyfMbKNED</a> for yours!",
                     "Hashtags": null,
+                    "HTML": "Just got my free server from <a href=\"https://twitter.com/Trianglegs\">@Trianglegs</a>! Check out <a href=\"http://triangle.gs\">https://t.co/LsyfMbKNED</a> for yours!",
                     "ID": "787402224418816000",
                     "InReplyToStatus": null,
                     "InReplyToStatusID": "",
-                    "IsPin": false,
                     "IsQuoted": false,
+                    "IsPin": false,
                     "IsReply": false,
                     "IsRetweet": false,
                     "IsSelfThread": false,
                     "Likes": 0,
+                    "Name": "Mati",
                     "Mentions": [
                         {
                             "ID": "2285395602",
-                            "Name": "Triangle.gs",
-                            "Username": "trianglegs"
+                            "Username": "trianglegs",
+                            "Name": "Triangle.gs"
                         }
                     ],
-                    "Name": "Mati",
                     "PermanentURL": "https://twitter.com/Matintosh/status/787402224418816000",
                     "Photos": null,
                     "Place": null,
                     "QuotedStatus": null,
                     "QuotedStatusID": "",
                     "Replies": 0,
+                    "Retweets": 0,
                     "RetweetedStatus": null,
                     "RetweetedStatusID": "",
-                    "Retweets": 0,
-                    "SensitiveContent": false,
                     "Text": "Just got my free server from @Trianglegs! Check out https://t.co/LsyfMbKNED for yours!",
                     "Thread": null,
                     "TimeParsed": "2016-10-15T21:18:14Z",
@@ -245,8 +182,10 @@
                     "UserID": "2228146154",
                     "Username": "Matintosh",
                     "Videos": null,
-                    "Views": 0
-                }
+                    "Views": 0,
+                    "SensitiveContent": false
+                },
+                "Error": null
             }
         ]
     }

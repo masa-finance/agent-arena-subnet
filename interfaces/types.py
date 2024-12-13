@@ -13,7 +13,7 @@ class JSONSerializable:
 class VerifiedTweet(JSONSerializable):
     tweet_id: str
     url: str
-    timestamp: str  # Format: 2024-12-10T18:27:16Z
+    timestamp: str
     full_text: str
 
 
@@ -92,7 +92,7 @@ class RegisteredAgentResponse(JSONSerializable):
 
 
 @dataclass
-class RegisteredMiner(JSONSerializable):
+class RegisteredNode(JSONSerializable):
     address: str
     symmetric_key: str
     symmetric_key_uuid: str
