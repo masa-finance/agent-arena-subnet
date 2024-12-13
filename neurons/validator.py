@@ -207,7 +207,6 @@ class AgentValidator:
         self.queue.start()
         self.search_terms = self.generate_search_terms(self.registered_agents)
         logger.info("Queue generated.")
-        logger.info(f"Search terms: {self.search_terms}")
 
         self.scheduler = XSearchScheduler(
             request_queue=self.queue,
@@ -475,7 +474,6 @@ class AgentValidator:
                 self.scheduler.search_terms = self.generate_search_terms(
                     self.registered_agents
                 )
-                logger.info(f"Search terms: {self.scheduler.search_terms}")
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in sync metagraph: {str(e)}")
