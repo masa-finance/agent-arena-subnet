@@ -302,9 +302,9 @@ class AgentValidator:
             logger.info(f"Adding request to the queue for id {agent.UID}")
 
             search_terms.append(
-                {'query': f'to: {agent.Username}', 'metadata': agent})
+                {'query': f'to:{agent.Username}', 'metadata': agent})
             search_terms.append(
-                {'query': f'from: {agent.Username}', 'metadata': agent})
+                {'query': f'from:{agent.Username}', 'metadata': agent})
 
         return search_terms
 
