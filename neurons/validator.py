@@ -84,8 +84,7 @@ class AgentValidator:
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.server: Optional[factory_app] = None
-        self.api_url = os.getenv(
-            "API_URL", "https://test.protocol-api.masa.ai")
+        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
 
         self.queue = None
         self.scheduler = None
@@ -94,8 +93,7 @@ class AgentValidator:
         self.scheduler_interval_minutes = int(
             os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
         )
-        self.scheduler_batch_size = int(
-            os.getenv("SCHEDULER_BATCH_SIZE", "100"))
+        self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         # Get network configuration from environment
@@ -105,8 +103,7 @@ class AgentValidator:
         self.substrate = interface.get_substrate(
             subtensor_network=network, subtensor_address=network_address
         )
-        self.metagraph = Metagraph(
-            netuid=self.netuid, substrate=self.substrate)
+        self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
         self.metagraph.sync_nodes()
 
         self.app: Optional[FastAPI] = None
@@ -114,7 +111,6 @@ class AgentValidator:
         self.post_scorer = PostScorer()
 
         self.scored_posts = []
-        # self.create_scheduler()
 
     async def start(self):
         """Start the validator service.
@@ -144,6 +140,9 @@ class AgentValidator:
             )  # agent registration
             asyncio.create_task(self.set_weights_loop())
             asyncio.create_task(self.score_loop())
+
+            # TODO turn scheduler back on
+            # asyncio.create_task(self.scheduler_loop())
 
             # Start the FastAPI server
             config = uvicorn.Config(
@@ -186,8 +185,7 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(
-                f"Exception occurred while fetching active agents: {str(e)}")
+            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
 
     def create_scheduler(self):
         """Initialize the X search scheduler and request queue.
@@ -210,6 +208,7 @@ class AgentValidator:
         self.queue.start()
         self.search_terms = self.generate_search_terms(self.registered_agents)
         logger.info("Queue generated.")
+        logger.info(f"Search terms: {self.search_terms}")
 
         self.scheduler = XSearchScheduler(
             request_queue=self.queue,
@@ -312,10 +311,8 @@ class AgentValidator:
         for agent in agents.values():
             logger.info(f"Adding request to the queue for id {agent.UID}")
 
-            search_terms.append(
-                {'query': f'to:{agent.Username}', 'metadata': agent})
-            search_terms.append(
-                {'query': f'from:{agent.Username}', 'metadata': agent})
+            search_terms.append({"query": f"to:{agent.Username}", "metadata": agent})
+            search_terms.append({"query": f"from:{agent.Username}", "metadata": agent})
 
         return search_terms
 
@@ -356,8 +353,7 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(
-                f"Exception occurred during agent registration: {str(e)}")
+            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     async def register_new_nodes(self):
         """Verify node registration"""
@@ -369,8 +365,7 @@ class AgentValidator:
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
                 whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                nodes_list = [
-                    node for node in nodes_list if node.hotkey in whitelist]
+                nodes_list = [node for node in nodes_list if node.hotkey in whitelist]
 
             # Filter out already registered nodes
             available_nodes = [
@@ -461,6 +456,16 @@ class AgentValidator:
                 logger.error(f"Error in scoring: {str(e)}")
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS / 2)
 
+    async def scheduler_loop(self):
+        """Background task to score agents"""
+        while True:
+            try:
+                self.create_scheduler()
+                await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
+            except Exception as e:
+                logger.error(f"Error in scheduler: {str(e)}")
+                await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS / 2)
+
     async def sync_loop(self):
         """Background task to sync metagraph"""
         while True:
@@ -495,8 +500,7 @@ class AgentValidator:
         blocks_since_update = weights._blocks_since_last_update(
             self.substrate, self.netuid, validator_node_id
         )
-        min_interval = weights._min_interval_to_set_weights(
-            self.substrate, self.netuid)
+        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
 
         logger.info(f"Blocks since last update: {blocks_since_update}")
         logger.info(f"Minimum interval required: {min_interval}")
@@ -539,8 +543,7 @@ class AgentValidator:
                     logger.info("✅ Successfully set weights!")
                     return
                 else:
-                    logger.error(
-                        f"❌ Failed to set weights on attempt {attempt + 1}")
+                    logger.error(f"❌ Failed to set weights on attempt {attempt + 1}")
                     await asyncio.sleep(10)  # Wait between attempts
 
             except Exception as e:
@@ -558,8 +561,10 @@ class AgentValidator:
             result = TweetValidator().fetch_tweet(id)
 
             if not result:
-                logger.error(f"Could not fetch tweet id {
-                             id} for node {hotkey}")
+                logger.error(
+                    f"Could not fetch tweet id {
+                             id} for node {hotkey}"
+                )
                 return False
 
             tweet_data_result = (
@@ -622,8 +627,10 @@ class AgentValidator:
 
             for hotkey in registered_node_hotkeys:
                 if hotkey not in metagraph_node_hotkeys:
-                    logger.info(f"Removing node {
-                                hotkey} from registered nodes")
+                    logger.info(
+                        f"Removing node {
+                                hotkey} from registered nodes"
+                    )
                     del self.registered_nodes[hotkey]
 
                     node = self.metagraph.nodes[hotkey]
@@ -663,8 +670,7 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(
-                f"Exception occurred during agent registration: {str(e)}")
+            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     def register_routes(self):
         """Register FastAPI routes"""
