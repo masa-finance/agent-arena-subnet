@@ -1,4 +1,3 @@
-from typing import TypedDict
 import httpx
 from cryptography.fernet import Fernet
 from substrateinterface import Keypair
@@ -17,8 +16,8 @@ from fiber.chain.metagraph import Metagraph
 from utils.nodes import format_nodes_to_dict, filter_nodes_with_ip_and_port
 from utils.twitter import verify_tweet
 from fiber.networking.models import NodeWithFernet as Node
-from x.queues import generate_queue
 from protocol.x.scheduler import XSearchScheduler
+from protocol.x.queue import RequestQueue
 from interfaces.types import (
     VerifiedTweet,
     RegisteredAgentRequest,
@@ -73,6 +72,7 @@ class AgentValidator:
 
         self.queue = None
         self.scheduler = None
+        self.search_terms = None
         self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
         self.scheduler_interval_minutes = int(
             os.getenv("SCHEDULER_INTERVAL_MINUTES", "15"))
@@ -95,7 +95,8 @@ class AgentValidator:
         try:
             endpoint = f"{
                 self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
-            response = await self.httpx_client.get(endpoint, headers={"Authorization": "Bearer sk_test_123456789"})
+            api_key = os.getenv("API_KEY", "default_api_key")
+            response = await self.httpx_client.get(endpoint, headers={"Authorization": f"Bearer {api_key}"})
             if response.status_code == 200:
                 active_agents = response.json()
                 self.registered_agents = {
@@ -161,12 +162,19 @@ class AgentValidator:
         the scheduler with configured parameters.
         """
 
-        if self.queue:
-            self.queue.clean()
-            self.queue = None
+        if self.search_terms is not None and len(self.search_terms):
+            logger.info("Stopping scheduler...")
+
+            self.search_terms = None
+            if self.scheduler is not None:
+                self.scheduler.search_terms = None
+                self.scheduler = None
 
         logger.info("Generating queue...")
-        self.queue = generate_queue(self.registered_agents)
+
+        self.queue = RequestQueue()
+        self.queue.start()
+        self.search_terms = self.generate_search_terms(self.registered_agents)
         logger.info("Queue generated.")
 
         self.scheduler = XSearchScheduler(
@@ -175,6 +183,8 @@ class AgentValidator:
             batch_size=self.scheduler_batch_size,
             priority=self.scheduler_priority,
             search_count=self.search_count)
+
+        self.scheduler.search_terms = self.search_terms
         self.scheduler.start()
 
     async def check_agents_registration_loop(self):
@@ -252,6 +262,32 @@ class AgentValidator:
                     registration_response.status_code}"
             )
             return None
+
+    def generate_search_terms(self, agents: Dict[str, RegisteredAgentResponse]):
+        """Generate search terms for request queues.
+
+        This function creates search terms for a RequestQueue instance using
+        the provided agents. It prepares search queries for each agent to be
+        added to the queue, ensuring that the queue is populated with the
+        necessary search requests for processing.
+
+        Args:
+            agents (Dict[str, RegisteredAgentResponse]): Dictionary of agents
+                containing their registration details.
+
+        Returns:
+            List[Dict[str, Any]]: A list of search terms ready for queueing.
+        """
+        search_terms = []
+        for agent in agents.values():
+            logger.info(f"Adding request to the queue for id {agent.UID}")
+
+            search_terms.append(
+                {'query': f'to: {agent.Username}', 'metadata': agent})
+            search_terms.append(
+                {'query': f'from: {agent.Username}', 'metadata': agent})
+
+        return search_terms
 
     async def register_agent(
         self, node: Node, verified_tweet: VerifiedTweet, user_id: str, screen_name: str
