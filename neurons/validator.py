@@ -7,7 +7,7 @@ from fiber.validator import client as vali_client
 from fiber.validator import handshake
 from fiber.miner.server import factory_app
 from typing import Optional, Dict
-from fiber.chain import interface
+from fiber.chain import interface, weights
 import asyncio
 from fastapi import FastAPI
 import uvicorn
@@ -15,6 +15,10 @@ import json
 import os
 from fiber.chain.metagraph import Metagraph
 from utils.twitter import verify_tweet
+
+from protocol.data_processing.post_loader import LoadPosts
+from protocol.scoring.post_scorer import PostScorer
+
 from fiber.networking.models import NodeWithFernet as Node
 from protocol.x.scheduler import XSearchScheduler
 from protocol.x.queue import RequestQueue
@@ -29,9 +33,9 @@ from interfaces.types import (
 logger = get_logger(__name__)
 
 
-MINER_REGISTRATION_CADENCE_SECONDS = 10
+# TODO change for mainnet
 AGENT_REGISTRATION_CADENCE_SECONDS = 10
-SYNC_LOOP_CADENCE_SECONDS = 60
+SYNC_LOOP_CADENCE_SECONDS = 10
 
 
 class AgentValidator:
@@ -103,6 +107,10 @@ class AgentValidator:
         self.metagraph.sync_nodes()
 
         self.app: Optional[FastAPI] = None
+        self.posts_loader = LoadPosts()
+        self.post_scorer = PostScorer()
+
+        self.scored_posts = []
 
     async def start(self):
         """Start the validator service.
@@ -117,7 +125,6 @@ class AgentValidator:
         try:
             self.httpx_client = httpx.AsyncClient()
 
-            # Fetch registered agents from API
             await self.fetch_registered_agents()
 
             # Create FastAPI app using standard factory
@@ -168,7 +175,8 @@ class AgentValidator:
                 }
                 logger.info("Successfully fetched and updated active agents.")
 
-                self.create_scheduler()
+                # TODO fix this
+                # self.create_scheduler()
 
             else:
                 logger.error(
@@ -440,12 +448,75 @@ class AgentValidator:
                 await self.sync_metagraph()
                 await self.node_registration_check()
                 await self.fetch_registered_agents()
+                await self.score_posts()
+                await self.set_weights()
+
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in sync metagraph: {str(e)}")
                 await asyncio.sleep(
                     SYNC_LOOP_CADENCE_SECONDS / 2
                 )  # Wait before retrying
+
+    async def score_posts(self):
+        """Score posts"""
+        posts = self.posts_loader.load_posts()
+        scored_posts = self.post_scorer.score_posts(posts)
+        self.scored_posts = scored_posts
+
+    async def set_weights(self):
+        """Set weights"""
+        # Check if we can set weights
+        validator_node_id = self.node().node_id
+        blocks_since_update = weights._blocks_since_last_update(
+            self.substrate, self.netuid, validator_node_id
+        )
+        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
+
+        logger.info(f"Blocks since last update: {blocks_since_update}")
+        logger.info(f"Minimum interval required: {min_interval}")
+
+        if blocks_since_update is not None and blocks_since_update < min_interval:
+            wait_blocks = min_interval - blocks_since_update
+            logger.info(
+                f"Need to wait {wait_blocks} more blocks before setting weights"
+            )
+            # Assuming ~12 second block time
+            wait_seconds = wait_blocks * 12
+            logger.info(f"Waiting {wait_seconds} seconds...")
+            await asyncio.sleep(wait_seconds)
+
+        uids = [post["uid"] for post in self.scored_posts]
+        average_scores = [post["average_score"] for post in self.scored_posts]
+
+        # Set weights with multiple attempts
+        for attempt in range(3):
+            try:
+                success = weights.set_node_weights(
+                    substrate=self.substrate,
+                    keypair=self.keypair,
+                    node_ids=uids,
+                    node_weights=average_scores,
+                    netuid=self.netuid,
+                    validator_node_id=validator_node_id,
+                    version_key=100,  # TODO implement versioning
+                    wait_for_inclusion=True,
+                    wait_for_finalization=True,
+                    max_attempts=3,  # Allow retries within the function
+                )
+
+                if success:
+                    logger.info("✅ Successfully set weights!")
+                    return
+                else:
+                    logger.error(f"❌ Failed to set weights on attempt {attempt + 1}")
+                    await asyncio.sleep(10)  # Wait between attempts
+
+            except Exception as e:
+                logger.error(f"Error on attempt {attempt + 1}: {str(e)}")
+                await asyncio.sleep(10)  # Wait between attempts
+
+    logger.error("Failed to set weights after all attempts")
 
     async def sync_metagraph(self):
         """Synchronize local metagraph state with chain.
