@@ -3,64 +3,9 @@
         "uid": "4",
         "user_id": "2228146154",
         "subnet_id": 249,
-        "query": "(to:Matintosh) until:2024-12-14 since:2024-12-12",
-        "count": 2,
-        "created_at": 1734061473,
-        "tweets": [
-            {
-                "Tweet": {
-                    "ConversationID": "1867395191214399992",
-                    "GIFs": null,
-                    "Hashtags": null,
-                    "HTML": "<a href=\"https://twitter.com/Matintosh\">@Matintosh</a> hello my fren",
-                    "ID": "1867395191214399992",
-                    "InReplyToStatus": null,
-                    "InReplyToStatusID": "",
-                    "IsQuoted": false,
-                    "IsPin": false,
-                    "IsReply": false,
-                    "IsRetweet": false,
-                    "IsSelfThread": false,
-                    "Likes": 0,
-                    "Name": "brendan",
-                    "Mentions": [
-                        {
-                            "ID": "2228146154",
-                            "Username": "Matintosh",
-                            "Name": "Mati"
-                        }
-                    ],
-                    "PermanentURL": "https://twitter.com/BrendanPlayford/status/1867395191214399992",
-                    "Photos": null,
-                    "Place": null,
-                    "QuotedStatus": null,
-                    "QuotedStatusID": "",
-                    "Replies": 0,
-                    "Retweets": 0,
-                    "RetweetedStatus": null,
-                    "RetweetedStatusID": "",
-                    "Text": "@Matintosh hello my fren",
-                    "Thread": null,
-                    "TimeParsed": "2024-12-13T02:24:42Z",
-                    "Timestamp": 1734056682,
-                    "URLs": null,
-                    "UserID": "288975755",
-                    "Username": "BrendanPlayford",
-                    "Videos": null,
-                    "Views": 20,
-                    "SensitiveContent": false
-                },
-                "Error": null
-            }
-        ]
-    },
-    {
-        "uid": "4",
-        "user_id": "2228146154",
-        "subnet_id": 249,
         "query": "(from:Matintosh) until:2024-12-14 since:2024-12-12",
         "count": 2,
-        "created_at": 1734061473,
+        "created_at": 1734064599,
         "tweets": [
             {
                 "Tweet": {
@@ -213,7 +158,7 @@
                     "UserID": "2228146154",
                     "Username": "Matintosh",
                     "Videos": null,
-                    "Views": 11,
+                    "Views": 13,
                     "SensitiveContent": false
                 },
                 "Error": null
@@ -299,12 +244,67 @@
         ]
     },
     {
+        "uid": "4",
+        "user_id": "2228146154",
+        "subnet_id": 249,
+        "query": "(to:Matintosh) until:2024-12-14 since:2024-12-12",
+        "count": 2,
+        "created_at": 1734064658,
+        "tweets": [
+            {
+                "Tweet": {
+                    "ConversationID": "1867395191214399992",
+                    "GIFs": null,
+                    "Hashtags": null,
+                    "HTML": "<a href=\"https://twitter.com/Matintosh\">@Matintosh</a> hello my fren",
+                    "ID": "1867395191214399992",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "",
+                    "IsQuoted": false,
+                    "IsPin": false,
+                    "IsReply": false,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 0,
+                    "Name": "brendan",
+                    "Mentions": [
+                        {
+                            "ID": "2228146154",
+                            "Username": "Matintosh",
+                            "Name": "Mati"
+                        }
+                    ],
+                    "PermanentURL": "https://twitter.com/BrendanPlayford/status/1867395191214399992",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "Retweets": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Text": "@Matintosh hello my fren",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-13T02:24:42Z",
+                    "Timestamp": 1734056682,
+                    "URLs": null,
+                    "UserID": "288975755",
+                    "Username": "BrendanPlayford",
+                    "Videos": null,
+                    "Views": 21,
+                    "SensitiveContent": false
+                },
+                "Error": null
+            }
+        ]
+    },
+    {
         "uid": "3",
         "user_id": "249284811",
         "subnet_id": 249,
         "query": "(to:geeeeeeemoney) until:2024-12-14 since:2024-12-12",
         "count": 2,
-        "created_at": 1734062394,
+        "created_at": 1734064718,
         "tweets": [
             {
                 "Tweet": {
@@ -359,7 +359,7 @@
         "subnet_id": 249,
         "query": "(from:geeeeeeemoney) until:2024-12-14 since:2024-12-12",
         "count": 2,
-        "created_at": 1734062394,
+        "created_at": 1734064718,
         "tweets": [
             {
                 "Tweet": {

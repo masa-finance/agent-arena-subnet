@@ -458,7 +458,7 @@ class AgentValidator:
         """Background task to score agents"""
         while True:
             try:
-                await self.score_posts()
+                self.score_posts()
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in scoring: {str(e)}")
@@ -481,7 +481,7 @@ class AgentValidator:
                     SYNC_LOOP_CADENCE_SECONDS / 2
                 )  # Wait before retrying
 
-    async def score_posts(self):
+    def score_posts(self):
         """Score posts"""
         posts = self.posts_loader.load_posts(
             subnet_id=self.netuid,
@@ -492,6 +492,7 @@ class AgentValidator:
         )
         logger.info(f"Loaded {len(posts)} posts")
         scored_posts = self.post_scorer.score_posts(posts)
+        logger.info(f"Scored Posts: {scored_posts}")
         self.scored_posts = scored_posts
 
     async def set_weights(self):
