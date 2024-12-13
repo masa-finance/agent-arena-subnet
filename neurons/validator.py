@@ -447,8 +447,7 @@ class AgentValidator:
         """Background task to set weights"""
         while True:
             try:
-                if len(self.scored_posts) > 0:
-                    await self.set_weights()
+                await self.set_weights()
                 await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in setting weights: {str(e)}")
