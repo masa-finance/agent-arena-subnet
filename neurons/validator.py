@@ -445,7 +445,7 @@ class AgentValidator:
             await self.server.stop()
 
     async def set_weights_loop(self):
-        """Background task to sync metagraph"""
+        """Background task to set weights"""
         while True:
             try:
                 if len(self.scored_posts) > 0:
@@ -459,8 +459,7 @@ class AgentValidator:
         """Background task to score agents"""
         while True:
             try:
-                if len(self.scored_posts) > 0:
-                    await self.score_posts()
+                await self.score_posts()
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in scoring: {str(e)}")
