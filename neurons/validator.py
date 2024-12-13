@@ -15,7 +15,6 @@ import json
 import os
 from fiber.chain.metagraph import Metagraph
 
-from fiber.chain.chain_utils import query_substrate
 from protocol.data_processing.post_loader import LoadPosts
 from protocol.scoring.post_scorer import PostScorer
 
@@ -503,12 +502,13 @@ class AgentValidator:
         """Set weights"""
         # Check if we can set weights
         validator_node_id = self.node().node_id
-        self.substrate, current_block = query_substrate(self.substrate, "System", "Number", [], return_value=True)
-        self.substrate, last_updated_value = query_substrate(
-            self.substrate, "SubtensorModule", "LastUpdate", [self.netuid], return_value=False
-        )
-        blocks_since_update: float = current_block - last_updated_value[validator_node_id].value
 
+        # Reconnect substrate to help prevent weight wettings errors
+        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+
+        blocks_since_update = weights._blocks_since_last_update(
+            self.substrate, self.netuid, validator_node_id
+        )
         min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
 
         logger.info(f"Blocks since last update: {blocks_since_update}")
