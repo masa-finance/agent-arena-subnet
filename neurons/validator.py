@@ -526,13 +526,15 @@ class AgentValidator:
                 scores_by_uid[uid] = []
             scores_by_uid[uid].append(post["average_score"])
 
-        average_scores = [
-            sum(scores) / len(scores) for uid, scores in scores_by_uid.items()
-        ]
+        average_scores = {
+            uid: sum(scores) / len(scores) for uid, scores in scores_by_uid.items()
+        }
+        # Extract just the values from the average_scores dictionary, maintaining order of uids
+        scores = [average_scores[uid] for uid in uids]
 
         logger.info(f"setting weights...")
         logger.info(f"uids: {uids}")
-        logger.info(f"scores: {average_scores}")
+        logger.info(f"scores: {scores}")
 
         # Set weights with multiple attempts
         for attempt in range(3):
@@ -541,7 +543,7 @@ class AgentValidator:
                     substrate=self.substrate,
                     keypair=self.keypair,
                     node_ids=uids,
-                    node_weights=average_scores,
+                    node_weights=scores,
                     netuid=self.netuid,
                     validator_node_id=validator_node_id,
                     version_key=100,  # TODO implement versioning
