@@ -29,10 +29,10 @@ class AgentMiner:
         load_dotenv()
 
         # load environment variables
-        self.netuid = int(os.getenv("NETUID", "249"))
-        self.subtensor_network = os.getenv("SUBTENSOR_NETWORK", "test")
+        self.netuid = int(os.getenv("NETUID", "59"))
+        self.subtensor_network = os.getenv("SUBTENSOR_NETWORK", "finney")
         self.subtensor_address = os.getenv(
-            "SUBTENSOR_ADDRESS", "wss://test.finney.opentensor.ai:443"
+            "SUBTENSOR_ADDRESS", "wss://entrypoint-finney.opentensor.ai:443"
         )
         self.wallet_name = os.getenv("WALLET_NAME", "miner")
         self.hotkey_name = os.getenv("HOTKEY_NAME", "default")
