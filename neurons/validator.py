@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 
 MINER_REGISTRATION_CADENCE_SECONDS = 10
 AGENT_REGISTRATION_CADENCE_SECONDS = 10
-SYNC_LOOP_CADENCE_SECONDS = 10
+SYNC_LOOP_CADENCE_SECONDS = 60
 
 
 class AgentValidator:
@@ -96,6 +96,8 @@ class AgentValidator:
             subtensor_network=network, subtensor_address=network_address
         )
         self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
+        self.metagraph.sync_nodes()
+
         self.app: Optional[FastAPI] = None
 
     async def start(self):
