@@ -30,7 +30,7 @@ from interfaces.types import (
 )
 
 from masa_ai.tools.validator import TweetValidator
-from datetime import datetime
+from datetime import datetime, UTC
 from interfaces.types import VerifiedTweet
 
 logger = get_logger(__name__)
@@ -453,7 +453,13 @@ class AgentValidator:
 
     async def score_posts(self):
         """Score posts"""
-        posts = self.posts_loader.load_posts()
+        posts = self.posts_loader.load_posts(
+            subnet_id=self.netuid,
+            created_at_range=(
+                int(datetime.now(UTC).timestamp()) - 86400,
+                int(datetime.now(UTC).timestamp()),
+            ),
+        )
         scored_posts = self.post_scorer.score_posts(posts)
         self.scored_posts = scored_posts
 
