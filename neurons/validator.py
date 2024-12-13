@@ -251,7 +251,7 @@ class AgentValidator:
                         if full_node:
                             tweet_id = await self.get_agent_tweet_id(full_node)
                             verified_tweet, user_id, screen_name = (
-                                await self.verify_tweet(tweet_id, node_hotkey)
+                                await self.verify_tweet(tweet_id, full_node.hotkey)
                             )
                             if verified_tweet and user_id:
                                 await self.register_agent(
@@ -447,7 +447,8 @@ class AgentValidator:
         """Background task to set weights"""
         while True:
             try:
-                await self.set_weights()
+                if len(self.scored_posts) > 0:
+                    await self.set_weights()
                 await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in setting weights: {str(e)}")
