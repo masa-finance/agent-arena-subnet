@@ -494,6 +494,9 @@ class AgentValidator:
         scored_posts = self.post_scorer.score_posts(posts)
         logger.info(f"Scored Posts: {scored_posts}")
         self.scored_posts = scored_posts
+        uids, scores = self.get_average_score()
+        logger.info(f"uids: {uids}")
+        logger.info(f"scores: {scores}")
 
     async def set_weights(self):
         """Set weights"""
@@ -518,19 +521,7 @@ class AgentValidator:
             logger.info(f"Waiting {wait_seconds} seconds...")
             await asyncio.sleep(wait_seconds)
 
-        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
-        scores_by_uid = {}
-        for post in self.scored_posts:
-            uid = int(post["uid"])
-            if uid not in scores_by_uid:
-                scores_by_uid[uid] = []
-            scores_by_uid[uid].append(post["average_score"])
-
-        average_scores = {
-            uid: sum(scores) / len(scores) for uid, scores in scores_by_uid.items()
-        }
-        # Extract just the values from the average_scores dictionary, maintaining order of uids
-        scores = [average_scores[uid] for uid in uids]
+        uids, scores = self.get_average_score()
 
         logger.info(f"setting weights...")
         logger.info(f"uids: {uids}")
@@ -564,6 +555,22 @@ class AgentValidator:
                 await asyncio.sleep(10)  # Wait between attempts
 
         logger.error("Failed to set weights after all attempts")
+
+    def get_average_score(self):
+        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
+        scores_by_uid = {}
+        for post in self.scored_posts:
+            uid = int(post["uid"])
+            if uid not in scores_by_uid:
+                scores_by_uid[uid] = []
+            scores_by_uid[uid].append(post["average_score"])
+
+        average_scores = {
+            uid: sum(scores) / len(scores) for uid, scores in scores_by_uid.items()
+        }
+        # Extract just the values from the average_scores dictionary, maintaining order of uids
+        scores = [average_scores[uid] for uid in uids]
+        return uids, scores
 
     async def verify_tweet(
         self, id: str, hotkey: str
