@@ -335,7 +335,6 @@ class AgentValidator:
         registration_data = json.loads(
             json.dumps(registration_data, default=lambda o: o.__dict__)
         )
-        logger.info("Registration data: %s", registration_data)
         endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
         try:
             headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
