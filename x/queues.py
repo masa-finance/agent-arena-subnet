@@ -11,6 +11,7 @@ from fiber.logging_utils import get_logger
 from interfaces.types import (
     RegisteredAgentResponse,
 )
+
 logger = get_logger(__name__)
 
 
@@ -24,6 +25,7 @@ class Tweet(TypedDict):
         timestamp (str): Test timestamp
         full_text (str): Test text content
     """
+
     user_id: str
     tweet_id: str
     url: str
@@ -42,6 +44,7 @@ class RegisteredAgent(TypedDict):
         isActive (bool): Test active status
         verification_tweet (Optional[Tweet]): Test tweet data
     """
+
     hotkey: str
     uid: int
     subnet_id: int
@@ -72,16 +75,14 @@ def generate_queue(agents: Dict[str, RegisteredAgentResponse]):
 
         # TODO: Replace this with the agent username and correct metadata
         queue.add_request(
-            request_type='search',
-            request_data={
-                'query': f'to: @{agent.Username}', 'metadata': agent},
-            priority=1
+            request_type="search",
+            request_data={"query": f"to: {agent.Username}", "metadata": agent},
+            priority=1,
         )
         queue.add_request(
-            request_type='search',
-            request_data={
-                'query': f'from: @{agent.Username}', 'metadata': agent},
-            priority=1
+            request_type="search",
+            request_data={"query": f"from: {agent.Username}", "metadata": agent},
+            priority=1,
         )
     queue.start()
     return queue
