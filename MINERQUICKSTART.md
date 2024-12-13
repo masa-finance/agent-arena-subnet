@@ -91,7 +91,7 @@ DEBUG=false  # Set to 'true' to enable debug logging
    _or you can regen an existing key if you do!_
 
 ```bash
-btcli wallet new
+btcli wallet create
 ```
 
 2. Create a hotkey:
@@ -112,6 +112,10 @@ btcli subnet register --netuid 249 # Use 59 for mainnet
 
 ```bash
 pip install -r requirements.txt
+```
+
+```bash
+export PYTHONPATH="$(pwd):$PYTHONPATH"
 ```
 
 2. Start the miner:
