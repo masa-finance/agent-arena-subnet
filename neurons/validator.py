@@ -517,8 +517,17 @@ class AgentValidator:
             logger.info(f"Waiting {wait_seconds} seconds...")
             await asyncio.sleep(wait_seconds)
 
-        uids = [int(post["uid"]) for post in self.scored_posts]
-        average_scores = [post["average_score"] for post in self.scored_posts]
+        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
+        scores_by_uid = {}
+        for post in self.scored_posts:
+            uid = int(post["uid"])
+            if uid not in scores_by_uid:
+                scores_by_uid[uid] = []
+            scores_by_uid[uid].append(post["average_score"])
+
+        average_scores = [
+            sum(scores) / len(scores) for uid, scores in scores_by_uid.items()
+        ]
 
         logger.info(f"setting weights...")
         logger.info(f"uids: {uids}")
