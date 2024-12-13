@@ -84,7 +84,8 @@ class AgentValidator:
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.server: Optional[factory_app] = None
-        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
+        self.api_url = os.getenv(
+            "API_URL", "https://test.protocol-api.masa.ai")
 
         self.queue = None
         self.scheduler = None
@@ -93,7 +94,8 @@ class AgentValidator:
         self.scheduler_interval_minutes = int(
             os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
         )
-        self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
+        self.scheduler_batch_size = int(
+            os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         # Get network configuration from environment
@@ -103,7 +105,8 @@ class AgentValidator:
         self.substrate = interface.get_substrate(
             subtensor_network=network, subtensor_address=network_address
         )
-        self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
+        self.metagraph = Metagraph(
+            netuid=self.netuid, substrate=self.substrate)
         self.metagraph.sync_nodes()
 
         self.app: Optional[FastAPI] = None
@@ -183,7 +186,8 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
+            logger.error(
+                f"Exception occurred while fetching active agents: {str(e)}")
 
     def create_scheduler(self):
         """Initialize the X search scheduler and request queue.
@@ -308,8 +312,10 @@ class AgentValidator:
         for agent in agents.values():
             logger.info(f"Adding request to the queue for id {agent.UID}")
 
-            search_terms.append({"query": f"to: {agent.Username}", "metadata": agent})
-            search_terms.append({"query": f"from: {agent.Username}", "metadata": agent})
+            search_terms.append(
+                {'query': f'to:{agent.Username}', 'metadata': agent})
+            search_terms.append(
+                {'query': f'from:{agent.Username}', 'metadata': agent})
 
         return search_terms
 
@@ -350,7 +356,8 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
+            logger.error(
+                f"Exception occurred during agent registration: {str(e)}")
 
     async def register_new_nodes(self):
         """Verify node registration"""
@@ -362,7 +369,8 @@ class AgentValidator:
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
                 whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                nodes_list = [node for node in nodes_list if node.hotkey in whitelist]
+                nodes_list = [
+                    node for node in nodes_list if node.hotkey in whitelist]
 
             # Filter out already registered nodes
             available_nodes = [
@@ -487,7 +495,8 @@ class AgentValidator:
         blocks_since_update = weights._blocks_since_last_update(
             self.substrate, self.netuid, validator_node_id
         )
-        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
+        min_interval = weights._min_interval_to_set_weights(
+            self.substrate, self.netuid)
 
         logger.info(f"Blocks since last update: {blocks_since_update}")
         logger.info(f"Minimum interval required: {min_interval}")
@@ -495,7 +504,8 @@ class AgentValidator:
         if blocks_since_update is not None and blocks_since_update < min_interval:
             wait_blocks = min_interval - blocks_since_update
             logger.info(
-                f"Need to wait {wait_blocks} more blocks before setting weights"
+                f"Need to wait {
+                    wait_blocks} more blocks before setting weights"
             )
             # Assuming ~12 second block time
             wait_seconds = wait_blocks * 12
@@ -529,7 +539,8 @@ class AgentValidator:
                     logger.info("✅ Successfully set weights!")
                     return
                 else:
-                    logger.error(f"❌ Failed to set weights on attempt {attempt + 1}")
+                    logger.error(
+                        f"❌ Failed to set weights on attempt {attempt + 1}")
                     await asyncio.sleep(10)  # Wait between attempts
 
             except Exception as e:
@@ -547,7 +558,8 @@ class AgentValidator:
             result = TweetValidator().fetch_tweet(id)
 
             if not result:
-                logger.error(f"Could not fetch tweet id {id} for node {hotkey}")
+                logger.error(f"Could not fetch tweet id {
+                             id} for node {hotkey}")
                 return False
 
             tweet_data_result = (
@@ -566,7 +578,7 @@ class AgentValidator:
 
             logger.info(
                 f"Got tweet result: {
-                        tweet_id} - {screen_name} **** {full_text}"
+                    tweet_id} - {screen_name} **** {full_text}"
             )
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
@@ -610,7 +622,8 @@ class AgentValidator:
 
             for hotkey in registered_node_hotkeys:
                 if hotkey not in metagraph_node_hotkeys:
-                    logger.info(f"Removing node {hotkey} from registered nodes")
+                    logger.info(f"Removing node {
+                                hotkey} from registered nodes")
                     del self.registered_nodes[hotkey]
 
                     node = self.metagraph.nodes[hotkey]
@@ -646,10 +659,12 @@ class AgentValidator:
                 return response.json()
             else:
                 logger.error(
-                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
+                    f"Failed to register agent, status code: {
+                        response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
+            logger.error(
+                f"Exception occurred during agent registration: {str(e)}")
 
     def register_routes(self):
         """Register FastAPI routes"""

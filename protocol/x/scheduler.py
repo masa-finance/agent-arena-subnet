@@ -144,11 +144,12 @@ class XSearchScheduler:
 
         # Always use a 1-day lookback period
         start_time = current_time - timedelta(days=1)
+        one_day_forward = current_time + timedelta(days=1)
 
         # Format the query string with date range only (no time component)
         query = (
-            f"{term['query']} "
-            f"until:{current_time.strftime('%Y-%m-%d')} "
+            f"({term['query']}) "
+            f"until:{one_day_forward.strftime('%Y-%m-%d')} "
             f"since:{start_time.strftime('%Y-%m-%d')}"
         )
 
@@ -171,9 +172,10 @@ class XSearchScheduler:
 
             logger.info(f"Processing {len(self.search_terms)} search terms")
             for term in self.search_terms:
+
                 search_query = self._prepare_search_query(term)
 
-                logger.debug(f"Queueing search request: {search_query}")
+                logger.info(f"Queueing search request: {search_query}")
 
                 self.request_queue.add_request(
                     request_type='search',
