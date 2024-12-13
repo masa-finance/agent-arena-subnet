@@ -111,6 +111,7 @@ class AgentValidator:
         self.post_scorer = PostScorer()
 
         self.scored_posts = []
+        # self.create_scheduler()
 
     async def start(self):
         """Start the validator service.
@@ -174,10 +175,6 @@ class AgentValidator:
                     for agent in active_agents
                 }
                 logger.info("Successfully fetched and updated active agents.")
-
-                # TODO fix this
-                # self.create_scheduler()
-
             else:
                 logger.error(
                     f"Failed to fetch active agents, status code: {
@@ -484,6 +481,10 @@ class AgentValidator:
 
         uids = [int(post["uid"]) for post in self.scored_posts]
         average_scores = [post["average_score"] for post in self.scored_posts]
+
+        logger.info(f"setting weights...")
+        logger.info(f"uids: {uids}")
+        logger.info(f"scores: {average_scores}")
 
         # Set weights with multiple attempts
         for attempt in range(3):
