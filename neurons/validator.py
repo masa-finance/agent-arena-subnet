@@ -161,8 +161,7 @@ class AgentValidator:
                 }
                 logger.info("Successfully fetched and updated active agents.")
 
-                # TODO add scheduler back
-                # self.create_scheduler()
+                self.create_scheduler()
 
             else:
                 logger.error(
