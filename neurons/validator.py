@@ -477,8 +477,10 @@ class AgentValidator:
                 int(datetime.now(UTC).timestamp()),
             ),
         )
+        logger.info(f"Loaded {len(posts)} posts")
         scored_posts = self.post_scorer.score_posts(posts)
         self.scored_posts = scored_posts
+        logger.info(f"Scored posts: {self.scored_posts}")
 
     async def set_weights(self):
         """Set weights"""
