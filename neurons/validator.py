@@ -360,7 +360,7 @@ class AgentValidator:
             logger.error(
                 f"Exception occurred during agent registration: {str(e)}")
 
-    async def node_registration_check(self):
+    async def node_handshake_check(self):
         """Verify node registration"""
 
         logger.info("Attempting nodes registration")
@@ -449,7 +449,7 @@ class AgentValidator:
         while True:
             try:
                 await self.sync_metagraph()
-                await self.node_registration_check()
+                await self.node_handshake_check()
                 await self.fetch_registered_agents()
                 await self.score_posts()
                 await self.set_weights()
@@ -489,7 +489,7 @@ class AgentValidator:
             logger.info(f"Waiting {wait_seconds} seconds...")
             await asyncio.sleep(wait_seconds)
 
-        uids = [post["uid"] for post in self.scored_posts]
+        uids = [int(post["uid"]) for post in self.scored_posts]
         average_scores = [post["average_score"] for post in self.scored_posts]
 
         # Set weights with multiple attempts
