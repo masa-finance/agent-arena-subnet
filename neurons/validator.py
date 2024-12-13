@@ -84,8 +84,7 @@ class AgentValidator:
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.server: Optional[factory_app] = None
-        self.api_url = os.getenv(
-            "API_URL", "https://test.protocol-api.masa.ai")
+        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
 
         self.queue = None
         self.scheduler = None
@@ -94,8 +93,7 @@ class AgentValidator:
         self.scheduler_interval_minutes = int(
             os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
         )
-        self.scheduler_batch_size = int(
-            os.getenv("SCHEDULER_BATCH_SIZE", "100"))
+        self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         # Get network configuration from environment
@@ -105,8 +103,7 @@ class AgentValidator:
         self.substrate = interface.get_substrate(
             subtensor_network=network, subtensor_address=network_address
         )
-        self.metagraph = Metagraph(
-            netuid=self.netuid, substrate=self.substrate)
+        self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
         self.metagraph.sync_nodes()
 
         self.app: Optional[FastAPI] = None
@@ -187,8 +184,7 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(
-                f"Exception occurred while fetching active agents: {str(e)}")
+            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
 
     def create_scheduler(self):
         """Initialize the X search scheduler and request queue.
@@ -217,7 +213,8 @@ class AgentValidator:
             interval_minutes=self.scheduler_interval_minutes,
             batch_size=self.scheduler_batch_size,
             priority=self.scheduler_priority,
-            search_count=self.search_count)
+            search_count=self.search_count,
+        )
 
         self.scheduler.search_terms = self.search_terms
         self.scheduler.start()
@@ -312,10 +309,8 @@ class AgentValidator:
         for agent in agents.values():
             logger.info(f"Adding request to the queue for id {agent.UID}")
 
-            search_terms.append(
-                {'query': f'to: {agent.Username}', 'metadata': agent})
-            search_terms.append(
-                {'query': f'from: {agent.Username}', 'metadata': agent})
+            search_terms.append({"query": f"to: {agent.Username}", "metadata": agent})
+            search_terms.append({"query": f"from: {agent.Username}", "metadata": agent})
 
         return search_terms
 
@@ -357,8 +352,7 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(
-                f"Exception occurred during agent registration: {str(e)}")
+            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     async def node_handshake_check(self):
         """Verify node registration"""
@@ -366,37 +360,36 @@ class AgentValidator:
         logger.info("Attempting nodes registration")
         try:
             nodes = dict(self.metagraph.nodes)
-            miners = list(nodes.values())
+            nodes_list = list(nodes.values())
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
                 whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                miners = [miner for miner in miners if miner.hotkey in whitelist]
+                nodes_list = [node for node in nodes_list if node.hotkey in whitelist]
 
             # Filter out already registered miners
-            miners_found = [
-                miner
-                for miner in miners
-                if miner.hotkey not in self.registered_miners and miner.ip != "0.0.0.0"
+            available_nodes = [
+                node
+                for node in nodes_list
+                if node.hotkey not in self.registered_miners and node.ip != "0.0.0.0"
             ]
 
-            logger.info(f"Found {len(miners_found)} miners")
-            for miner in miners_found:
+            logger.info(f"Found {len(available_nodes)} miners")
+            for node in available_nodes:
                 server_address = vali_client.construct_server_address(
-                    node=miner,
+                    node=node,
                     replace_with_docker_localhost=False,
                     replace_with_localhost=True,
                 )
                 success = await self.handshake_with_miner(
-                    miner_address=server_address, miner_hotkey=miner.hotkey
+                    miner_address=server_address, miner_hotkey=node.hotkey
                 )
                 if success:
                     logger.info(
-                        f"Connected to miner: {miner.hotkey}, IP: {
-                            miner.ip}, Port: {miner.port}"
+                        f"Connected to miner: {node.hotkey}, IP: {
+                            node.ip}, Port: {node.port}"
                     )
                 else:
-                    logger.warning(
-                        f"Failed to connect to miner {miner.hotkey}")
+                    logger.warning(f"Failed to connect to miner {node.hotkey}")
 
         except Exception as e:
             logger.error("Error in registration check: %s", str(e))
