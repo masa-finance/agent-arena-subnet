@@ -14,7 +14,6 @@ import uvicorn
 import json
 import os
 from fiber.chain.metagraph import Metagraph
-from utils.twitter import verify_tweet
 
 from protocol.data_processing.post_loader import LoadPosts
 from protocol.scoring.post_scorer import PostScorer
