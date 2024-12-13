@@ -88,7 +88,6 @@ class XSearchScheduler:
         self.priority = priority
         self.search_count = search_count
         self.last_run_time = None
-        self.search_terms = None
 
         logger.debug(
             f"Initialized XSearchScheduler with interval={
@@ -147,7 +146,7 @@ class XSearchScheduler:
 
         # Format the query string with date range only (no time component)
         query = (
-            f"{term['query']} "
+            f"{term['search_term']} "
             f"until:{current_time.strftime('%Y-%m-%d')} "
             f"since:{start_time.strftime('%Y-%m-%d')}"
         )
@@ -155,8 +154,7 @@ class XSearchScheduler:
         return {
             "query": query,
             "count": self.search_count,
-            "miner_id": term['metadata'].HotKey,
-            "metadata": term['metadata']
+            "miner_id": term['id']
         }
 
     def process_search_terms(self):
@@ -168,9 +166,11 @@ class XSearchScheduler:
         """
         try:
             current_time = datetime.now(UTC)
+            search_terms = self._get_search_terms()
 
-            logger.info(f"Processing {len(self.search_terms)} search terms")
-            for term in self.search_terms:
+            logger.info(f"Processing {len(search_terms)} search terms")
+
+            for term in search_terms:
                 search_query = self._prepare_search_query(term)
 
                 logger.debug(f"Queueing search request: {search_query}")
