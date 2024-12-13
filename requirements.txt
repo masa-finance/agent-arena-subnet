@@ -51,7 +51,7 @@ executing==2.1.0
 fastapi==0.110.3
 fastjsonschema==2.20.0
 feedparser==6.0.11
-fiber @ git+https://github.com/rayonlabs/fiber.git@199d6432b748c2a93c3ee0c34db72418b19c6d7f
+fiber@git+https://github.com/rayonlabs/fiber.git@1.0.0#egg=fiber[full]
 filelock==3.16.1
 fqdn==1.5.1
 frozenlist==1.5.0
