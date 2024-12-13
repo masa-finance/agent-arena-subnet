@@ -13,17 +13,15 @@ from protocol.x.queue import RequestQueue
 load_dotenv()
 
 # Configure logging based on environment variable
-log_level = logging.DEBUG if os.getenv(
-    'DEBUG', '').lower() == 'true' else logging.INFO
+log_level = logging.DEBUG if os.getenv("DEBUG", "").lower() == "true" else logging.INFO
 logging.basicConfig(
-    level=log_level,
-    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+    level=log_level, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 # Get environment variables with fallbacks
-VALIDATOR_DB_BASE_URL = os.getenv('MASA_BASE_URL', "http://localhost:8080")
-VALIDATOR_DB_BASE = os.getenv('MASA_API_PATH', "/api/v1/data")
+VALIDATOR_DB_BASE_URL = os.getenv("MASA_BASE_URL", "http://localhost:8080")
+VALIDATOR_DB_BASE = os.getenv("MASA_API_PATH", "/api/v1/data")
 VALIDATOR_DB_PATH = f"{VALIDATOR_DB_BASE}/twitter/tweets/recent"
 
 # Default constants for scheduler configuration
@@ -34,12 +32,11 @@ DEFAULT_SEARCH_COUNT = 450
 
 # Environment variable overrides for defaults
 SCHEDULER_INTERVAL = int(
-    os.getenv('SCHEDULER_INTERVAL_MINUTES', DEFAULT_INTERVAL_MINUTES))
-SCHEDULER_BATCH_SIZE = int(
-    os.getenv('SCHEDULER_BATCH_SIZE', DEFAULT_BATCH_SIZE))
-SCHEDULER_PRIORITY = int(os.getenv('SCHEDULER_PRIORITY', DEFAULT_PRIORITY))
-SCHEDULER_SEARCH_COUNT = int(
-    os.getenv('SCHEDULER_SEARCH_COUNT', DEFAULT_SEARCH_COUNT))
+    os.getenv("SCHEDULER_INTERVAL_MINUTES", DEFAULT_INTERVAL_MINUTES)
+)
+SCHEDULER_BATCH_SIZE = int(os.getenv("SCHEDULER_BATCH_SIZE", DEFAULT_BATCH_SIZE))
+SCHEDULER_PRIORITY = int(os.getenv("SCHEDULER_PRIORITY", DEFAULT_PRIORITY))
+SCHEDULER_SEARCH_COUNT = int(os.getenv("SCHEDULER_SEARCH_COUNT", DEFAULT_SEARCH_COUNT))
 
 # Expected search term format from validator database:
 # {
@@ -71,7 +68,7 @@ class XSearchScheduler:
         interval_minutes: int = SCHEDULER_INTERVAL,
         batch_size: int = SCHEDULER_BATCH_SIZE,
         priority: int = SCHEDULER_PRIORITY,
-        search_count: int = SCHEDULER_SEARCH_COUNT
+        search_count: int = SCHEDULER_SEARCH_COUNT,
     ):
         """Initialize the scheduler.
 
@@ -114,7 +111,7 @@ class XSearchScheduler:
             response = requests.get(
                 api_url,
                 headers={"accept": "application/json"},
-                params={"batch_size": self.batch_size}
+                params={"batch_size": self.batch_size},
             )
             response.raise_for_status()
 
@@ -156,8 +153,8 @@ class XSearchScheduler:
         return {
             "query": query,
             "count": self.search_count,
-            "miner_id": term['metadata'].HotKey,
-            "metadata": term['metadata']
+            "miner_id": term["metadata"].HotKey,
+            "metadata": term["metadata"],
         }
 
     def process_search_terms(self):
@@ -178,9 +175,9 @@ class XSearchScheduler:
                 logger.info(f"Queueing search request: {search_query}")
 
                 self.request_queue.add_request(
-                    request_type='search',
+                    request_type="search",
                     request_data=search_query,
-                    priority=self.priority
+                    priority=self.priority,
                 )
 
             self.last_run_time = current_time
@@ -196,12 +193,13 @@ class XSearchScheduler:
         new terms at the specified interval. Each search term is processed with
         a 1-day lookback period, regardless of the scheduler's interval.
         """
-        logger.info(f"Starting XSearchScheduler with {
-                    self.interval_minutes} minute interval")
+        logger.info(
+            f"Starting XSearchScheduler with {
+                    self.interval_minutes} minute interval"
+        )
 
         # Schedule the job
-        schedule.every(self.interval_minutes).minutes.do(
-            self.process_search_terms)
+        schedule.every(self.interval_minutes).minutes.do(self.process_search_terms)
 
         # Run immediately on start
         self.process_search_terms()
@@ -212,16 +210,16 @@ class XSearchScheduler:
             time.sleep(1)
 
 
-# Example usage
-if __name__ == "__main__":
-    request_queue = RequestQueue()
-    request_queue.start()
+# # Example usage
+# if __name__ == "__main__":
+#     request_queue = RequestQueue()
+#     request_queue.start()
 
-    scheduler = XSearchScheduler(
-        request_queue=request_queue,
-        interval_minutes=15,
-        batch_size=100,
-        priority=100,
-        search_count=10
-    )
-    scheduler.start()
+#     scheduler = XSearchScheduler(
+#         request_queue=request_queue,
+#         interval_minutes=1,
+#         batch_size=100,
+#         priority=100,
+#         search_count=10,
+#     )
+#     scheduler.start()

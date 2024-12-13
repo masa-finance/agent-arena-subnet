@@ -39,6 +39,7 @@ logger = get_logger(__name__)
 AGENT_REGISTRATION_CADENCE_SECONDS = 10
 SYNC_LOOP_CADENCE_SECONDS = 10
 SCORE_LOOP_CADENCE_SECONDS = 20
+SET_WEIGHTS_LOOP_CADENCE_SECONDS = 10
 
 
 class AgentValidator:
@@ -141,9 +142,7 @@ class AgentValidator:
             asyncio.create_task(self.set_weights_loop())
             asyncio.create_task(self.score_loop())
 
-            # TODO turn scheduler back on
-            # asyncio.create_task(self.scheduler_loop())
-
+            self.create_scheduler()
             # Start the FastAPI server
             config = uvicorn.Config(
                 self.app, host="0.0.0.0", port=self.port, lifespan="on"
@@ -219,7 +218,14 @@ class AgentValidator:
         )
 
         self.scheduler.search_terms = self.search_terms
-        self.scheduler.start()
+
+        import threading
+
+        def run_scheduler():
+            self.scheduler.start()
+
+        thread = threading.Thread(target=run_scheduler)
+        thread.start()
 
     async def check_agents_registration_loop(self):
         while True:
@@ -442,29 +448,23 @@ class AgentValidator:
         """Background task to sync metagraph"""
         while True:
             try:
-                await self.set_weights()
+                if len(self.scored_posts) > 0:
+                    await self.set_weights()
+                await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in setting weights: {str(e)}")
+                await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS / 2)
 
     async def score_loop(self):
         """Background task to score agents"""
         while True:
             try:
-                await self.score_posts()
+                if len(self.scored_posts) > 0:
+                    await self.score_posts()
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in scoring: {str(e)}")
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS / 2)
-
-    async def scheduler_loop(self):
-        """Background task to score agents"""
-        while True:
-            try:
-                self.create_scheduler()
-                await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
-            except Exception as e:
-                logger.error(f"Error in scheduler: {str(e)}")
-                await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS / 2)
 
     async def sync_loop(self):
         """Background task to sync metagraph"""
@@ -473,6 +473,10 @@ class AgentValidator:
                 await self.sync_metagraph()
                 await self.register_new_nodes()
                 await self.fetch_registered_agents()
+                self.scheduler.search_terms = self.generate_search_terms(
+                    self.registered_agents
+                )
+                logger.info(f"Search terms: {self.scheduler.search_terms}")
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in sync metagraph: {str(e)}")
