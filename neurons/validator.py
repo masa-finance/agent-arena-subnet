@@ -25,7 +25,7 @@ from interfaces.types import (
     VerifiedTweet,
     RegisteredAgentRequest,
     RegisteredAgentResponse,
-    RegisteredMiner,
+    RegisteredNode,
     Profile,
 )
 
@@ -36,9 +36,9 @@ from interfaces.types import VerifiedTweet
 logger = get_logger(__name__)
 
 
-# TODO change for mainnet
 AGENT_REGISTRATION_CADENCE_SECONDS = 10
 SYNC_LOOP_CADENCE_SECONDS = 10
+SCORE_LOOP_CADENCE_SECONDS = 20
 
 
 class AgentValidator:
@@ -53,7 +53,7 @@ class AgentValidator:
     Attributes:
         netuid (int): Network unique identifier
         httpx_client (Optional[httpx.AsyncClient]): Async HTTP client
-        registered_miners (Dict[str, RegisteredMiner]): Currently registered miners
+        registered_nodes (Dict[str, RegisteredNode]): Currently registered miners
         registered_agents (Dict[str, RegisteredAgent]): Currently registered agents
         keypair (Optional[Keypair]): Validator's keypair for authentication
         server (Optional[factory_app]): FastAPI server instance
@@ -80,7 +80,7 @@ class AgentValidator:
         self.netuid = int(os.getenv("NETUID", "249"))
         self.httpx_client: Optional[httpx.AsyncClient] = None
 
-        self.registered_miners: Dict[str, RegisteredMiner] = {}
+        self.registered_nodes: Dict[str, RegisteredNode] = {}
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.server: Optional[factory_app] = None
@@ -139,6 +139,8 @@ class AgentValidator:
             asyncio.create_task(
                 self.check_agents_registration_loop()
             )  # agent registration
+            asyncio.create_task(self.set_weights_loop())
+            asyncio.create_task(self.score_loop())
 
             # Start the FastAPI server
             config = uvicorn.Config(
@@ -221,7 +223,7 @@ class AgentValidator:
             unregistered_nodes = []
             try:
                 # Iterate over each registered node to check if it has a registered agent
-                for node_hotkey in self.registered_miners:
+                for node_hotkey in self.registered_nodes:
                     if node_hotkey not in self.registered_agents:
                         unregistered_nodes.append(node_hotkey)
 
@@ -261,7 +263,7 @@ class AgentValidator:
 
     async def get_agent_tweet_id(self, node: Node):
         logger.info(f"Attempting to register node {node.hotkey} agent")
-        registered_miner = self.registered_miners.get(node.hotkey)
+        registered_node = self.registered_nodes.get(node.hotkey)
 
         server_address = vali_client.construct_server_address(
             node=node,
@@ -271,7 +273,7 @@ class AgentValidator:
         registration_response = await vali_client.make_non_streamed_get(
             httpx_client=self.httpx_client,
             server_address=server_address,
-            symmetric_key_uuid=registered_miner.symmetric_key_uuid,
+            symmetric_key_uuid=registered_node.symmetric_key_uuid,
             endpoint="/get_verification_tweet_id",
             validator_ss58_address=self.keypair.ss58_address,
         )
@@ -351,7 +353,7 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent registration: {str(e)}")
 
-    async def node_handshake_check(self):
+    async def register_new_nodes(self):
         """Verify node registration"""
 
         logger.info("Attempting nodes registration")
@@ -363,11 +365,11 @@ class AgentValidator:
                 whitelist = os.getenv("MINER_WHITELIST", "").split(",")
                 nodes_list = [node for node in nodes_list if node.hotkey in whitelist]
 
-            # Filter out already registered miners
+            # Filter out already registered nodes
             available_nodes = [
                 node
                 for node in nodes_list
-                if node.hotkey not in self.registered_miners and node.ip != "0.0.0.0"
+                if node.hotkey not in self.registered_nodes and node.ip != "0.0.0.0"
             ]
 
             logger.info(f"Found {len(available_nodes)} miners")
@@ -409,7 +411,7 @@ class AgentValidator:
                 return False
 
             # Store miner information
-            self.registered_miners[miner_hotkey] = RegisteredMiner(
+            self.registered_nodes[miner_hotkey] = RegisteredNode(
                 address=miner_address,
                 symmetric_key=symmetric_key_str,
                 symmetric_key_uuid=symmetric_key_uuid,
@@ -434,16 +436,31 @@ class AgentValidator:
         if self.server:
             await self.server.stop()
 
+    async def set_weights_loop(self):
+        """Background task to sync metagraph"""
+        while True:
+            try:
+                await self.set_weights()
+            except Exception as e:
+                logger.error(f"Error in setting weights: {str(e)}")
+
+    async def score_loop(self):
+        """Background task to score agents"""
+        while True:
+            try:
+                await self.score_posts()
+                await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS)
+            except Exception as e:
+                logger.error(f"Error in scoring: {str(e)}")
+                await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS / 2)
+
     async def sync_loop(self):
         """Background task to sync metagraph"""
         while True:
             try:
                 await self.sync_metagraph()
-                await self.node_handshake_check()
+                await self.register_new_nodes()
                 await self.fetch_registered_agents()
-                await self.score_posts()
-                await self.set_weights()
-
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in sync metagraph: {str(e)}")
@@ -585,9 +602,52 @@ class AgentValidator:
         """
         try:
             self.metagraph.sync_nodes()
+
+            metagraph_node_hotkeys = list(dict(self.metagraph.nodes).keys())
+            registered_node_hotkeys = list(self.registered_nodes.keys())
+
+            for hotkey in registered_node_hotkeys:
+                if hotkey not in metagraph_node_hotkeys:
+                    logger.info(f"Removing node {hotkey} from registered nodes")
+                    del self.registered_nodes[hotkey]
+
+                    node = self.metagraph.nodes[hotkey]
+                    uid = node.node_id
+                    hotkey = node.hotkey
+                    await self.deregister_agent(hotkey, uid)
+
+                    # TODO reset local data / posts for uid to be fair to scoring
+
             logger.info("Metagraph synced successfully")
         except Exception as e:
             logger.error(f"Failed to sync metagraph: {str(e)}")
+
+    async def deregister_agent(self, hotkey: str, uid: str):
+        """Register agent with the API"""
+        my_node = self.node()
+
+        try:
+            deregistration_data = {
+                "hotkey": hotkey,
+                "uid": uid,
+                "subnet_id": self.netuid,
+                "version": "4",  # TODO: Implement versioning
+                "isActive": False,
+            }
+            endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
+            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+            response = await self.httpx_client.post(
+                endpoint, json=deregistration_data, headers=headers
+            )
+            if response.status_code == 200:
+                logger.info("Successfully deregistered agent!")
+                return response.json()
+            else:
+                logger.error(
+                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
+                )
+        except Exception as e:
+            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     def register_routes(self):
         """Register FastAPI routes"""
