@@ -13,3 +13,4 @@ nodes.json
 /tests/__pycache__
 /protocol/x/__pycache__
 *.pyc
+data/*

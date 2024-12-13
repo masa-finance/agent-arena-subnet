@@ -1,3 +1,0 @@
-<Bytes>On 2024-11-23 10:23:39.417457 PST I am the owner of subnet 249 on testnet</Bytes>
-	Signed by: 5Coa4pK6q1br1XdYUPwJHuvoi33NyVM9bGyeGREue7kTkbAL
-	Signature: e24f8a3bde43366ef57224b09cab61338fa8c460463dbfa3f95bbd1d22cf3a27a36ac506572a0c51d26f1249ef625e245d4386e5f298fda6ffdf96e60433e18c
