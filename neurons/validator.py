@@ -502,6 +502,10 @@ class AgentValidator:
         """Set weights"""
         # Check if we can set weights
         validator_node_id = self.node().node_id
+
+        # Reconnect substrate to help prevent weight wettings errors
+        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+
         blocks_since_update = weights._blocks_since_last_update(
             self.substrate, self.netuid, validator_node_id
         )
