@@ -539,7 +539,9 @@ class AgentValidator:
 
         logger.error("Failed to set weights after all attempts")
 
-    async def verify_tweet(id: str, hotkey: str) -> tuple[VerifiedTweet, str, str]:
+    async def verify_tweet(
+        self, id: str, hotkey: str
+    ) -> tuple[VerifiedTweet, str, str]:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
