@@ -95,8 +95,8 @@ class AgentValidator:
         self.substrate = interface.get_substrate(
             subtensor_network=network, subtensor_address=network_address
         )
+        self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
         self.app: Optional[FastAPI] = None
-        self.metagraph = None
 
     async def start(self):
         """Start the validator service.
@@ -112,7 +112,7 @@ class AgentValidator:
             self.httpx_client = httpx.AsyncClient()
 
             # Fetch registered agents from API
-            # await self.fetch_registered_agents()
+            await self.fetch_registered_agents()
 
             # Create FastAPI app using standard factory
             self.app = factory_app(debug=False)
@@ -161,7 +161,8 @@ class AgentValidator:
                 }
                 logger.info("Successfully fetched and updated active agents.")
 
-                self.create_scheduler()
+                # TODO add scheduler back
+                # self.create_scheduler()
 
             else:
                 logger.error(
@@ -311,9 +312,8 @@ class AgentValidator:
 
         logger.info("Attempting nodes registration")
         try:
-            nodes = self.metagraph.nodes
-            miners = nodes.values()
-
+            nodes = dict(self.metagraph.nodes)
+            miners = list(nodes.values())
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
                 whitelist = os.getenv("MINER_WHITELIST", "").split(",")
@@ -413,8 +413,6 @@ class AgentValidator:
             Exception: If metagraph sync fails
         """
         try:
-            if self.metagraph is None:
-                self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
             self.metagraph.sync_nodes()
             logger.info("Metagraph synced successfully")
         except Exception as e:
