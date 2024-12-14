@@ -576,8 +576,13 @@ class AgentValidator:
         )
         logger.info(f"Loaded {len(posts)} posts")
         scored_posts = self.post_scorer.score_posts(posts)
-        logger.info(f"Scored Posts: {scored_posts}")
         self.scored_posts = scored_posts
+
+        # Save scored posts to data/scores.json
+        with open("data/scores.json", "w") as f:
+            json.dump(scored_posts, f)
+        logger.info(f"Scored posts saved to data/scores.json")
+
         uids, scores = self.get_average_score()
         logger.info(f"uids: {uids}")
         logger.info(f"scores: {scores}")
