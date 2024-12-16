@@ -85,7 +85,8 @@ class AgentValidator:
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.server: Optional[factory_app] = None
-        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
+        self.api_url = os.getenv(
+            "API_URL", "https://test.protocol-api.masa.ai")
 
         self.queue = None
         self.scheduler = None
@@ -94,7 +95,8 @@ class AgentValidator:
         self.scheduler_interval_minutes = int(
             os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
         )
-        self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
+        self.scheduler_batch_size = int(
+            os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         # Get network configuration from environment
@@ -104,7 +106,8 @@ class AgentValidator:
         self.substrate = interface.get_substrate(
             subtensor_network=network, subtensor_address=network_address
         )
-        self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
+        self.metagraph = Metagraph(
+            netuid=self.netuid, substrate=self.substrate)
         self.metagraph.sync_nodes()
 
         self.app: Optional[FastAPI] = None
@@ -184,7 +187,8 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
+            logger.error(
+                f"Exception occurred while fetching active agents: {str(e)}")
 
     def create_scheduler(self):
         """Initialize the X search scheduler and request queue.
@@ -250,12 +254,12 @@ class AgentValidator:
                         full_node = raw_nodes[node_hotkey]
                         if full_node:
                             tweet_id = await self.get_agent_tweet_id(full_node)
-                            verified_tweet, user_id, screen_name = (
+                            verified_tweet, user_id, screen_name, avatar = (
                                 await self.verify_tweet(tweet_id, full_node.hotkey)
                             )
                             if verified_tweet and user_id:
                                 await self.register_agent(
-                                    full_node, verified_tweet, user_id, screen_name
+                                    full_node, verified_tweet, user_id, screen_name, avatar
                                 )
 
                     except Exception as e:
@@ -316,13 +320,15 @@ class AgentValidator:
         for agent in agents.values():
             logger.info(f"Adding request to the queue for id {agent.UID}")
 
-            search_terms.append({"query": f"to:{agent.Username}", "metadata": agent})
-            search_terms.append({"query": f"from:{agent.Username}", "metadata": agent})
+            search_terms.append(
+                {"query": f"to:{agent.Username}", "metadata": agent})
+            search_terms.append(
+                {"query": f"from:{agent.Username}", "metadata": agent})
 
         return search_terms
 
     async def register_agent(
-        self, node: Node, verified_tweet: VerifiedTweet, user_id: str, screen_name: str
+        self, node: Node, verified_tweet: VerifiedTweet, user_id: str, screen_name: str, avatar: str
     ):
         """Register an agent"""
         registration_data = RegisteredAgentRequest(
@@ -336,6 +342,7 @@ class AgentValidator:
                 "data": Profile(
                     UserID=user_id,
                     Username=screen_name,
+                    Avatar=avatar
                 )
             },
         )
@@ -358,7 +365,8 @@ class AgentValidator:
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
+            logger.error(
+                f"Exception occurred during agent registration: {str(e)}")
 
     async def register_new_nodes(self):
         """Verify node registration"""
@@ -370,7 +378,8 @@ class AgentValidator:
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
                 whitelist = os.getenv("MINER_WHITELIST", "").split(",")
-                nodes_list = [node for node in nodes_list if node.hotkey in whitelist]
+                nodes_list = [
+                    node for node in nodes_list if node.hotkey in whitelist]
 
             # Filter out already registered nodes
             available_nodes = [
@@ -504,12 +513,14 @@ class AgentValidator:
         validator_node_id = self.node().node_id
 
         # Reconnect substrate to help prevent weight wettings errors
-        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+        self.substrate = interface.get_substrate(
+            subtensor_address=self.substrate.url)
 
         blocks_since_update = weights._blocks_since_last_update(
             self.substrate, self.netuid, validator_node_id
         )
-        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
+        min_interval = weights._min_interval_to_set_weights(
+            self.substrate, self.netuid)
 
         logger.info(f"Blocks since last update: {blocks_since_update}")
         logger.info(f"Minimum interval required: {min_interval}")
@@ -551,7 +562,8 @@ class AgentValidator:
                     logger.info("✅ Successfully set weights!")
                     return
                 else:
-                    logger.error(f"❌ Failed to set weights on attempt {attempt + 1}")
+                    logger.error(
+                        f"❌ Failed to set weights on attempt {attempt + 1}")
                     await asyncio.sleep(10)  # Wait between attempts
 
             except Exception as e:
@@ -587,7 +599,7 @@ class AgentValidator:
             if not result:
                 logger.error(
                     f"Could not fetch tweet id {
-                             id} for node {hotkey}"
+                        id} for node {hotkey}"
                 )
                 return False
 
@@ -601,13 +613,16 @@ class AgentValidator:
                 .get("user_results", {})
                 .get("result", {})
             )
+
             screen_name = user.get("legacy", {}).get("screen_name")
             user_id = user.get("rest_id")
             full_text = tweet_data_result.get("legacy", {}).get("full_text")
+            avatar = user.get(
+                "legacy", {}).get("profile_image_url_https")
 
             logger.info(
                 f"Got tweet result: {
-                    tweet_id} - {screen_name} **** {full_text}"
+                    tweet_id} - {screen_name} **** {full_text} - {avatar}"
             )
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
@@ -630,7 +645,7 @@ class AgentValidator:
                 ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 full_text=full_text,
             )
-            return verification_tweet, user_id, screen_name
+            return verification_tweet, user_id, screen_name, avatar
         except Exception as e:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
@@ -653,7 +668,7 @@ class AgentValidator:
                 if hotkey not in metagraph_node_hotkeys:
                     logger.info(
                         f"Removing node {
-                                hotkey} from registered nodes"
+                            hotkey} from registered nodes"
                     )
                     del self.registered_nodes[hotkey]
 
@@ -669,17 +684,37 @@ class AgentValidator:
             logger.error(f"Failed to sync metagraph: {str(e)}")
 
     async def deregister_agent(self, hotkey: str, uid: str):
-        """Register agent with the API"""
-        my_node = self.node()
+        """Deregister agent with the API"""
+        logger.info("Deregistering agent...")
+
+        agent = self.registered_agents.get(hotkey, {})
+
+        print("AGENT", agent)
 
         try:
-            deregistration_data = {
-                "hotkey": hotkey,
-                "uid": uid,
-                "subnet_id": self.netuid,
-                "version": "4",  # TODO: Implement versioning
-                "isActive": False,
-            }
+            verification_tweet = VerifiedTweet(
+                tweet_id=agent.VerificationTweetID,
+                url=agent.VerificationTweetURL,
+                timestamp=agent.VerificationTweetTimestamp,
+                full_text=agent.VerificationTweetText,
+            )
+            deregistration_data = RegisteredAgentRequest(
+                hotkey=hotkey,
+                uid=str(uid),
+                subnet_id=int(self.netuid),
+                version=str(4),  # TODO implement versioning...
+                isActive=False,
+                verification_tweet=verification_tweet,
+                profile={
+                    "data": Profile(
+                        UserID=agent.UserID,
+                        Username=agent.Username,
+                    )
+                },
+            )
+            deregistration_data = json.loads(
+                json.dumps(deregistration_data, default=lambda o: o.__dict__)
+            )
             endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
             headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
             response = await self.httpx_client.post(
@@ -690,11 +725,12 @@ class AgentValidator:
                 return response.json()
             else:
                 logger.error(
-                    f"Failed to register agent, status code: {
+                    f"Failed to deregister agent, status code: {
                         response.status_code}, message: {response.text}"
                 )
         except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
+            logger.error(
+                f"Exception occurred during agent deregistration: {str(e)}")
 
     def register_routes(self):
         """Register FastAPI routes"""
