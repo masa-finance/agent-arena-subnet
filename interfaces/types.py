@@ -51,6 +51,7 @@ class RegisteredAgentRequest(JSONSerializable):
     subnet_id: int
     version: str
     isActive: bool
+    emissions: float
     verification_tweet: VerifiedTweet
     profile: Optional[dict[str, Profile]]
 
@@ -82,6 +83,7 @@ class RegisteredAgentResponse(JSONSerializable):
     Name: Optional[str]
     PinnedTweetIDs: list[str]
     TweetsCount: int
+    Emissions: float
     URL: Optional[str]
     Username: Optional[str]
     Website: Optional[str]

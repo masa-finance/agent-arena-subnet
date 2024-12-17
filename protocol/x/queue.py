@@ -132,6 +132,10 @@ class RequestQueue:
             logger.info(f"Request added to {
                         request_type} queue with priority {priority}")
 
+    async def excecute_request(self, request_type: str, request_data: Dict[str, Any]):
+        response = self._handle_request(request_type, request_data, True)
+        return response
+
     def _wait_for_rate_limit(self):
         """Enforce rate limiting by waiting appropriate amount of time between requests.
 
@@ -172,7 +176,7 @@ class RequestQueue:
                         daemon=THREAD_DAEMON
                     ).start()
 
-    def _handle_request(self, request_type: str, request_data: Dict[str, Any]):
+    def _handle_request(self, request_type: str, request_data: Dict[str, Any], quick_return=False):
         """Process a single request with error handling, retry mechanism, and rate limiting.
 
         Args:
@@ -197,6 +201,11 @@ class RequestQueue:
             else:
                 raise ValueError(f"Unknown request type: {request_type}")
 
+            logger.info(f"RESPONSE FROM X REQUEST: {response}")
+
+            if quick_return:
+                return response
+
             if response['data'] is not None:
                 logger.info(f"Processed {request_type} request: {response}")
 
@@ -210,6 +219,7 @@ class RequestQueue:
                 }
 
                 self.saver.save_post(response, metadata)
+                return response, metadata
 
         except Exception as e:
             logger.error(f"Error processing request: {e}")

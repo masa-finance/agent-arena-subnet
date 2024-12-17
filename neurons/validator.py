@@ -14,7 +14,7 @@ import uvicorn
 import json
 import os
 from fiber.chain.metagraph import Metagraph
-
+from fiber.chain import fetch_nodes
 from protocol.data_processing.post_loader import LoadPosts
 from protocol.scoring.post_scorer import PostScorer
 
@@ -473,6 +473,83 @@ class AgentValidator:
                 logger.error(f"Error in scoring: {str(e)}")
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS / 2)
 
+    async def fetch_x_profile(self, username):
+        queue = RequestQueue()
+        response = await queue.excecute_request(
+            request_type='profile',
+            request_data={'username': username}
+        )
+
+        return response
+
+    async def update_agents_profiles_and_emissions(self):
+
+        nodes = fetch_nodes.get_nodes_for_netuid(self.substrate, self.netuid)
+
+        for hotkey, agent in self.registered_agents.items():
+
+            x_profile = await self.fetch_x_profile(agent.Username)
+
+            if (x_profile is None):
+                logger.info(f"Trying to refetch username for agent: {
+                            agent.Username}")
+                verified_tweet, user_id, username, avatar = (
+                    await self.verify_tweet(agent.VerificationTweetID, agent.HotKey)
+                )
+                x_profile = await self.fetch_x_profile(username)
+
+            node = next((n for n in nodes if n.hotkey == hotkey), None)
+
+            try:
+                verification_tweet = VerifiedTweet(
+                    tweet_id=agent.VerificationTweetID,
+                    url=agent.VerificationTweetURL,
+                    timestamp=agent.VerificationTweetTimestamp,
+                    full_text=agent.VerificationTweetText,
+                )
+                deregistration_data = RegisteredAgentRequest(
+                    hotkey=hotkey,
+                    uid=str(agent.UID),
+                    subnet_id=int(self.netuid),
+                    version=str(4),
+                    isActive=True,
+                    emissions=node.incentive,
+                    verification_tweet=verification_tweet,
+                    profile={
+                        "data": Profile(
+                            UserID=agent.UserID,
+                            Username=x_profile['data']['Username'],
+                            Avatar=x_profile['data']['Avatar'],
+                            Banner=x_profile['data']['Banner'],
+                            Biography=x_profile['data']["Biography"],
+                            FollowersCount=x_profile['data']['FollowersCount'],
+                            FollowingCount=x_profile['data']['FollowingCount'],
+                            LikesCount=x_profile['data']['LikesCount'],
+                            Name=x_profile['data']['Name']
+                        )
+                    },
+                )
+                deregistration_data = json.loads(
+                    json.dumps(deregistration_data,
+                               default=lambda o: o.__dict__)
+                )
+                endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
+                headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+                response = await self.httpx_client.post(
+                    endpoint, json=deregistration_data, headers=headers
+                )
+                if response.status_code == 200:
+                    logger.info("Successfully updated agent!")
+                    return response.json()
+                else:
+                    logger.error(
+                        f"Failed to update agent, status code: {
+                            response.status_code}, message: {response.text}"
+                    )
+            except Exception as e:
+                logger.error(
+                    f"Exception occurred during agent update: {str(e)}")
+
     async def sync_loop(self):
         """Background task to sync metagraph"""
         while True:
@@ -480,6 +557,7 @@ class AgentValidator:
                 await self.sync_metagraph()
                 await self.register_new_nodes()
                 await self.fetch_registered_agents()
+                await self.update_agents_profiles_and_emissions()
                 self.scheduler.search_terms = self.generate_search_terms(
                     self.registered_agents
                 )
