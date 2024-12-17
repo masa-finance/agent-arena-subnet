@@ -732,6 +732,9 @@ class AgentValidator:
             Exception: If metagraph sync fails
         """
         try:
+            self.substrate = interface.get_substrate(
+                subtensor_address=self.substrate.url
+            )
             self.metagraph.sync_nodes()
 
             metagraph_node_hotkeys = list(dict(self.metagraph.nodes).keys())
