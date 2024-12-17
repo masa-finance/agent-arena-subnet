@@ -191,3 +191,5 @@ class AgentMiner:
             self.deregister_agent,
             methods=["POST"],
         )
+
+        # TODO we need a callback route here for validators to send information!
