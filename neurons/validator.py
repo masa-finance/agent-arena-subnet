@@ -484,7 +484,8 @@ class AgentValidator:
 
     async def update_agents_profiles_and_emissions(self):
 
-        nodes = fetch_nodes.get_nodes_for_netuid(self.substrate, self.netuid)
+        emissions = self.substrate.query(
+            "SubtensorModule", "Emission", [self.netuid]).value
 
         for hotkey, agent in self.registered_agents.items():
 
@@ -498,22 +499,22 @@ class AgentValidator:
                 )
                 x_profile = await self.fetch_x_profile(username)
 
-            node = next((n for n in nodes if n.hotkey == hotkey), None)
-
             try:
+
+                agent_emissions = emissions[int(agent.UID)] * 10 ** - 9
                 verification_tweet = VerifiedTweet(
                     tweet_id=agent.VerificationTweetID,
                     url=agent.VerificationTweetURL,
                     timestamp=agent.VerificationTweetTimestamp,
                     full_text=agent.VerificationTweetText,
                 )
-                deregistration_data = RegisteredAgentRequest(
+                update_data = RegisteredAgentRequest(
                     hotkey=hotkey,
                     uid=str(agent.UID),
                     subnet_id=int(self.netuid),
                     version=str(4),
                     isActive=True,
-                    emissions=node.incentive,
+                    emissions=agent_emissions,
                     verification_tweet=verification_tweet,
                     profile={
                         "data": Profile(
@@ -529,14 +530,14 @@ class AgentValidator:
                         )
                     },
                 )
-                deregistration_data = json.loads(
-                    json.dumps(deregistration_data,
+                update_data = json.loads(
+                    json.dumps(update_data,
                                default=lambda o: o.__dict__)
                 )
                 endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
                 headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
                 response = await self.httpx_client.post(
-                    endpoint, json=deregistration_data, headers=headers
+                    endpoint, json=update_data, headers=headers
                 )
                 if response.status_code == 200:
                     logger.info("Successfully updated agent!")
