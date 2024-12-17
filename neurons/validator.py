@@ -341,7 +341,7 @@ class AgentValidator:
             version=str(node.protocol),  # TODO implement versioning...
             isActive=True,
             verification_tweet=verified_tweet,
-            emissions=node.incentive,
+            emissions=0,
             profile={
                 "data": Profile(UserID=user_id, Username=screen_name, Avatar=avatar)
             },
@@ -482,7 +482,8 @@ class AgentValidator:
     async def update_agents_profiles_and_emissions(self):
 
         emissions = self.substrate.query(
-            "SubtensorModule", "Emission", [self.netuid]).value
+            "SubtensorModule", "Emission", [self.netuid]
+        ).value
 
         for hotkey, agent in self.registered_agents.items():
 
@@ -500,7 +501,7 @@ class AgentValidator:
 
             try:
 
-                agent_emissions = emissions[int(agent.UID)] * 10 ** - 9
+                agent_emissions = emissions[int(agent.UID)] * 10**-9
                 verification_tweet = VerifiedTweet(
                     tweet_id=agent.VerificationTweetID,
                     url=agent.VerificationTweetURL,
@@ -530,8 +531,7 @@ class AgentValidator:
                     },
                 )
                 update_data = json.loads(
-                    json.dumps(update_data,
-                               default=lambda o: o.__dict__)
+                    json.dumps(update_data, default=lambda o: o.__dict__)
                 )
                 endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
                 headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
