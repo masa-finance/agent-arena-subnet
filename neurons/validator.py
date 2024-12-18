@@ -336,6 +336,14 @@ class AgentValidator:
         avatar: str,
     ):
         """Register an agent"""
+
+        self.substrate = interface.get_substrate(
+            subtensor_address=self.substrate.url)
+        emissions = self.substrate.query(
+            "SubtensorModule", "Emission", [self.netuid]
+        ).value
+        agent_emissions = emissions[int(node.node_id)] * 10**-9
+
         registration_data = RegisteredAgentRequest(
             hotkey=node.hotkey,
             uid=str(node.node_id),
@@ -343,7 +351,7 @@ class AgentValidator:
             version=str(node.protocol),  # TODO implement versioning...
             isActive=True,
             verification_tweet=verified_tweet,
-            emissions=0,
+            emissions=agent_emissions,
             profile={
                 "data": Profile(UserID=user_id, Username=screen_name, Avatar=avatar)
             },
