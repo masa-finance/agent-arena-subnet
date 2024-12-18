@@ -704,10 +704,9 @@ class AgentValidator:
                 logger.error(msg)
                 raise ValueError(msg)
 
-            # Ensure that the hotkey (full_text) is registered on the metagraph and matches the node that returned the tweet ID
-            if not hotkey == full_text:
-                msg = f"Hotkey {full_text} does not match node hotkey {
-                    hotkey}"
+            # ensure hotkey is in the tweet text
+            if not hotkey in full_text:
+                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
                 logger.error(msg)
                 raise ValueError(msg)
 
