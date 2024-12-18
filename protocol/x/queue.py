@@ -204,10 +204,7 @@ class RequestQueue:
         """
         with self.lock:
             self.active_requests += 1
-            logger.debug(
-                f"Active requests increased to {
-                         self.active_requests}"
-            )
+            logger.debug(f"Active requests increased to {self.active_requests}")
 
         try:
             self._wait_for_rate_limit()  # Apply rate limiting before making request
