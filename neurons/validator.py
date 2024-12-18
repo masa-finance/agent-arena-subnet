@@ -40,6 +40,7 @@ AGENT_REGISTRATION_CADENCE_SECONDS = 30
 SYNC_LOOP_CADENCE_SECONDS = 30
 SCORE_LOOP_CADENCE_SECONDS = 60
 SET_WEIGHTS_LOOP_CADENCE_SECONDS = 300
+UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
 
 
 class AgentValidator:
@@ -140,6 +141,7 @@ class AgentValidator:
                 self.check_agents_registration_loop()
             )  # agent registration
             asyncio.create_task(self.set_weights_loop())
+            asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
             asyncio.create_task(self.score_loop())
 
             self.create_scheduler()
@@ -450,6 +452,16 @@ class AgentValidator:
         if self.server:
             await self.server.stop()
 
+    async def update_agents_profiles_and_emissions_loop(self):
+        """Background task to update profiles"""
+        while True:
+            try:
+                await self.update_agents_profiles_and_emissions()
+                await asyncio.sleep(UPDATE_PROFILE_LOOP_CADENCE_SECONDS)
+            except Exception as e:
+                logger.error(f"Error in updating profiles: {str(e)}")
+                await asyncio.sleep(UPDATE_PROFILE_LOOP_CADENCE_SECONDS / 2)
+
     async def set_weights_loop(self):
         """Background task to set weights"""
         while True:
@@ -557,7 +569,6 @@ class AgentValidator:
                 await self.sync_metagraph()
                 await self.register_new_nodes()
                 await self.fetch_registered_agents()
-                await self.update_agents_profiles_and_emissions()
                 self.scheduler.search_terms = self.generate_search_terms(
                     self.registered_agents
                 )
