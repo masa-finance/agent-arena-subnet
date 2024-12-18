@@ -258,7 +258,6 @@ class AgentMiner:
             methods=["POST"],
             dependencies=[
                 Depends(self.get_self),
-                Depends(blacklist_low_stake),
             ],
         )
 
@@ -269,7 +268,6 @@ class AgentMiner:
             dependencies=[
                 Depends(self.get_self),
                 Depends(blacklist_low_stake),
-                Depends(verify_request),
             ],
         )
 
@@ -280,7 +278,6 @@ class AgentMiner:
             dependencies=[
                 Depends(self.get_self),
                 Depends(blacklist_low_stake),
-                Depends(verify_request),
             ],
         )
 
