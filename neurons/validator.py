@@ -3,8 +3,6 @@ from fiber.chain import chain_utils
 import httpx
 from cryptography.fernet import Fernet
 from fiber.logging_utils import get_logger
-from fiber.validator import client as vali_client
-from fiber.validator import handshake
 from fiber.miner.server import factory_app
 from typing import Optional, Dict
 from fiber.chain import interface, weights
@@ -14,7 +12,6 @@ import uvicorn
 import json
 import os
 from fiber.chain.metagraph import Metagraph
-from fiber.chain import fetch_nodes
 from protocol.data_processing.post_loader import LoadPosts
 from protocol.scoring.post_scorer import PostScorer
 
@@ -32,6 +29,10 @@ from interfaces.types import (
 from masa_ai.tools.validator import TweetValidator
 from datetime import datetime, UTC
 from interfaces.types import VerifiedTweet
+from fiber import *
+
+from fiber.validator import client as vali_client
+from fiber.encrypted.validator import handshake
 
 logger = get_logger(__name__)
 
