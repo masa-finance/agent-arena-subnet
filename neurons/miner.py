@@ -178,7 +178,7 @@ class AgentMiner:
         """Registration Callback"""
         try:
             payload = await request.json()
-            logger.info(payload)
+            logger.info(f"Registration Message: {payload}")
         except Exception as e:
             logger.error(f"Error in registration callback: {str(e)}")
 
