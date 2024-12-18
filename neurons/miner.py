@@ -232,6 +232,21 @@ class AgentMiner:
 
         return {"status": "Symmetric key exchanged successfully"}
 
+    async def registration_callback(
+        self,
+        decrypted_payload: DecryptedPayload = Depends(
+            partial(decrypt_general_payload, DecryptedPayload),
+        ),
+    ):
+        """Registration Callback"""
+        try:
+            logger.info(f"Decrypted Payload: {decrypted_payload}")
+            logger.info(f"Registration Success!")
+            return {"status": "Callback received"}
+        except Exception as e:
+            logger.error(f"Error in registration callback: {str(e)}")
+            return {"status": "Error in registration callback"}
+
     def register_routes(self):
 
         self.app.add_api_route(
@@ -242,6 +257,7 @@ class AgentMiner:
             self.exchange_symmetric_key,
             methods=["POST"],
             dependencies=[
+                Depends(self.get_self),
                 Depends(blacklist_low_stake),
                 Depends(verify_request),
             ],
@@ -251,35 +267,31 @@ class AgentMiner:
             "/get_verification_tweet_id",
             self.get_verification_tweet_id,
             methods=["GET"],
-            dependencies=[Depends(self.get_self)],
+            dependencies=[
+                Depends(self.get_self),
+                Depends(blacklist_low_stake),
+                Depends(verify_request),
+            ],
         )
 
         self.app.add_api_route(
             "/deregister_agent",
             self.deregister_agent,
             methods=["POST"],
-            dependencies=[Depends(self.get_self)],
+            dependencies=[
+                Depends(self.get_self),
+                Depends(blacklist_low_stake),
+                Depends(verify_request),
+            ],
         )
 
         self.app.add_api_route(
             "/registration_callback",
-            registration_callback,
+            self.registration_callback,
             methods=["POST"],
-            dependencies=[Depends(verify_request)],
+            dependencies=[
+                Depends(self.get_self),
+                Depends(blacklist_low_stake),
+                Depends(verify_request),
+            ],
         )
-
-
-async def registration_callback(
-    decrypted_payload: DecryptedPayload = Depends(
-        partial(decrypt_general_payload, DecryptedPayload),
-    ),
-):
-    """Registration Callback"""
-    try:
-        # TODO decrypt payload not coming through, explore why
-        logger.info(f"Decrypted Payload: {decrypted_payload}")
-        logger.info(f"Registration Success!")
-        return {"status": "Callback received"}
-    except Exception as e:
-        logger.error(f"Error in registration callback: {str(e)}")
-        return {"status": "Error in registration callback"}
