@@ -24,7 +24,7 @@ from fiber.encrypted.miner.security.encryption import decrypt_general_payload
 import time
 
 from cryptography.fernet import Fernet
-from fastapi import APIRouter, Depends, Header
+from fastapi import Depends, Header
 
 from fiber import constants as cst
 from fiber.encrypted.miner.core.configuration import Config
@@ -43,8 +43,8 @@ from fiber.logging_utils import get_logger
 logger = get_logger(__name__)
 
 
-class ExampleSubnetRequest(BaseModel):
-    pass
+class DecryptedPayload(BaseModel):
+    registered: str
 
 
 class AgentMiner:
@@ -197,21 +197,6 @@ class AgentMiner:
             logger.error(f"Failed to get tweet: {str(e)}")
             return None
 
-    async def registration_callback(
-        self,
-        decrypted_payload: ExampleSubnetRequest = Depends(
-            partial(decrypt_general_payload, ExampleSubnetRequest),
-        ),
-    ):
-        """Registration Callback"""
-        try:
-            logger.info(f"Validator Response: {decrypted_payload}")
-            logger.info(f"Registration Success!")
-            return {"status": "Callback received"}
-        except Exception as e:
-            logger.error(f"Error in registration callback: {str(e)}")
-            return {"status": "Error in registration callback"}
-
     async def stop(self):
         """Cleanup and shutdown"""
         if self.server:
@@ -278,11 +263,23 @@ class AgentMiner:
 
         self.app.add_api_route(
             "/registration_callback",
-            self.registration_callback,
+            registration_callback,
             methods=["POST"],
-            dependencies=[
-                Depends(self.get_self),
-                Depends(blacklist_low_stake),
-                Depends(verify_request),
-            ],
+            dependencies=[Depends(verify_request)],
         )
+
+
+async def registration_callback(
+    decrypted_payload: DecryptedPayload = Depends(
+        partial(decrypt_general_payload, DecryptedPayload),
+    ),
+):
+    """Registration Callback"""
+    try:
+        # TODO decrypt payload not coming through, explore why
+        logger.info(f"Decrypted Payload: {decrypted_payload}")
+        logger.info(f"Registration Success!")
+        return {"status": "Callback received"}
+    except Exception as e:
+        logger.error(f"Error in registration callback: {str(e)}")
+        return {"status": "Error in registration callback"}

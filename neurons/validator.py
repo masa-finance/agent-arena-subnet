@@ -322,7 +322,7 @@ class AgentValidator:
             miner_ss58_address=node.hotkey,
             keypair=self.keypair,
             fernet=registered_node.fernet,
-            payload={"Registration Successful": agent.Username},
+            payload={"registered": str(agent.Username)},
         )
 
         if registration_response.status_code == 200:
