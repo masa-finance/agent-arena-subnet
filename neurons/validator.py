@@ -324,7 +324,7 @@ class AgentValidator:
             keypair=self.keypair,
             fernet=registered_node.fernet,
             payload=json.dumps(
-                {"Successfully Registered Agent: ": agent}, default=lambda o: o.__dict__
+                {"Successfully Registered Agent: ": str(agent.Username)},
             ),
         )
 
