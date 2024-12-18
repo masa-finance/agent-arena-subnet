@@ -4,10 +4,12 @@ from fiber.chain.metagraph import Metagraph
 
 from typing import Optional
 from fiber.logging_utils import get_logger
+from functools import partial
 
 import httpx
 import os
 import requests
+from pydantic import BaseModel
 
 # from fiber.chain import interface
 import uvicorn
@@ -17,9 +19,15 @@ from fastapi import FastAPI, Depends, Request
 from fiber.miner.middleware import configure_extra_logging_middleware
 from fiber.chain import chain_utils, post_ip_to_chain
 from dotenv import load_dotenv
+from fiber.encrypted.miner.security.encryption import decrypt_general_payload
+from fiber.encrypted.miner.dependencies import blacklist_low_stake, verify_request
 
 
 logger = get_logger(__name__)
+
+
+class ExampleSubnetRequest(BaseModel):
+    pass
 
 
 class AgentMiner:
@@ -172,13 +180,20 @@ class AgentMiner:
             logger.error(f"Failed to get tweet: {str(e)}")
             return None
 
-    async def registration_callback(self, request: Request):
+    async def registration_callback(
+        self,
+        decrypted_payload: ExampleSubnetRequest = Depends(
+            partial(decrypt_general_payload, ExampleSubnetRequest),
+        ),
+    ):
         """Registration Callback"""
         try:
-            logger.info(f"Registration Callback Response: {request}")
+            logger.info(f"Validator Response: {decrypted_payload}")
             logger.info(f"Registration Success!")
+            return {"status": "Callback received"}
         except Exception as e:
             logger.error(f"Error in registration callback: {str(e)}")
+            return {"status": "Error in registration callback"}
 
     async def stop(self):
         """Cleanup and shutdown"""
@@ -208,5 +223,9 @@ class AgentMiner:
             "/registration_callback",
             self.registration_callback,
             methods=["POST"],
-            dependencies=[Depends(self.get_self)],
+            dependencies=[
+                Depends(self.get_self),
+                Depends(blacklist_low_stake),
+                Depends(verify_request),
+            ],
         )
