@@ -31,8 +31,7 @@ from datetime import datetime, UTC
 from interfaces.types import VerifiedTweet
 from fiber import *
 
-from fiber.validator import client as vali_client
-from fiber.encrypted.validator import handshake
+from fiber.encrypted.validator import handshake, client as vali_client
 
 logger = get_logger(__name__)
 
