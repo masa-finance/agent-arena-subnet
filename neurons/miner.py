@@ -18,8 +18,8 @@ from fiber.miner.middleware import configure_extra_logging_middleware
 from fiber.chain import chain_utils, post_ip_to_chain, interface
 from fiber.chain.metagraph import Metagraph
 from dotenv import load_dotenv
-from fiber.encrypted.miner.security.encryption import decrypt_general_payload
 from fiber.encrypted.miner.dependencies import blacklist_low_stake, verify_request
+from fiber.encrypted.miner.security.encryption import decrypt_general_payload
 
 
 logger = get_logger(__name__)
