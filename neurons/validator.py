@@ -3,8 +3,6 @@ from fiber.chain import chain_utils
 import httpx
 from cryptography.fernet import Fernet
 from fiber.logging_utils import get_logger
-from fiber.validator import client as vali_client
-from fiber.validator import handshake
 from fiber.miner.server import factory_app
 from typing import Optional, Dict
 from fiber.chain import interface, weights
@@ -14,7 +12,6 @@ import uvicorn
 import json
 import os
 from fiber.chain.metagraph import Metagraph
-from fiber.chain import fetch_nodes
 from protocol.data_processing.post_loader import LoadPosts
 from protocol.scoring.post_scorer import PostScorer
 
@@ -25,13 +22,17 @@ from interfaces.types import (
     VerifiedTweet,
     RegisteredAgentRequest,
     RegisteredAgentResponse,
-    RegisteredNode,
+    ConnectedNode,
     Profile,
 )
 
 from masa_ai.tools.validator import TweetValidator
 from datetime import datetime, UTC
 from interfaces.types import VerifiedTweet
+from fiber import *
+
+from fiber.encrypted.validator import handshake, client as vali_client
+
 
 logger = get_logger(__name__)
 
@@ -40,6 +41,7 @@ AGENT_REGISTRATION_CADENCE_SECONDS = 30
 SYNC_LOOP_CADENCE_SECONDS = 30
 SCORE_LOOP_CADENCE_SECONDS = 60
 SET_WEIGHTS_LOOP_CADENCE_SECONDS = 300
+UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
 
 
 class AgentValidator:
@@ -54,7 +56,7 @@ class AgentValidator:
     Attributes:
         netuid (int): Network unique identifier
         httpx_client (Optional[httpx.AsyncClient]): Async HTTP client
-        registered_nodes (Dict[str, RegisteredNode]): Currently registered miners
+        connected_nodes (Dict[str, ConnectedNode]): Currently registered miners
         registered_agents (Dict[str, RegisteredAgent]): Currently registered agents
         keypair (Optional[Keypair]): Validator's keypair for authentication
         server (Optional[factory_app]): FastAPI server instance
@@ -81,7 +83,7 @@ class AgentValidator:
         self.netuid = int(os.getenv("NETUID", "249"))
         self.httpx_client: Optional[httpx.AsyncClient] = None
 
-        self.registered_nodes: Dict[str, RegisteredNode] = {}
+        self.connected_nodes: Dict[str, ConnectedNode] = {}
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.server: Optional[factory_app] = None
@@ -140,6 +142,7 @@ class AgentValidator:
                 self.check_agents_registration_loop()
             )  # agent registration
             asyncio.create_task(self.set_weights_loop())
+            asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
             asyncio.create_task(self.score_loop())
 
             self.create_scheduler()
@@ -231,7 +234,7 @@ class AgentValidator:
             unregistered_nodes = []
             try:
                 # Iterate over each registered node to check if it has a registered agent
-                for node_hotkey in self.registered_nodes:
+                for node_hotkey in self.connected_nodes:
                     if node_hotkey not in self.registered_agents:
                         unregistered_nodes.append(node_hotkey)
 
@@ -261,6 +264,7 @@ class AgentValidator:
                                     screen_name,
                                     avatar,
                                 )
+                                await self.node_registration_callback(full_node)
 
                     except Exception as e:
                         logger.error(
@@ -275,7 +279,7 @@ class AgentValidator:
 
     async def get_agent_tweet_id(self, node: Node):
         logger.info(f"Attempting to register node {node.hotkey} agent")
-        registered_node = self.registered_nodes.get(node.hotkey)
+        registered_node = self.connected_nodes.get(node.hotkey)
 
         server_address = vali_client.construct_server_address(
             node=node,
@@ -297,6 +301,36 @@ class AgentValidator:
         else:
             logger.error(
                 f"Failed to get registration info, status code: {
+                    registration_response.status_code}"
+            )
+            return None
+
+    async def node_registration_callback(self, node: Node):
+        registered_node = self.connected_nodes.get(node.hotkey)
+        agent = self.registered_agents.get(node.hotkey)
+        logger.info(f"Registration Callback for {agent.Username}")
+        server_address = vali_client.construct_server_address(
+            node=node,
+            replace_with_docker_localhost=False,
+            replace_with_localhost=True,
+        )
+        registration_response = await vali_client.make_non_streamed_post(
+            httpx_client=self.httpx_client,
+            server_address=server_address,
+            symmetric_key_uuid=registered_node.symmetric_key_uuid,
+            endpoint="/registration_callback",
+            validator_ss58_address=self.keypair.ss58_address,
+            miner_ss58_address=node.hotkey,
+            keypair=self.keypair,
+            fernet=registered_node.fernet,
+            payload={"registered": str(agent.Username)},
+        )
+
+        if registration_response.status_code == 200:
+            logger.info("Registration Callback Success")
+        else:
+            logger.error(
+                f"Error in registration callback: {
                     registration_response.status_code}"
             )
             return None
@@ -325,6 +359,20 @@ class AgentValidator:
 
         return search_terms
 
+    def get_emissions(self, node: Optional[Node]):
+        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+        multiplier = (
+            10**-9
+        )  # note, this multiplier works in tandem with the UI conversion of / 0.05
+        emissions = [
+            emission * multiplier
+            for emission in self.substrate.query(
+                "SubtensorModule", "Emission", [self.netuid]
+            ).value
+        ]
+        node_emissions = emissions[int(node.node_id)] if node else 0
+        return node_emissions, emissions
+
     async def register_agent(
         self,
         node: Node,
@@ -334,6 +382,7 @@ class AgentValidator:
         avatar: str,
     ):
         """Register an agent"""
+        node_emissions, _ = self.get_emissions(node)
         registration_data = RegisteredAgentRequest(
             hotkey=node.hotkey,
             uid=str(node.node_id),
@@ -341,7 +390,7 @@ class AgentValidator:
             version=str(node.protocol),  # TODO implement versioning...
             isActive=True,
             verification_tweet=verified_tweet,
-            emissions=0,
+            emissions=node_emissions,
             profile={
                 "data": Profile(UserID=user_id, Username=screen_name, Avatar=avatar)
             },
@@ -367,7 +416,7 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent registration: {str(e)}")
 
-    async def register_new_nodes(self):
+    async def connect_new_nodes(self):
         """Verify node registration"""
 
         logger.info("Attempting nodes registration")
@@ -383,7 +432,7 @@ class AgentValidator:
             available_nodes = [
                 node
                 for node in nodes_list
-                if node.hotkey not in self.registered_nodes and node.ip != "0.0.0.0"
+                if node.hotkey not in self.connected_nodes and node.ip != "0.0.0.0"
             ]
 
             logger.info(f"Found {len(available_nodes)} miners")
@@ -393,7 +442,7 @@ class AgentValidator:
                     replace_with_docker_localhost=False,
                     replace_with_localhost=True,
                 )
-                success = await self.handshake_with_miner(
+                success = await self.connect_with_miner(
                     miner_address=server_address, miner_hotkey=node.hotkey
                 )
                 if success:
@@ -407,7 +456,7 @@ class AgentValidator:
         except Exception as e:
             logger.error("Error in registration check: %s", str(e))
 
-    async def handshake_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
+    async def connect_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
         """Handshake with a miner"""
         try:
             # Perform handshake with miner
@@ -425,7 +474,7 @@ class AgentValidator:
                 return False
 
             # Store miner information
-            self.registered_nodes[miner_hotkey] = RegisteredNode(
+            self.connected_nodes[miner_hotkey] = ConnectedNode(
                 address=miner_address,
                 symmetric_key=symmetric_key_str,
                 symmetric_key_uuid=symmetric_key_uuid,
@@ -449,6 +498,16 @@ class AgentValidator:
             await self.httpx_client.close()
         if self.server:
             await self.server.stop()
+
+    async def update_agents_profiles_and_emissions_loop(self):
+        """Background task to update profiles"""
+        while True:
+            try:
+                await self.update_agents_profiles_and_emissions()
+                await asyncio.sleep(UPDATE_PROFILE_LOOP_CADENCE_SECONDS)
+            except Exception as e:
+                logger.error(f"Error in updating profiles: {str(e)}")
+                await asyncio.sleep(UPDATE_PROFILE_LOOP_CADENCE_SECONDS / 2)
 
     async def set_weights_loop(self):
         """Background task to set weights"""
@@ -480,15 +539,10 @@ class AgentValidator:
         return response
 
     async def update_agents_profiles_and_emissions(self):
-
-        emissions = self.substrate.query(
-            "SubtensorModule", "Emission", [self.netuid]
-        ).value
-
+        _, emissions = self.get_emissions(None)
         for hotkey, agent in self.registered_agents.items():
-
             x_profile = await self.fetch_x_profile(agent.Username)
-
+            logger.info(f"X Profile To Update: {x_profile}")
             if x_profile is None:
                 logger.info(
                     f"Trying to refetch username for agent: {
@@ -498,10 +552,12 @@ class AgentValidator:
                     agent.VerificationTweetID, agent.HotKey
                 )
                 x_profile = await self.fetch_x_profile(username)
-
+                logger.info(f"X Profile To Update: {x_profile}")
             try:
-
-                agent_emissions = emissions[int(agent.UID)] * 10**-9
+                agent_emissions = emissions[int(agent.UID)]
+                logger.info(
+                    f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
+                )
                 verification_tweet = VerifiedTweet(
                     tweet_id=agent.VerificationTweetID,
                     url=agent.VerificationTweetURL,
@@ -540,7 +596,6 @@ class AgentValidator:
                 )
                 if response.status_code == 200:
                     logger.info("Successfully updated agent!")
-                    return response.json()
                 else:
                     logger.error(
                         f"Failed to update agent, status code: {
@@ -554,9 +609,8 @@ class AgentValidator:
         while True:
             try:
                 await self.sync_metagraph()
-                await self.register_new_nodes()
+                await self.connect_new_nodes()
                 await self.fetch_registered_agents()
-                await self.update_agents_profiles_and_emissions()
                 self.scheduler.search_terms = self.generate_search_terms(
                     self.registered_agents
                 )
@@ -578,73 +632,29 @@ class AgentValidator:
         )
         logger.info(f"Loaded {len(posts)} posts")
         scored_posts = self.post_scorer.score_posts(posts)
-        logger.info(f"Scored Posts: {scored_posts}")
         self.scored_posts = scored_posts
-        uids, scores = self.get_average_score()
-        logger.info(f"uids: {uids}")
-        logger.info(f"scores: {scores}")
 
     async def set_weights(self):
-        """Set weights"""
-        # Check if we can set weights
-        validator_node_id = self.node().node_id
-
-        # Reconnect substrate to help prevent weight wettings errors
         self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
-
-        blocks_since_update = weights._blocks_since_last_update(
-            self.substrate, self.netuid, validator_node_id
-        )
-        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
-
-        logger.info(f"Blocks since last update: {blocks_since_update}")
-        logger.info(f"Minimum interval required: {min_interval}")
-
-        if blocks_since_update is not None and blocks_since_update < min_interval:
-            wait_blocks = min_interval - blocks_since_update
-            logger.info(
-                f"Need to wait {
-                    wait_blocks} more blocks before setting weights"
-            )
-            # Assuming ~12 second block time
-            wait_seconds = wait_blocks * 12
-            logger.info(f"Waiting {wait_seconds} seconds...")
-            await asyncio.sleep(wait_seconds)
-
+        validator_node_id = self.substrate.query(
+            "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
+        ).value
+        version_key = self.substrate.query(
+            "SubtensorModule", "WeightsVersionKey", [self.netuid]
+        ).value
         uids, scores = self.get_average_score()
 
-        logger.info(f"setting weights...")
-        logger.info(f"uids: {uids}")
-        logger.info(f"scores: {scores}")
-
-        # Set weights with multiple attempts
-        for attempt in range(3):
-            try:
-                success = weights.set_node_weights(
-                    substrate=self.substrate,
-                    keypair=self.keypair,
-                    node_ids=uids,
-                    node_weights=scores,
-                    netuid=self.netuid,
-                    validator_node_id=validator_node_id,
-                    version_key=100,  # TODO implement versioning
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True,
-                    max_attempts=3,  # Allow retries within the function
-                )
-
-                if success:
-                    logger.info("✅ Successfully set weights!")
-                    return
-                else:
-                    logger.error(f"❌ Failed to set weights on attempt {attempt + 1}")
-                    await asyncio.sleep(10)  # Wait between attempts
-
-            except Exception as e:
-                logger.error(f"Error on attempt {attempt + 1}: {str(e)}")
-                await asyncio.sleep(10)  # Wait between attempts
-
-        logger.error("Failed to set weights after all attempts")
+        weights.set_node_weights(
+            substrate=self.substrate,
+            keypair=self.keypair,
+            node_ids=uids,
+            node_weights=scores,
+            netuid=self.netuid,
+            validator_node_id=validator_node_id,
+            version_key=version_key,
+            wait_for_inclusion=True,
+            wait_for_finalization=True,
+        )
 
     def get_average_score(self):
         uids = list(set([int(post["uid"]) for post in self.scored_posts]))
@@ -703,10 +713,9 @@ class AgentValidator:
                 logger.error(msg)
                 raise ValueError(msg)
 
-            # Ensure that the hotkey (full_text) is registered on the metagraph and matches the node that returned the tweet ID
-            if not hotkey == full_text:
-                msg = f"Hotkey {full_text} does not match node hotkey {
-                    hotkey}"
+            # ensure hotkey is in the tweet text
+            if not hotkey in full_text:
+                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
                 logger.error(msg)
                 raise ValueError(msg)
 
@@ -732,10 +741,13 @@ class AgentValidator:
             Exception: If metagraph sync fails
         """
         try:
+            self.substrate = interface.get_substrate(
+                subtensor_address=self.substrate.url
+            )
             self.metagraph.sync_nodes()
 
             metagraph_node_hotkeys = list(dict(self.metagraph.nodes).keys())
-            registered_node_hotkeys = list(self.registered_nodes.keys())
+            registered_node_hotkeys = list(self.connected_nodes.keys())
 
             for hotkey in registered_node_hotkeys:
                 if hotkey not in metagraph_node_hotkeys:
@@ -743,7 +755,7 @@ class AgentValidator:
                         f"Removing node {
                             hotkey} from registered nodes"
                     )
-                    del self.registered_nodes[hotkey]
+                    del self.connected_nodes[hotkey]
 
                     node = self.metagraph.nodes[hotkey]
                     uid = node.node_id

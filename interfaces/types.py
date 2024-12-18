@@ -94,7 +94,7 @@ class RegisteredAgentResponse(JSONSerializable):
 
 
 @dataclass
-class RegisteredNode(JSONSerializable):
+class ConnectedNode(JSONSerializable):
     address: str
     symmetric_key: str
     symmetric_key_uuid: str

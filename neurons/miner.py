@@ -1,26 +1,50 @@
 from fiber.miner.server import factory_app
-from fiber.chain import interface
-from fiber.chain.metagraph import Metagraph
 
 from typing import Optional
 from fiber.logging_utils import get_logger
+from functools import partial
 
-import json
 import httpx
 import os
 import requests
+from pydantic import BaseModel
 
 # from fiber.chain import interface
 import uvicorn
 
 # Import the vali_client module or object
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fiber.miner.middleware import configure_extra_logging_middleware
-from fiber.chain import chain_utils, post_ip_to_chain
+from fiber.chain import chain_utils, post_ip_to_chain, interface
+from fiber.chain.metagraph import Metagraph
 from dotenv import load_dotenv
+from fiber.encrypted.miner.dependencies import blacklist_low_stake, verify_request
+from fiber.encrypted.miner.security.encryption import decrypt_general_payload
 
+import time
+
+from cryptography.fernet import Fernet
+from fastapi import Depends, Header
+
+from fiber import constants as cst
+from fiber.encrypted.miner.core.configuration import Config
+from fiber.encrypted.miner.core.models.encryption import (
+    PublicKeyResponse,
+    SymmetricKeyExchange,
+)
+from fiber.encrypted.miner.dependencies import (
+    blacklist_low_stake,
+    get_config,
+    verify_request,
+)
+from fiber.encrypted.miner.security.encryption import get_symmetric_key_b64_from_payload
+from fiber.logging_utils import get_logger
 
 logger = get_logger(__name__)
+
+
+class DecryptedPayload(BaseModel):
+    registered: str
 
 
 class AgentMiner:
@@ -178,16 +202,92 @@ class AgentMiner:
         if self.server:
             await self.server.stop()
 
+    async def get_self(self):
+        return self
+
+    async def get_public_key(self, config: Config = Depends(get_config)):
+        public_key = config.encryption_keys_handler.public_bytes.decode()
+        return PublicKeyResponse(
+            public_key=public_key,
+            timestamp=time.time(),
+        )
+
+    async def exchange_symmetric_key(
+        self,
+        payload: SymmetricKeyExchange,
+        validator_hotkey_address: str = Header(..., alias=cst.VALIDATOR_HOTKEY),
+        nonce: str = Header(..., alias=cst.NONCE),
+        symmetric_key_uuid: str = Header(..., alias=cst.SYMMETRIC_KEY_UUID),
+        config: Config = Depends(get_config),
+    ):
+        base64_symmetric_key = get_symmetric_key_b64_from_payload(
+            payload, config.encryption_keys_handler.private_key
+        )
+        fernet = Fernet(base64_symmetric_key)
+        config.encryption_keys_handler.add_symmetric_key(
+            uuid=symmetric_key_uuid,
+            hotkey_ss58_address=validator_hotkey_address,
+            fernet=fernet,
+        )
+
+        return {"status": "Symmetric key exchanged successfully"}
+
+    async def registration_callback(
+        self,
+        decrypted_payload: DecryptedPayload = Depends(
+            partial(decrypt_general_payload, DecryptedPayload),
+        ),
+    ):
+        """Registration Callback"""
+        try:
+            logger.info(f"Decrypted Payload: {decrypted_payload}")
+            logger.info(f"Registration Success!")
+            return {"status": "Callback received"}
+        except Exception as e:
+            logger.error(f"Error in registration callback: {str(e)}")
+            return {"status": "Error in registration callback"}
+
     def register_routes(self):
+
+        self.app.add_api_route(
+            "/public-encryption-key", self.get_public_key, methods=["GET"]
+        )
+        self.app.add_api_route(
+            "/exchange-symmetric-key",
+            self.exchange_symmetric_key,
+            methods=["POST"],
+            dependencies=[
+                Depends(self.get_self),
+            ],
+        )
 
         self.app.add_api_route(
             "/get_verification_tweet_id",
             self.get_verification_tweet_id,
             methods=["GET"],
+            dependencies=[
+                Depends(self.get_self),
+                Depends(blacklist_low_stake),
+            ],
         )
 
         self.app.add_api_route(
             "/deregister_agent",
             self.deregister_agent,
             methods=["POST"],
+            dependencies=[
+                Depends(self.get_self),
+                Depends(blacklist_low_stake),
+            ],
+        )
+
+        self.app.add_api_route(
+            "/registration_callback",
+            self.registration_callback,
+            methods=["POST"],
+            dependencies=[
+                Depends(self.get_self),
+                Depends(blacklist_low_stake),
+                Depends(verify_request),
+            ],
         )
