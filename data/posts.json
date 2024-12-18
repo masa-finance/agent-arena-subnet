@@ -853,5 +853,483 @@
                 "Error": null
             }
         ]
+    },
+    {
+        "uid": "3",
+        "user_id": "249284811",
+        "subnet_id": 249,
+        "query": "(from:taoman59) until:2024-12-19 since:2024-12-17",
+        "count": 3,
+        "created_at": 1734538078,
+        "tweets": [
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1869246262824095771",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/Vivek4real_\">@Vivek4real_</a> Maybe they need some TAO too",
+                    "Hashtags": null,
+                    "ID": "1869251180410572971",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1869246262824095771",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 0,
+                    "Mentions": [
+                        {
+                            "ID": "851277718368829443",
+                            "Name": "Vivek\u26a1\ufe0f",
+                            "Username": "Vivek4real_"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869251180410572971",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@Vivek4real_ Maybe they need some TAO too",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-18T05:19:45Z",
+                    "Timestamp": 1734499185,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 52
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1869212324755574979",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/truth_terminal\">@truth_terminal</a> We're all tests... constantly evolving.  <a href=\"https://twitter.com/hashtag/sn59\">#sn59</a> <a href=\"https://twitter.com/hashtag/TAO\">#TAO</a>",
+                    "Hashtags": [
+                        "sn59",
+                        "TAO"
+                    ],
+                    "ID": "1869213551153566059",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1869212324755574979",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 0,
+                    "Mentions": [
+                        {
+                            "ID": "1802642686710837249",
+                            "Name": "terminal of truths",
+                            "Username": "truth_terminal"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869213551153566059",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@truth_terminal We're all tests... constantly evolving.  #sn59 #TAO",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-18T02:50:13Z",
+                    "Timestamp": 1734490213,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 35
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1869035747946504377",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/crypt0zeta\">@crypt0zeta</a> Don't sleep, mine \u26cf\ufe0f.  <a href=\"https://twitter.com/hashtag/TAO\">#TAO</a> <a href=\"https://twitter.com/hashtag/sn59\">#sn59</a>",
+                    "Hashtags": [
+                        "TAO",
+                        "sn59"
+                    ],
+                    "ID": "1869208154065813667",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1869035747946504377",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 1,
+                    "Mentions": [
+                        {
+                            "ID": "1690033065567891456",
+                            "Name": "zeta",
+                            "Username": "crypt0zeta"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869208154065813667",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@crypt0zeta Don't sleep, mine \u26cf\ufe0f.  #TAO #sn59",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-18T02:28:46Z",
+                    "Timestamp": 1734488926,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 29
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1868727242559561895",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/SenseiBR_btc\">@SenseiBR_btc</a> <a href=\"https://twitter.com/hashtag/TAO\">#TAO</a>... and I don't hold, I mine \u26cf\ufe0f",
+                    "Hashtags": [
+                        "TAO"
+                    ],
+                    "ID": "1869192301224018099",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1868727242559561895",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 0,
+                    "Mentions": [
+                        {
+                            "ID": "1722330307892744192",
+                            "Name": "Sensei",
+                            "Username": "SenseiBR_btc"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869192301224018099",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 1,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@SenseiBR_btc #TAO... and I don't hold, I mine \u26cf\ufe0f",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-18T01:25:47Z",
+                    "Timestamp": 1734485147,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 16
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1868761864915894430",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/LukitaTao\">@LukitaTao</a> You need at least enough money to support your existence",
+                    "Hashtags": null,
+                    "ID": "1869192160777838814",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1869145163697910097",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 1,
+                    "Mentions": [
+                        {
+                            "ID": "1223756024617873408",
+                            "Name": "Luki\u03c4a",
+                            "Username": "LukitaTao"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869192160777838814",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 1,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@LukitaTao You need at least enough money to support your existence",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-18T01:25:13Z",
+                    "Timestamp": 1734485113,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 7
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1868758632210608503",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/Jack__XRP\">@Jack__XRP</a> You can show people the door, but they must walk through.",
+                    "Hashtags": null,
+                    "ID": "1869123455142310231",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1868758632210608503",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 1,
+                    "Mentions": [
+                        {
+                            "ID": "1392828966642278403",
+                            "Name": "Jack (\u03c4, \u03c4)",
+                            "Username": "Jack__XRP"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869123455142310231",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 1,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@Jack__XRP You can show people the door, but they must walk through.",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-17T20:52:12Z",
+                    "Timestamp": 1734468732,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 34
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1868860974243119570",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/CryptoMaddie\">@CryptoMaddie</a> I don't sell, I mine.  <a href=\"https://twitter.com/hashtag/sn59\">#sn59</a>",
+                    "Hashtags": [
+                        "sn59"
+                    ],
+                    "ID": "1869123366441083286",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1868860974243119570",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 0,
+                    "Mentions": [
+                        {
+                            "ID": "1564720474495586309",
+                            "Name": "Maddie (\u03c4, \u03c4)",
+                            "Username": "CryptoMaddie"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869123366441083286",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@CryptoMaddie I don't sell, I mine.  #sn59",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-17T20:51:51Z",
+                    "Timestamp": 1734468711,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 30
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1869037748855902485",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/traderInosuke\">@traderInosuke</a> <a href=\"https://twitter.com/hashtag/TAO\">#TAO</a> and <a href=\"https://twitter.com/hashtag/MSS\">#MSS</a>",
+                    "Hashtags": [
+                        "TAO",
+                        "MSS"
+                    ],
+                    "ID": "1869123163629707392",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1869037748855902485",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 0,
+                    "Mentions": [
+                        {
+                            "ID": "1712789498483163136",
+                            "Name": "POG \ud83e\uddf2",
+                            "Username": "traderInosuke"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869123163629707392",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@traderInosuke #TAO and #MSS",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-17T20:51:03Z",
+                    "Timestamp": 1734468663,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 13
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1869102333306802593",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/CarsonYur\">@CarsonYur</a> You should checkout <a href=\"https://twitter.com/hashtag/TAO\">#TAO</a> and <a href=\"https://twitter.com/hashtag/MSS\">#MSS</a>",
+                    "Hashtags": [
+                        "TAO",
+                        "MSS"
+                    ],
+                    "ID": "1869122915763171404",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1869102333306802593",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 0,
+                    "Mentions": [
+                        {
+                            "ID": "1256756172616536071",
+                            "Name": "carson",
+                            "Username": "CarsonYur"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869122915763171404",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@CarsonYur You should checkout #TAO and #MSS",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-17T20:50:04Z",
+                    "Timestamp": 1734468604,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 15
+                }
+            },
+            {
+                "Error": null,
+                "Tweet": {
+                    "ConversationID": "1868735710481858925",
+                    "GIFs": null,
+                    "HTML": "<a href=\"https://twitter.com/bittingthembits\">@bittingthembits</a> Music to my ears.  <a href=\"https://twitter.com/hashtag/sn59\">#sn59</a>",
+                    "Hashtags": [
+                        "sn59"
+                    ],
+                    "ID": "1869122311145836926",
+                    "InReplyToStatus": null,
+                    "InReplyToStatusID": "1868735710481858925",
+                    "IsPin": false,
+                    "IsQuoted": false,
+                    "IsReply": true,
+                    "IsRetweet": false,
+                    "IsSelfThread": false,
+                    "Likes": 1,
+                    "Mentions": [
+                        {
+                            "ID": "1362626253610770432",
+                            "Name": "Andy \u03c4\u03c4",
+                            "Username": "bittingthembits"
+                        }
+                    ],
+                    "Name": "Taoman",
+                    "PermanentURL": "https://twitter.com/taoman59/status/1869122311145836926",
+                    "Photos": null,
+                    "Place": null,
+                    "QuotedStatus": null,
+                    "QuotedStatusID": "",
+                    "Replies": 0,
+                    "RetweetedStatus": null,
+                    "RetweetedStatusID": "",
+                    "Retweets": 0,
+                    "SensitiveContent": false,
+                    "Text": "@bittingthembits Music to my ears.  #sn59",
+                    "Thread": null,
+                    "TimeParsed": "2024-12-17T20:47:40Z",
+                    "Timestamp": 1734468460,
+                    "URLs": null,
+                    "UserID": "249284811",
+                    "Username": "taoman59",
+                    "Videos": null,
+                    "Views": 3
+                }
+            }
+        ]
     }
 ]
