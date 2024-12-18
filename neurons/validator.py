@@ -305,12 +305,10 @@ class AgentValidator:
             return None
 
     async def node_registration_callback(self, node: Node):
-        logger.info(f"Registration Callback for {node.hotkey}")
         registered_node = self.connected_nodes.get(node.hotkey)
         agent = self.registered_agents.get(node.hotkey)
-        logger.info(f"Agent: {agent}")
-        logger.info(f"Fernet: {registered_node.fernet}")
-
+        logger.info(f"Registration Callback for {agent.Username}")
+        payload = json.dumps({"Successfully Registered Agent: ": agent.Username})
         server_address = vali_client.construct_server_address(
             node=node,
             replace_with_docker_localhost=False,
@@ -325,7 +323,7 @@ class AgentValidator:
             miner_ss58_address=node.hotkey,
             keypair=self.keypair,
             fernet=registered_node.fernet,
-            payload={"Successfully Registered Agent: ": str(agent.Username)},
+            payload=payload,
         )
 
         if registration_response.status_code == 200:
