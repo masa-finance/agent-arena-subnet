@@ -519,7 +519,7 @@ class AgentValidator:
 
             try:
 
-                logger.info(f"Agent {agent.Username} has {agent_emissions} emissions")
+                logger.info(f"Agent {agent.Username} has {emissions} emissions")
                 verification_tweet = VerifiedTweet(
                     tweet_id=agent.VerificationTweetID,
                     url=agent.VerificationTweetURL,
@@ -532,7 +532,7 @@ class AgentValidator:
                     subnet_id=int(self.netuid),
                     version=str(4),
                     isActive=True,
-                    emissions=agent_emissions,
+                    emissions=emissions,
                     verification_tweet=verification_tweet,
                     profile={
                         "data": Profile(
