@@ -502,9 +502,7 @@ class AgentValidator:
             try:
 
                 agent_emissions = emissions[int(agent.UID)] * 10**-9
-                logger.success(
-                    f"Agent {agent.Username} has {agent_emissions} emissions"
-                )
+                logger.info(f"Agent {agent.Username} has {agent_emissions} emissions")
                 verification_tweet = VerifiedTweet(
                     tweet_id=agent.VerificationTweetID,
                     url=agent.VerificationTweetURL,
