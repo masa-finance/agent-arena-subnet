@@ -329,11 +329,16 @@ class AgentValidator:
 
     def get_emissions(self, node: Optional[Node]):
         self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
-        emissions = self.substrate.query(
-            "SubtensorModule", "Emission", [self.netuid]
-        ).value
-
-        node_emissions = emissions[int(node.node_id)] * 10**-9 if node else 0
+        multiplier = (
+            10**-9
+        )  # note, this multiplier works in tandem with the UI conversion of / 0.05
+        emissions = [
+            emission * multiplier
+            for emission in self.substrate.query(
+                "SubtensorModule", "Emission", [self.netuid]
+            ).value
+        ]
+        node_emissions = emissions[int(node.node_id)] if node else 0
         return node_emissions, emissions
 
     async def register_agent(
@@ -517,7 +522,7 @@ class AgentValidator:
                 x_profile = await self.fetch_x_profile(username)
                 logger.info(f"X Profile To Update: {x_profile}")
             try:
-                agent_emissions = emissions[int(agent.UID)] * 10**-9
+                agent_emissions = emissions[int(agent.UID)]
                 logger.info(
                     f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
                 )
