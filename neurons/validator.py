@@ -25,7 +25,7 @@ from interfaces.types import (
     VerifiedTweet,
     RegisteredAgentRequest,
     RegisteredAgentResponse,
-    RegisteredNode,
+    ConnectedNode,
     Profile,
 )
 
@@ -55,7 +55,7 @@ class AgentValidator:
     Attributes:
         netuid (int): Network unique identifier
         httpx_client (Optional[httpx.AsyncClient]): Async HTTP client
-        registered_nodes (Dict[str, RegisteredNode]): Currently registered miners
+        connected_nodes (Dict[str, ConnectedNode]): Currently registered miners
         registered_agents (Dict[str, RegisteredAgent]): Currently registered agents
         keypair (Optional[Keypair]): Validator's keypair for authentication
         server (Optional[factory_app]): FastAPI server instance
@@ -82,7 +82,7 @@ class AgentValidator:
         self.netuid = int(os.getenv("NETUID", "249"))
         self.httpx_client: Optional[httpx.AsyncClient] = None
 
-        self.registered_nodes: Dict[str, RegisteredNode] = {}
+        self.connected_nodes: Dict[str, ConnectedNode] = {}
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.server: Optional[factory_app] = None
@@ -233,7 +233,7 @@ class AgentValidator:
             unregistered_nodes = []
             try:
                 # Iterate over each registered node to check if it has a registered agent
-                for node_hotkey in self.registered_nodes:
+                for node_hotkey in self.connected_nodes:
                     if node_hotkey not in self.registered_agents:
                         unregistered_nodes.append(node_hotkey)
 
@@ -277,7 +277,7 @@ class AgentValidator:
 
     async def get_agent_tweet_id(self, node: Node):
         logger.info(f"Attempting to register node {node.hotkey} agent")
-        registered_node = self.registered_nodes.get(node.hotkey)
+        registered_node = self.connected_nodes.get(node.hotkey)
 
         server_address = vali_client.construct_server_address(
             node=node,
@@ -384,7 +384,7 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent registration: {str(e)}")
 
-    async def register_new_nodes(self):
+    async def connect_new_nodes(self):
         """Verify node registration"""
 
         logger.info("Attempting nodes registration")
@@ -400,7 +400,7 @@ class AgentValidator:
             available_nodes = [
                 node
                 for node in nodes_list
-                if node.hotkey not in self.registered_nodes and node.ip != "0.0.0.0"
+                if node.hotkey not in self.connected_nodes and node.ip != "0.0.0.0"
             ]
 
             logger.info(f"Found {len(available_nodes)} miners")
@@ -410,7 +410,7 @@ class AgentValidator:
                     replace_with_docker_localhost=False,
                     replace_with_localhost=True,
                 )
-                success = await self.handshake_with_miner(
+                success = await self.connect_with_miner(
                     miner_address=server_address, miner_hotkey=node.hotkey
                 )
                 if success:
@@ -424,7 +424,7 @@ class AgentValidator:
         except Exception as e:
             logger.error("Error in registration check: %s", str(e))
 
-    async def handshake_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
+    async def connect_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
         """Handshake with a miner"""
         try:
             # Perform handshake with miner
@@ -442,7 +442,7 @@ class AgentValidator:
                 return False
 
             # Store miner information
-            self.registered_nodes[miner_hotkey] = RegisteredNode(
+            self.connected_nodes[miner_hotkey] = ConnectedNode(
                 address=miner_address,
                 symmetric_key=symmetric_key_str,
                 symmetric_key_uuid=symmetric_key_uuid,
@@ -577,7 +577,7 @@ class AgentValidator:
         while True:
             try:
                 await self.sync_metagraph()
-                await self.register_new_nodes()
+                await self.connect_new_nodes()
                 await self.fetch_registered_agents()
                 self.scheduler.search_terms = self.generate_search_terms(
                     self.registered_agents
@@ -759,7 +759,7 @@ class AgentValidator:
             self.metagraph.sync_nodes()
 
             metagraph_node_hotkeys = list(dict(self.metagraph.nodes).keys())
-            registered_node_hotkeys = list(self.registered_nodes.keys())
+            registered_node_hotkeys = list(self.connected_nodes.keys())
 
             for hotkey in registered_node_hotkeys:
                 if hotkey not in metagraph_node_hotkeys:
@@ -767,7 +767,7 @@ class AgentValidator:
                         f"Removing node {
                             hotkey} from registered nodes"
                     )
-                    del self.registered_nodes[hotkey]
+                    del self.connected_nodes[hotkey]
 
                     node = self.metagraph.nodes[hotkey]
                     uid = node.node_id
