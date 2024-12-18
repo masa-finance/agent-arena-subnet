@@ -9,6 +9,7 @@ import json
 import httpx
 import os
 import requests
+from fastapi import Request
 
 # from fiber.chain import interface
 import uvicorn
@@ -173,6 +174,13 @@ class AgentMiner:
             logger.error(f"Failed to get tweet: {str(e)}")
             return None
 
+    def registration_callback(self, request: Request) -> Optional[str]:
+        """Registration Callback"""
+        try:
+            logger.info(f"Registration Callback: {request.json()}")
+        except Exception as e:
+            logger.error(f"Error in registration callback: {str(e)}")
+
     async def stop(self):
         """Cleanup and shutdown"""
         if self.server:
@@ -192,4 +200,8 @@ class AgentMiner:
             methods=["POST"],
         )
 
-        # TODO we need a callback route here for validators to send information!
+        self.app.add_api_route(
+            "/registration_callback",
+            self.registration_callback,
+            methods=["POST"],
+        )

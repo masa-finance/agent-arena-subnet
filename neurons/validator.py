@@ -263,6 +263,7 @@ class AgentValidator:
                                     screen_name,
                                     avatar,
                                 )
+                                await self.node_registration_callback(full_node)
 
                     except Exception as e:
                         logger.error(
@@ -299,6 +300,34 @@ class AgentValidator:
         else:
             logger.error(
                 f"Failed to get registration info, status code: {
+                    registration_response.status_code}"
+            )
+            return None
+
+    async def node_registration_callback(self, node: Node):
+        logger.info(f"Registration Callback for {node.hotkey}")
+        registered_node = self.connected_nodes.get(node.hotkey)
+        agent = self.registered_agents.get(node.hotkey)
+
+        server_address = vali_client.construct_server_address(
+            node=node,
+            replace_with_docker_localhost=False,
+            replace_with_localhost=True,
+        )
+        registration_response = await vali_client.make_non_streamed_post(
+            httpx_client=self.httpx_client,
+            server_address=server_address,
+            symmetric_key_uuid=registered_node.symmetric_key_uuid,
+            endpoint="/registration_callback",
+            validator_ss58_address=self.keypair.ss58_address,
+            payload=json.dumps({"Successfully Registered Agent: ": agent}),
+        )
+
+        if registration_response.status_code == 200:
+            logger.info("Registration Callback Success")
+        else:
+            logger.error(
+                f"Error in registration callback: {
                     registration_response.status_code}"
             )
             return None
