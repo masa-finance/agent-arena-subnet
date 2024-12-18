@@ -320,7 +320,9 @@ class AgentValidator:
             symmetric_key_uuid=registered_node.symmetric_key_uuid,
             endpoint="/registration_callback",
             validator_ss58_address=self.keypair.ss58_address,
-            payload=json.dumps({"Successfully Registered Agent: ": agent}),
+            payload=json.dumps(
+                {"Successfully Registered Agent: ": agent}, default=lambda o: o.__dict__
+            ),
         )
 
         if registration_response.status_code == 200:
