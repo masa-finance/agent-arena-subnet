@@ -5,17 +5,15 @@ from fiber.chain.metagraph import Metagraph
 from typing import Optional
 from fiber.logging_utils import get_logger
 
-import json
 import httpx
 import os
 import requests
-from fastapi import Request
 
 # from fiber.chain import interface
 import uvicorn
 
 # Import the vali_client module or object
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Request
 from fiber.miner.middleware import configure_extra_logging_middleware
 from fiber.chain import chain_utils, post_ip_to_chain
 from dotenv import load_dotenv
@@ -174,11 +172,10 @@ class AgentMiner:
             logger.error(f"Failed to get tweet: {str(e)}")
             return None
 
-    async def registration_callback(self, request) -> Optional[str]:
+    async def registration_callback(self, request: Request):
         """Registration Callback"""
         try:
-            response = await request.json()
-            logger.info(f"Registration Callback Response: {response}")
+            logger.info(f"Registration Callback Response: {request}")
             logger.info(f"Registration Success!")
         except Exception as e:
             logger.error(f"Error in registration callback: {str(e)}")
@@ -188,22 +185,28 @@ class AgentMiner:
         if self.server:
             await self.server.stop()
 
+    async def get_self(self):
+        return self
+
     def register_routes(self):
 
         self.app.add_api_route(
             "/get_verification_tweet_id",
             self.get_verification_tweet_id,
             methods=["GET"],
+            dependencies=[Depends(self.get_self)],
         )
 
         self.app.add_api_route(
             "/deregister_agent",
             self.deregister_agent,
             methods=["POST"],
+            dependencies=[Depends(self.get_self)],
         )
 
         self.app.add_api_route(
             "/registration_callback",
             self.registration_callback,
             methods=["POST"],
+            dependencies=[Depends(self.get_self)],
         )
