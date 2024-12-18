@@ -174,11 +174,10 @@ class AgentMiner:
             logger.error(f"Failed to get tweet: {str(e)}")
             return None
 
-    async def registration_callback(self, request: Request) -> Optional[str]:
+    def registration_callback(self, request) -> Optional[str]:
         """Registration Callback"""
         try:
-            payload = await request.json()
-            logger.info(f"Registration Message: {payload}")
+            logger.info(f"Registration Callback: {request}")
         except Exception as e:
             logger.error(f"Error in registration callback: {str(e)}")
 
