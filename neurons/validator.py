@@ -553,7 +553,6 @@ class AgentValidator:
                 )
                 if response.status_code == 200:
                     logger.info("Successfully updated agent!")
-                    continue
                 else:
                     logger.error(
                         f"Failed to update agent, status code: {
