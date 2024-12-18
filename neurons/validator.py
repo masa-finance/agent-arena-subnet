@@ -327,6 +327,15 @@ class AgentValidator:
 
         return search_terms
 
+    def get_emissions(self, node: Optional[Node]):
+        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+        emissions = self.substrate.query(
+            "SubtensorModule", "Emission", [self.netuid]
+        ).value
+
+        node_emissions = emissions[int(node.node_id)] * 10**-9 if node else 0
+        return node_emissions, emissions
+
     async def register_agent(
         self,
         node: Node,
@@ -336,14 +345,7 @@ class AgentValidator:
         avatar: str,
     ):
         """Register an agent"""
-
-        self.substrate = interface.get_substrate(
-            subtensor_address=self.substrate.url)
-        emissions = self.substrate.query(
-            "SubtensorModule", "Emission", [self.netuid]
-        ).value
-        agent_emissions = emissions[int(node.node_id)] * 10**-9
-
+        node_emissions, _ = self.get_emissions(node)
         registration_data = RegisteredAgentRequest(
             hotkey=node.hotkey,
             uid=str(node.node_id),
@@ -351,7 +353,7 @@ class AgentValidator:
             version=str(node.protocol),  # TODO implement versioning...
             isActive=True,
             verification_tweet=verified_tweet,
-            emissions=agent_emissions,
+            emissions=node_emissions,
             profile={
                 "data": Profile(UserID=user_id, Username=screen_name, Avatar=avatar)
             },
@@ -500,11 +502,7 @@ class AgentValidator:
         return response
 
     async def update_agents_profiles_and_emissions(self):
-        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
-        emissions = self.substrate.query(
-            "SubtensorModule", "Emission", [self.netuid]
-        ).value
-
+        _, emissions = self.get_emissions(None)
         for hotkey, agent in self.registered_agents.items():
 
             x_profile = await self.fetch_x_profile(agent.Username)
