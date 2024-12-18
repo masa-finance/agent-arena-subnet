@@ -177,8 +177,9 @@ class AgentMiner:
     async def registration_callback(self, request) -> Optional[str]:
         """Registration Callback"""
         try:
+            response = await request.json()
+            logger.info(f"Registration Callback Response: {response}")
             logger.info(f"Registration Success!")
-            logger.info(f"Registration Callback Request: {request}")
         except Exception as e:
             logger.error(f"Error in registration callback: {str(e)}")
 
