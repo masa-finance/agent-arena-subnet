@@ -504,9 +504,8 @@ class AgentValidator:
     async def update_agents_profiles_and_emissions(self):
         _, emissions = self.get_emissions(None)
         for hotkey, agent in self.registered_agents.items():
-
             x_profile = await self.fetch_x_profile(agent.Username)
-
+            logger.info(f"X Profile To Update: {x_profile}")
             if x_profile is None:
                 logger.info(
                     f"Trying to refetch username for agent: {
@@ -516,10 +515,12 @@ class AgentValidator:
                     agent.VerificationTweetID, agent.HotKey
                 )
                 x_profile = await self.fetch_x_profile(username)
-
+                logger.info(f"X Profile To Update: {x_profile}")
             try:
 
-                logger.info(f"Agent {agent.Username} has {emissions} emissions")
+                logger.info(
+                    f"Emissions Updater: Agent {agent.Username} has {emissions} emissions"
+                )
                 verification_tweet = VerifiedTweet(
                     tweet_id=agent.VerificationTweetID,
                     url=agent.VerificationTweetURL,
