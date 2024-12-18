@@ -600,11 +600,7 @@ class AgentValidator:
         )
         logger.info(f"Loaded {len(posts)} posts")
         scored_posts = self.post_scorer.score_posts(posts)
-        logger.info(f"Scored Posts: {scored_posts}")
         self.scored_posts = scored_posts
-        uids, scores = self.get_average_score()
-        logger.info(f"uids: {uids}")
-        logger.info(f"scores: {scores}")
 
     async def set_weights(self):
         """Set weights"""
