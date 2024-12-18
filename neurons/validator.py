@@ -517,9 +517,9 @@ class AgentValidator:
                 x_profile = await self.fetch_x_profile(username)
                 logger.info(f"X Profile To Update: {x_profile}")
             try:
-
+                agent_emissions = emissions[int(agent.UID)] * 10**-9
                 logger.info(
-                    f"Emissions Updater: Agent {agent.Username} has {emissions} emissions"
+                    f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
                 )
                 verification_tweet = VerifiedTweet(
                     tweet_id=agent.VerificationTweetID,
@@ -533,7 +533,7 @@ class AgentValidator:
                     subnet_id=int(self.netuid),
                     version=str(4),
                     isActive=True,
-                    emissions=emissions,
+                    emissions=agent_emissions,
                     verification_tweet=verification_tweet,
                     profile={
                         "data": Profile(
