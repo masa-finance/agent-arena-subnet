@@ -480,7 +480,7 @@ class AgentValidator:
         return response
 
     async def update_agents_profiles_and_emissions(self):
-
+        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
         emissions = self.substrate.query(
             "SubtensorModule", "Emission", [self.netuid]
         ).value
