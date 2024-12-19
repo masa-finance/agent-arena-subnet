@@ -100,11 +100,11 @@ class AgentValidator:
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         # Get network configuration from environment
-        network = os.getenv("SUBTENSOR_NETWORK", "finney")
-        network_address = os.getenv("SUBTENSOR_ADDRESS")
+        self.network = os.getenv("SUBTENSOR_NETWORK", "finney")
+        self.network_address = os.getenv("SUBTENSOR_ADDRESS")
 
         self.substrate = interface.get_substrate(
-            subtensor_network=network, subtensor_address=network_address
+            subtensor_network=self.network, subtensor_address=self.network_address
         )
         self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
         self.metagraph.sync_nodes()
@@ -635,7 +635,8 @@ class AgentValidator:
         self.scored_posts = scored_posts
 
     async def set_weights(self):
-        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+        self.substrate = interface.get_substrate(subtensor_network=self.network)
+        # self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
         validator_node_id = self.substrate.query(
             "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
         ).value
