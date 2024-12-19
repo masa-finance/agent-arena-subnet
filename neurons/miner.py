@@ -10,7 +10,6 @@ from fiber import constants as cst
 from fiber.chain import chain_utils, post_ip_to_chain, interface
 from fiber.chain.metagraph import Metagraph
 from fiber.miner.server import factory_app
-from fiber.miner.middleware import configure_extra_logging_middleware
 from fiber.encrypted.miner.dependencies import (
     blacklist_low_stake,
     verify_request,
@@ -78,20 +77,13 @@ class AgentMiner:
         self.post_ip_to_chain()
 
     async def start(self):
-        """Start the Fiber server and register with validator"""
-        try:
-            # Initialize httpx client first
-            self.httpx_client = httpx.AsyncClient()
-            # Start Fiber server before handshake
-            self.app = factory_app(debug=False)
+        """Start the miner service"""
 
+        try:
+            self.httpx_client = httpx.AsyncClient()
+            self.app = factory_app(debug=False)
             self.register_routes()
 
-            # note, better logging - thanks Namoray!
-            if os.getenv("ENV", "prod").lower() == "dev":
-                configure_extra_logging_middleware(self.app)
-
-            # Start the FastAPI server
             config = uvicorn.Config(
                 self.app, host="0.0.0.0", port=self.port, lifespan="on"
             )

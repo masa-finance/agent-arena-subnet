@@ -120,25 +120,14 @@ class AgentValidator:
         self.post_scorer = PostScorer()
 
     async def start(self):
-        """Start the validator service.
+        """Start the validator service"""
 
-        Args:
-            keypair (Keypair): The validator's keypair for authentication
-            port (int): Port number to run the validator service on
-
-        Raises:
-            Exception: If startup fails for any reason
-        """
         try:
             self.httpx_client = httpx.AsyncClient()
-
-            await self.fetch_registered_agents()
-
-            # Create FastAPI app using standard factory
             self.app = factory_app(debug=False)
-
-            # Add our custom routes
             self.register_routes()
+
+            self.fetch_registered_agents()
 
             # Start background tasks
             asyncio.create_task(self.sync_loop())  # sync loop
@@ -150,7 +139,7 @@ class AgentValidator:
             asyncio.create_task(self.score_loop())
 
             self.create_scheduler()
-            # Start the FastAPI server
+
             config = uvicorn.Config(
                 self.app, host="0.0.0.0", port=self.port, lifespan="on"
             )
