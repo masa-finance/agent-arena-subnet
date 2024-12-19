@@ -1,32 +1,18 @@
-from fiber.miner.server import factory_app
-
-from typing import Optional
-from fiber.logging_utils import get_logger
-from functools import partial
-
-import httpx
-import os
-import requests
-from pydantic import BaseModel
-
-# from fiber.chain import interface
-import uvicorn
-
-# Import the vali_client module or object
-from fastapi import FastAPI, Depends
-from fiber.miner.middleware import configure_extra_logging_middleware
-from fiber.chain import chain_utils, post_ip_to_chain, interface
-from fiber.chain.metagraph import Metagraph
 from dotenv import load_dotenv
-from fiber.encrypted.miner.dependencies import blacklist_low_stake, verify_request
-from fiber.encrypted.miner.security.encryption import decrypt_general_payload
 
+import os
 import time
-
-from cryptography.fernet import Fernet
-from fastapi import Depends, Header
+import httpx
+import uvicorn
+import requests
 
 from fiber import constants as cst
+from fiber.chain import chain_utils, post_ip_to_chain, interface
+from fiber.chain.metagraph import Metagraph
+from fiber.miner.server import factory_app
+from fiber.miner.middleware import configure_extra_logging_middleware
+from fiber.encrypted.miner.dependencies import blacklist_low_stake, verify_request
+from fiber.encrypted.miner.security.encryption import decrypt_general_payload
 from fiber.encrypted.miner.core.configuration import Config
 from fiber.encrypted.miner.core.models.encryption import (
     PublicKeyResponse,
@@ -39,6 +25,14 @@ from fiber.encrypted.miner.dependencies import (
 )
 from fiber.encrypted.miner.security.encryption import get_symmetric_key_b64_from_payload
 from fiber.logging_utils import get_logger
+
+from cryptography.fernet import Fernet
+
+from functools import partial
+from typing import Optional
+from pydantic import BaseModel
+from fastapi import FastAPI, Depends, Header
+
 
 logger = get_logger(__name__)
 
