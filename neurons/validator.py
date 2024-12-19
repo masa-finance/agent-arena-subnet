@@ -1,23 +1,30 @@
 from dotenv import load_dotenv
-from fiber.chain import chain_utils
+
 import httpx
-from cryptography.fernet import Fernet
-from fiber.logging_utils import get_logger
-from fiber.miner.server import factory_app
 from typing import Optional, Dict
-from fiber.chain import interface, weights
 import asyncio
 from fastapi import FastAPI
 import uvicorn
 import json
 import os
+from datetime import datetime, UTC
+from neurons import version_numerical
+
+from fiber.chain import chain_utils, interface, weights
 from fiber.chain.metagraph import Metagraph
+from fiber.encrypted.validator import handshake, client as vali_client
+from fiber.miner.server import factory_app
+from fiber.networking.models import NodeWithFernet as Node
+from fiber.logging_utils import get_logger
+
+from cryptography.fernet import Fernet
+from masa_ai.tools.validator import TweetValidator
+
 from protocol.data_processing.post_loader import LoadPosts
 from protocol.scoring.post_scorer import PostScorer
-
-from fiber.networking.models import NodeWithFernet as Node
 from protocol.x.scheduler import XSearchScheduler
 from protocol.x.queue import RequestQueue
+
 from interfaces.types import (
     VerifiedTweet,
     RegisteredAgentRequest,
@@ -26,12 +33,6 @@ from interfaces.types import (
     Profile,
 )
 
-from masa_ai.tools.validator import TweetValidator
-from datetime import datetime, UTC
-from interfaces.types import VerifiedTweet
-
-from fiber.encrypted.validator import handshake, client as vali_client
-from neurons import version_numerical
 
 logger = get_logger(__name__)
 
