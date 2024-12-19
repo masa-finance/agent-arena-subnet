@@ -635,8 +635,8 @@ class AgentValidator:
         self.scored_posts = scored_posts
 
     async def set_weights(self):
-        self.substrate = interface.get_substrate(subtensor_network=self.network)
-        # self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+        # self.substrate = interface.get_substrate(subtensor_network=self.network)
+        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
         validator_node_id = self.substrate.query(
             "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
         ).value
