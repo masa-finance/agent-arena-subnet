@@ -643,19 +643,55 @@ class AgentValidator:
         version_key = self.substrate.query(
             "SubtensorModule", "WeightsVersionKey", [self.netuid]
         ).value
+
+        blocks_since_update = weights._blocks_since_last_update(
+            self.substrate, self.netuid, validator_node_id
+        )
+        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
+
+        logger.info(f"Blocks since last update: {blocks_since_update}")
+        logger.info(f"Minimum interval required: {min_interval}")
+
+        if blocks_since_update is not None and blocks_since_update < min_interval:
+            wait_blocks = min_interval - blocks_since_update
+            logger.info(
+                f"Need to wait {
+                    wait_blocks} more blocks before setting weights"
+            )
+            # Assuming ~12 second block time
+            wait_seconds = wait_blocks * 12
+            logger.info(f"Waiting {wait_seconds} seconds...")
+            await asyncio.sleep(wait_seconds)
+
         uids, scores = self.get_average_score()
 
-        weights.set_node_weights(
-            substrate=self.substrate,
-            keypair=self.keypair,
-            node_ids=uids,
-            node_weights=scores,
-            netuid=self.netuid,
-            validator_node_id=validator_node_id,
-            version_key=version_key,
-            wait_for_inclusion=True,
-            wait_for_finalization=True,
-        )
+        # Set weights with multiple attempts
+        for attempt in range(3):
+            try:
+                success = weights.set_node_weights(
+                    substrate=self.substrate,
+                    keypair=self.keypair,
+                    node_ids=uids,
+                    node_weights=scores,
+                    netuid=self.netuid,
+                    validator_node_id=validator_node_id,
+                    version_key=version_key,
+                    wait_for_inclusion=True,
+                    wait_for_finalization=True,
+                )
+
+                if success:
+                    logger.info("✅ Successfully set weights!")
+                    return
+                else:
+                    logger.error(f"❌ Failed to set weights on attempt {attempt + 1}")
+                    await asyncio.sleep(10)  # Wait between attempts
+
+            except Exception as e:
+                logger.error(f"Error on attempt {attempt + 1}: {str(e)}")
+                await asyncio.sleep(10)  # Wait between attempts
+
+        logger.error("Failed to set weights after all attempts")
 
     def get_average_score(self):
         uids = list(set([int(post["uid"]) for post in self.scored_posts]))
