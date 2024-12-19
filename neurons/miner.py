@@ -137,7 +137,6 @@ class AgentMiner:
         else:
             raise Exception("Hotkey not registered to metagraph")
 
-    # note, requires metagraph sync
     def node(self):
         try:
             nodes = self.metagraph.nodes
@@ -146,33 +145,6 @@ class AgentMiner:
         except Exception as e:
             logger.error(f"Failed to get node from metagraph: {e}")
             return None
-
-    async def deregister_agent(self):
-        """Register agent with the API"""
-        my_node = self.node()
-
-        try:
-            deregistration_data = {
-                "hotkey": self.keypair.ss58_address,
-                "uid": str(my_node.node_id),
-                "subnet_id": self.netuid,
-                "version": "4",  # TODO: Implement versioning
-                "isActive": False,
-            }
-            endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
-            response = await self.httpx_client.post(
-                endpoint, json=deregistration_data, headers=headers
-            )
-            if response.status_code == 200:
-                logger.info("Successfully deregistered agent!")
-                return response.json()
-            else:
-                logger.error(
-                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
-                )
-        except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     def get_verification_tweet_id(self) -> Optional[str]:
         """Get Verification Tweet ID For Agent Registration"""
@@ -236,8 +208,14 @@ class AgentMiner:
     def register_routes(self):
 
         self.app.add_api_route(
-            "/public-encryption-key", self.get_public_key, methods=["GET"]
+            "/public-encryption-key",
+            self.get_public_key,
+            methods=["GET"],
+            dependencies=[
+                Depends(self.get_self),
+            ],
         )
+
         self.app.add_api_route(
             "/exchange-symmetric-key",
             self.exchange_symmetric_key,
@@ -251,16 +229,6 @@ class AgentMiner:
             "/get_verification_tweet_id",
             self.get_verification_tweet_id,
             methods=["GET"],
-            dependencies=[
-                Depends(self.get_self),
-                Depends(blacklist_low_stake),
-            ],
-        )
-
-        self.app.add_api_route(
-            "/deregister_agent",
-            self.deregister_agent,
-            methods=["POST"],
             dependencies=[
                 Depends(self.get_self),
                 Depends(blacklist_low_stake),
