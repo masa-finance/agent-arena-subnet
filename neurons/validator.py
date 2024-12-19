@@ -43,6 +43,14 @@ SCORE_LOOP_CADENCE_SECONDS = 60
 SET_WEIGHTS_LOOP_CADENCE_SECONDS = 300
 UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
 
+__version__ = "0.0.2"
+version_split = __version__.split(".")
+weight_version = (
+    (100 * int(version_split[0]))
+    + (10 * int(version_split[1]))
+    + (1 * int(version_split[2]))
+)
+
 
 class AgentValidator:
     """Validator class for managing agent registration and verification on the Bittensor subnet.
@@ -639,9 +647,6 @@ class AgentValidator:
         validator_node_id = self.substrate.query(
             "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
         ).value
-        version_key = self.substrate.query(
-            "SubtensorModule", "WeightsVersionKey", [self.netuid]
-        ).value
 
         blocks_since_update = weights._blocks_since_last_update(
             self.substrate, self.netuid, validator_node_id
@@ -674,7 +679,7 @@ class AgentValidator:
                     node_weights=scores,
                     netuid=self.netuid,
                     validator_node_id=validator_node_id,
-                    version_key=version_key,
+                    version_key=weight_version,
                     wait_for_inclusion=True,
                     wait_for_finalization=True,
                 )
