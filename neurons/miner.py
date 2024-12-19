@@ -47,28 +47,27 @@ class AgentMiner:
         """Initialize miner"""
         load_dotenv()
 
-        # load environment variables
-        self.netuid = int(os.getenv("NETUID", "59"))
-        self.subtensor_network = os.getenv("SUBTENSOR_NETWORK", "finney")
-        self.subtensor_address = os.getenv(
-            "SUBTENSOR_ADDRESS", "wss://entrypoint-finney.opentensor.ai:443"
-        )
         self.wallet_name = os.getenv("WALLET_NAME", "miner")
         self.hotkey_name = os.getenv("HOTKEY_NAME", "default")
         self.port = int(os.getenv("MINER_PORT", 8082))
         self.external_ip = self.get_external_ip()
 
-        # initialize server
-        self.server: Optional[factory_app] = None
-        self.app: Optional[FastAPI] = None
-        self.httpx_client = None
         self.keypair = chain_utils.load_hotkey_keypair(
             self.wallet_name, self.hotkey_name
         )
 
+        self.netuid = int(os.getenv("NETUID", "59"))
+        self.httpx_client: Optional[httpx.AsyncClient] = None
+
+        self.subtensor_network = os.getenv("SUBTENSOR_NETWORK", "finney")
+        self.subtensor_address = os.getenv(
+            "SUBTENSOR_ADDRESS", "wss://entrypoint-finney.opentensor.ai:443"
+        )
+
+        self.server: Optional[factory_app] = None
+        self.app: Optional[FastAPI] = None
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
 
-        # initialize substrate
         self.substrate = interface.get_substrate(
             subtensor_network=self.subtensor_network,
             subtensor_address=self.subtensor_address,

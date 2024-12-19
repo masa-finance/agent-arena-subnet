@@ -80,18 +80,35 @@ class AgentValidator:
             self.wallet_name, self.hotkey_name
         )
 
-        self.netuid = int(os.getenv("NETUID", "249"))
+        self.netuid = int(os.getenv("NETUID", "59"))
         self.httpx_client: Optional[httpx.AsyncClient] = None
 
-        self.connected_nodes: Dict[str, ConnectedNode] = {}
-        self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
+        self.subtensor_network = os.getenv("SUBTENSOR_NETWORK", "finney")
+        self.subtensor_address = os.getenv(
+            "SUBTENSOR_ADDRESS", "wss://entrypoint-finney.opentensor.ai:443"
+        )
 
         self.server: Optional[factory_app] = None
+        self.app: Optional[FastAPI] = None
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
+
+        self.substrate = interface.get_substrate(
+            subtensor_network=self.subtensor_network,
+            subtensor_address=self.subtensor_address,
+        )
+
+        self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
+        self.metagraph.sync_nodes()
+
+        # local validator state
+        self.connected_nodes: Dict[str, ConnectedNode] = {}
+        self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
         self.queue = None
         self.scheduler = None
         self.search_terms = None
+        self.scored_posts = []
+
         self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
         self.scheduler_interval_minutes = int(
             os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
@@ -99,21 +116,8 @@ class AgentValidator:
         self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
-        # Get network configuration from environment
-        self.network = os.getenv("SUBTENSOR_NETWORK", "finney")
-        self.network_address = os.getenv("SUBTENSOR_ADDRESS")
-
-        self.substrate = interface.get_substrate(
-            subtensor_network=self.network, subtensor_address=self.network_address
-        )
-        self.metagraph = Metagraph(netuid=self.netuid, substrate=self.substrate)
-        self.metagraph.sync_nodes()
-
-        self.app: Optional[FastAPI] = None
         self.posts_loader = LoadPosts()
         self.post_scorer = PostScorer()
-
-        self.scored_posts = []
 
     async def start(self):
         """Start the validator service.
