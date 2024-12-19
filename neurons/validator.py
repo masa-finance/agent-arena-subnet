@@ -823,6 +823,9 @@ class AgentValidator:
                 "uid": str(self.metagraph.nodes[self.keypair.ss58_address].node_id),
                 "ip": str(self.metagraph.nodes[self.keypair.ss58_address].ip),
                 "port": str(self.metagraph.nodes[self.keypair.ss58_address].port),
+                "netuid": str(self.netuid),
+                "subtensor_network": str(self.subtensor_network),
+                "subtensor_address": str(self.subtensor_address),
             }
             return info
         except Exception as e:

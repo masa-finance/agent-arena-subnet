@@ -180,6 +180,9 @@ class AgentMiner:
                 "uid": str(self.metagraph.nodes[self.keypair.ss58_address].node_id),
                 "ip": str(self.metagraph.nodes[self.keypair.ss58_address].ip),
                 "port": str(self.metagraph.nodes[self.keypair.ss58_address].port),
+                "netuid": str(self.netuid),
+                "subtensor_network": str(self.subtensor_network),
+                "subtensor_address": str(self.subtensor_address),
             }
             return info
         except Exception as e:
@@ -187,6 +190,14 @@ class AgentMiner:
             return None
 
     def register_routes(self) -> None:
+
+        self.app.add_api_route(
+            "/healthcheck",
+            self.healthcheck,
+            methods=["GET"],
+            tags=["healthcheck"],
+            dependencies=[Depends(self.get_self)],
+        )
 
         self.app.add_api_route(
             "/public-encryption-key",
@@ -200,14 +211,6 @@ class AgentMiner:
             exchange_symmetric_key,
             methods=["POST"],
             tags=["encryption"],
-        )
-
-        self.app.add_api_route(
-            "/healthcheck",
-            self.healthcheck,
-            methods=["GET"],
-            tags=["healthcheck"],
-            dependencies=[Depends(self.get_self)],
         )
 
         self.app.add_api_route(
