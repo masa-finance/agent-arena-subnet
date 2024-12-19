@@ -6,7 +6,6 @@ import httpx
 import asyncio
 import uvicorn
 import threading
-from fastapi import FastAPI
 from typing import Optional, Dict, Tuple, List, Any
 from datetime import datetime, UTC
 from neurons import version_numerical
@@ -18,6 +17,7 @@ from fiber.miner.server import factory_app
 from fiber.networking.models import NodeWithFernet as Node
 from fiber.logging_utils import get_logger
 
+from fastapi import FastAPI, Depends
 from cryptography.fernet import Fernet
 from masa_ai.tools.validator import TweetValidator
 
@@ -813,24 +813,29 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent deregistration: {str(e)}")
 
+    def get_self(self) -> None:
+        return self
+
+    def healthcheck(self):
+        try:
+            info = {
+                "ss58_address": str(self.keypair.ss58_address),
+                "uid": str(self.metagraph.nodes[self.keypair.ss58_address].node_id),
+                "ip": str(self.metagraph.nodes[self.keypair.ss58_address].ip),
+                "port": str(self.metagraph.nodes[self.keypair.ss58_address].port),
+            }
+            return info
+        except Exception as e:
+            logger.error(f"Failed to get validator info: {str(e)}")
+            return None
+
     def register_routes(self) -> None:
         """Register FastAPI routes"""
 
-        def healthcheck():
-            """Returns validator's keypair, IP, and port in a JSON serializable format"""
-            try:
-                validator_info = {
-                    "ss58_address": str(self.keypair.ss58_address),
-                    "ip": str(self.metagraph.nodes[self.keypair.ss58_address].ip),
-                    "port": str(self.metagraph.nodes[self.keypair.ss58_address].port),
-                }
-                return validator_info
-            except Exception as e:
-                logger.error(f"Failed to get validator info: {str(e)}")
-                return None
-
         self.app.add_api_route(
             "/healthcheck",
-            healthcheck,
+            self.healthcheck,
             methods=["GET"],
+            tags=["healthcheck"],
+            dependencies=[Depends(self.get_self)],
         )

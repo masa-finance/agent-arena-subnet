@@ -1,37 +1,32 @@
 from dotenv import load_dotenv
 
 import os
-import time
 import httpx
 import uvicorn
 import requests
 
-from fiber import constants as cst
 from fiber.chain import chain_utils, post_ip_to_chain, interface
 from fiber.chain.metagraph import Metagraph
 from fiber.miner.server import factory_app
 from fiber.encrypted.miner.dependencies import (
     blacklist_low_stake,
     verify_request,
-    get_config,
 )
 from fiber.encrypted.miner.security.encryption import (
     decrypt_general_payload,
-    get_symmetric_key_b64_from_payload,
 )
-from fiber.encrypted.miner.core.configuration import Config
-from fiber.encrypted.miner.core.models.encryption import (
-    PublicKeyResponse,
-    SymmetricKeyExchange,
+from fiber.encrypted.miner.endpoints.handshake import (
+    get_public_key,
+    exchange_symmetric_key,
 )
 
+from fiber.networking.models import NodeWithFernet as Node
 from fiber.logging_utils import get_logger
-from cryptography.fernet import Fernet
 
 from functools import partial
 from typing import Optional
 from pydantic import BaseModel
-from fastapi import FastAPI, Depends, Header
+from fastapi import FastAPI, Depends
 
 
 logger = get_logger(__name__)
@@ -76,7 +71,7 @@ class AgentMiner:
 
         self.post_ip_to_chain()
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the miner service"""
 
         try:
@@ -94,7 +89,7 @@ class AgentMiner:
             logger.error(f"Failed to start miner: {str(e)}")
             raise
 
-    def get_external_ip(self):
+    def get_external_ip(self) -> str:
         env = os.getenv("ENV", "prod").lower()
         if env == "dev":
             # post this to chain to mark as local
@@ -107,7 +102,7 @@ class AgentMiner:
         except requests.RequestException as e:
             logger.error(f"Failed to get external IP: {e}")
 
-    def post_ip_to_chain(self):
+    def post_ip_to_chain(self) -> None:
         node = self.node()
         if node:
             if node.ip != self.external_ip or node.port != self.port:
@@ -137,7 +132,7 @@ class AgentMiner:
         else:
             raise Exception("Hotkey not registered to metagraph")
 
-    def node(self):
+    def node(self) -> Optional[Node]:
         try:
             nodes = self.metagraph.nodes
             node = nodes[self.keypair.ss58_address]
@@ -155,47 +150,17 @@ class AgentMiner:
             logger.error(f"Failed to get tweet: {str(e)}")
             return None
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Cleanup and shutdown"""
         if self.server:
             await self.server.stop()
-
-    async def get_self(self):
-        return self
-
-    async def get_public_key(self, config: Config = Depends(get_config)):
-        public_key = config.encryption_keys_handler.public_bytes.decode()
-        return PublicKeyResponse(
-            public_key=public_key,
-            timestamp=time.time(),
-        )
-
-    async def exchange_symmetric_key(
-        self,
-        payload: SymmetricKeyExchange,
-        validator_hotkey_address: str = Header(..., alias=cst.VALIDATOR_HOTKEY),
-        nonce: str = Header(..., alias=cst.NONCE),
-        symmetric_key_uuid: str = Header(..., alias=cst.SYMMETRIC_KEY_UUID),
-        config: Config = Depends(get_config),
-    ):
-        base64_symmetric_key = get_symmetric_key_b64_from_payload(
-            payload, config.encryption_keys_handler.private_key
-        )
-        fernet = Fernet(base64_symmetric_key)
-        config.encryption_keys_handler.add_symmetric_key(
-            uuid=symmetric_key_uuid,
-            hotkey_ss58_address=validator_hotkey_address,
-            fernet=fernet,
-        )
-
-        return {"status": "Symmetric key exchanged successfully"}
 
     async def registration_callback(
         self,
         decrypted_payload: DecryptedPayload = Depends(
             partial(decrypt_general_payload, DecryptedPayload),
         ),
-    ):
+    ) -> None:
         """Registration Callback"""
         try:
             logger.info(f"Decrypted Payload: {decrypted_payload}")
@@ -205,30 +170,51 @@ class AgentMiner:
             logger.error(f"Error in registration callback: {str(e)}")
             return {"status": "Error in registration callback"}
 
-    def register_routes(self):
+    def get_self(self) -> None:
+        return self
+
+    def healthcheck(self):
+        try:
+            info = {
+                "ss58_address": str(self.keypair.ss58_address),
+                "uid": str(self.metagraph.nodes[self.keypair.ss58_address].node_id),
+                "ip": str(self.metagraph.nodes[self.keypair.ss58_address].ip),
+                "port": str(self.metagraph.nodes[self.keypair.ss58_address].port),
+            }
+            return info
+        except Exception as e:
+            logger.error(f"Failed to get validator info: {str(e)}")
+            return None
+
+    def register_routes(self) -> None:
 
         self.app.add_api_route(
             "/public-encryption-key",
-            self.get_public_key,
+            get_public_key,
             methods=["GET"],
-            dependencies=[
-                Depends(self.get_self),
-            ],
+            tags=["encryption"],
         )
 
         self.app.add_api_route(
             "/exchange-symmetric-key",
-            self.exchange_symmetric_key,
+            exchange_symmetric_key,
             methods=["POST"],
-            dependencies=[
-                Depends(self.get_self),
-            ],
+            tags=["encryption"],
+        )
+
+        self.app.add_api_route(
+            "/healthcheck",
+            self.healthcheck,
+            methods=["GET"],
+            tags=["healthcheck"],
+            dependencies=[Depends(self.get_self)],
         )
 
         self.app.add_api_route(
             "/get_verification_tweet_id",
             self.get_verification_tweet_id,
             methods=["GET"],
+            tags=["registration"],
             dependencies=[
                 Depends(self.get_self),
                 Depends(blacklist_low_stake),
@@ -239,6 +225,7 @@ class AgentMiner:
             "/registration_callback",
             self.registration_callback,
             methods=["POST"],
+            tags=["registration"],
             dependencies=[
                 Depends(self.get_self),
                 Depends(blacklist_low_stake),
