@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
 
-import httpx
-from typing import Optional, Dict
-import asyncio
-from fastapi import FastAPI
-import uvicorn
-import json
 import os
+import json
+import httpx
+import asyncio
+import uvicorn
+from fastapi import FastAPI
+from typing import Optional, Dict
 from datetime import datetime, UTC
 from neurons import version_numerical
 
