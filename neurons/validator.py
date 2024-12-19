@@ -32,7 +32,7 @@ from interfaces.types import VerifiedTweet
 from fiber import *
 
 from fiber.encrypted.validator import handshake, client as vali_client
-
+from neurons import version_numerical
 
 logger = get_logger(__name__)
 
@@ -639,9 +639,6 @@ class AgentValidator:
         validator_node_id = self.substrate.query(
             "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
         ).value
-        version_key = self.substrate.query(
-            "SubtensorModule", "WeightsVersionKey", [self.netuid]
-        ).value
 
         blocks_since_update = weights._blocks_since_last_update(
             self.substrate, self.netuid, validator_node_id
@@ -674,7 +671,7 @@ class AgentValidator:
                     node_weights=scores,
                     netuid=self.netuid,
                     validator_node_id=validator_node_id,
-                    version_key=version_key,
+                    version_key=version_numerical,
                     wait_for_inclusion=True,
                     wait_for_finalization=True,
                 )
