@@ -32,7 +32,7 @@ from interfaces.types import VerifiedTweet
 from fiber import *
 
 from fiber.encrypted.validator import handshake, client as vali_client
-
+from neurons import version_numerical
 
 logger = get_logger(__name__)
 
@@ -42,14 +42,6 @@ SYNC_LOOP_CADENCE_SECONDS = 30
 SCORE_LOOP_CADENCE_SECONDS = 60
 SET_WEIGHTS_LOOP_CADENCE_SECONDS = 300
 UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
-
-__version__ = "0.0.2"
-version_split = __version__.split(".")
-weight_version = (
-    (100 * int(version_split[0]))
-    + (10 * int(version_split[1]))
-    + (1 * int(version_split[2]))
-)
 
 
 class AgentValidator:
@@ -679,7 +671,7 @@ class AgentValidator:
                     node_weights=scores,
                     netuid=self.netuid,
                     validator_node_id=validator_node_id,
-                    version_key=weight_version,
+                    version_key=version_numerical,
                     wait_for_inclusion=True,
                     wait_for_finalization=True,
                 )
