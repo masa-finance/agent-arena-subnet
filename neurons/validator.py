@@ -5,8 +5,9 @@ import json
 import httpx
 import asyncio
 import uvicorn
+import threading
 from fastapi import FastAPI
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple, List, Any
 from datetime import datetime, UTC
 from neurons import version_numerical
 
@@ -45,31 +46,8 @@ UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
 
 
 class AgentValidator:
-    """Validator class for managing agent registration and verification on the Bittensor subnet.
-
-    This class handles the core validator functionality including:
-    - Miner registration and connection management
-    - Agent verification through Twitter
-    - Status monitoring and health checks
-    - Secure communication using MLTS
-
-    Attributes:
-        netuid (int): Network unique identifier
-        httpx_client (Optional[httpx.AsyncClient]): Async HTTP client
-        connected_nodes (Dict[str, ConnectedNode]): Currently registered miners
-        registered_agents (Dict[str, RegisteredAgent]): Currently registered agents
-        keypair (Optional[Keypair]): Validator's keypair for authentication
-        server (Optional[factory_app]): FastAPI server instance
-        queue: Request queue for X search operations
-        scheduler: Scheduler for managing X search requests
-        substrate: Substrate interface for chain interactions
-        app (Optional[FastAPI]): FastAPI application instance
-        metagraph: Network metagraph state
-    """
-
     def __init__(self):
         """Initialize validator"""
-        # Load env
         load_dotenv()
 
         self.wallet_name = os.getenv("VALIDATOR_WALLET_NAME", "validator")
@@ -119,7 +97,7 @@ class AgentValidator:
         self.posts_loader = LoadPosts()
         self.post_scorer = PostScorer()
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the validator service"""
 
         try:
@@ -150,8 +128,7 @@ class AgentValidator:
             logger.error(f"Failed to start validator: {str(e)}")
             raise
 
-    # note, requires metagraph sync
-    def node(self):
+    def node(self) -> Optional[Node]:
         try:
             nodes = self.metagraph.nodes
             node = nodes[self.keypair.ss58_address]
@@ -160,7 +137,7 @@ class AgentValidator:
             logger.error(f"Failed to get node from metagraph: {e}")
             return None
 
-    async def fetch_registered_agents(self):
+    async def fetch_registered_agents(self) -> None:
         """Fetch active agents from the API and update registered_agents"""
         try:
             headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
@@ -182,7 +159,7 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred while fetching active agents: {str(e)}")
 
-    def create_scheduler(self):
+    def create_scheduler(self) -> None:
         """Initialize the X search scheduler and request queue.
 
         Creates a new queue based on registered agents and starts
@@ -214,15 +191,13 @@ class AgentValidator:
 
         self.scheduler.search_terms = self.search_terms
 
-        import threading
-
         def run_scheduler():
             self.scheduler.start()
 
         thread = threading.Thread(target=run_scheduler)
         thread.start()
 
-    async def check_agents_registration_loop(self):
+    async def check_agents_registration_loop(self) -> None:
         while True:
             unregistered_nodes = []
             try:
@@ -270,7 +245,7 @@ class AgentValidator:
                 logger.error("Error checking registered nodes: %s", str(e))
                 await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS / 2)
 
-    async def get_agent_tweet_id(self, node: Node):
+    async def get_agent_tweet_id(self, node: Node) -> Optional[str]:
         logger.info(f"Attempting to register node {node.hotkey} agent")
         registered_node = self.connected_nodes.get(node.hotkey)
 
@@ -289,7 +264,6 @@ class AgentValidator:
 
         if registration_response.status_code == 200:
             verification_tweet_id = registration_response.json()
-
             return verification_tweet_id
         else:
             logger.error(
@@ -298,7 +272,7 @@ class AgentValidator:
             )
             return None
 
-    async def node_registration_callback(self, node: Node):
+    async def node_registration_callback(self, node: Node) -> None:
         registered_node = self.connected_nodes.get(node.hotkey)
         agent = self.registered_agents.get(node.hotkey)
         logger.info(f"Registration Callback for {agent.Username}")
@@ -328,7 +302,9 @@ class AgentValidator:
             )
             return None
 
-    def generate_search_terms(self, agents: Dict[str, RegisteredAgentResponse]):
+    def generate_search_terms(
+        self, agents: Dict[str, RegisteredAgentResponse]
+    ) -> List[Dict[str, Any]]:
         """Generate search terms for request queues.
 
         This function creates search terms for a RequestQueue instance using
@@ -352,11 +328,9 @@ class AgentValidator:
 
         return search_terms
 
-    def get_emissions(self, node: Optional[Node]):
+    def get_emissions(self, node: Optional[Node]) -> Tuple[float, List[float]]:
         self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
-        multiplier = (
-            10**-9
-        )  # note, this multiplier works in tandem with the UI conversion of / 0.05
+        multiplier = 10**-9
         emissions = [
             emission * multiplier
             for emission in self.substrate.query(
@@ -373,7 +347,7 @@ class AgentValidator:
         user_id: str,
         screen_name: str,
         avatar: str,
-    ):
+    ) -> None:
         """Register an agent"""
         node_emissions, _ = self.get_emissions(node)
         registration_data = RegisteredAgentRequest(
@@ -409,7 +383,7 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent registration: {str(e)}")
 
-    async def connect_new_nodes(self):
+    async def connect_new_nodes(self) -> None:
         """Verify node registration"""
 
         logger.info("Attempting nodes registration")
@@ -480,7 +454,7 @@ class AgentValidator:
             logger.error(f"Failed to connect to miner: {str(e)}")
             return False
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Cleanup validator resources and shutdown gracefully.
 
         Closes:
@@ -492,7 +466,7 @@ class AgentValidator:
         if self.server:
             await self.server.stop()
 
-    async def update_agents_profiles_and_emissions_loop(self):
+    async def update_agents_profiles_and_emissions_loop(self) -> None:
         """Background task to update profiles"""
         while True:
             try:
@@ -502,7 +476,7 @@ class AgentValidator:
                 logger.error(f"Error in updating profiles: {str(e)}")
                 await asyncio.sleep(UPDATE_PROFILE_LOOP_CADENCE_SECONDS / 2)
 
-    async def set_weights_loop(self):
+    async def set_weights_loop(self) -> None:
         """Background task to set weights"""
         while True:
             try:
@@ -513,7 +487,7 @@ class AgentValidator:
                 logger.error(f"Error in setting weights: {str(e)}")
                 await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS / 2)
 
-    async def score_loop(self):
+    async def score_loop(self) -> None:
         """Background task to score agents"""
         while True:
             try:
@@ -523,7 +497,7 @@ class AgentValidator:
                 logger.error(f"Error in scoring: {str(e)}")
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS / 2)
 
-    async def fetch_x_profile(self, username):
+    async def fetch_x_profile(self, username: str) -> Dict[str, Any]:
         queue = RequestQueue()
         response = await queue.excecute_request(
             request_type="profile", request_data={"username": username}
@@ -531,7 +505,7 @@ class AgentValidator:
 
         return response
 
-    async def update_agents_profiles_and_emissions(self):
+    async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.get_emissions(None)
         for hotkey, agent in self.registered_agents.items():
             x_profile = await self.fetch_x_profile(agent.Username)
@@ -597,7 +571,7 @@ class AgentValidator:
             except Exception as e:
                 logger.error(f"Exception occurred during agent update: {str(e)}")
 
-    async def sync_loop(self):
+    async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
         while True:
             try:
@@ -614,7 +588,7 @@ class AgentValidator:
                     SYNC_LOOP_CADENCE_SECONDS / 2
                 )  # Wait before retrying
 
-    def score_posts(self):
+    def score_posts(self) -> None:
         """Score posts"""
         posts = self.posts_loader.load_posts(
             subnet_id=self.netuid,
@@ -627,7 +601,7 @@ class AgentValidator:
         scored_posts = self.post_scorer.score_posts(posts)
         self.scored_posts = scored_posts
 
-    async def set_weights(self):
+    async def set_weights(self) -> None:
         self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
         validator_node_id = self.substrate.query(
             "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
@@ -682,7 +656,7 @@ class AgentValidator:
 
         logger.error("Failed to set weights after all attempts")
 
-    def get_average_score(self):
+    def get_average_score(self) -> Tuple[List[int], List[float]]:
         uids = list(set([int(post["uid"]) for post in self.scored_posts]))
         scores_by_uid = {}
         for post in self.scored_posts:
@@ -758,7 +732,7 @@ class AgentValidator:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
 
-    async def sync_metagraph(self):
+    async def sync_metagraph(self) -> None:
         """Synchronize local metagraph state with chain.
 
         Creates new metagraph instance if needed and syncs node data.
@@ -794,13 +768,10 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Failed to sync metagraph: {str(e)}")
 
-    async def deregister_agent(self, hotkey: str, uid: str):
+    async def deregister_agent(self, hotkey: str, uid: str) -> None:
         """Deregister agent with the API"""
         logger.info("Deregistering agent...")
-
         agent = self.registered_agents.get(hotkey, {})
-
-        print("AGENT", agent)
 
         try:
             verification_tweet = VerifiedTweet(
@@ -842,7 +813,7 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent deregistration: {str(e)}")
 
-    def register_routes(self):
+    def register_routes(self) -> None:
         """Register FastAPI routes"""
 
         def healthcheck():
