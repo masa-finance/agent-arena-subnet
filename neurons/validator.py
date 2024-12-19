@@ -29,7 +29,6 @@ from interfaces.types import (
 from masa_ai.tools.validator import TweetValidator
 from datetime import datetime, UTC
 from interfaces.types import VerifiedTweet
-from fiber import *
 
 from fiber.encrypted.validator import handshake, client as vali_client
 from neurons import version_numerical
