@@ -639,8 +639,8 @@ class AgentValidator:
                     netuid=self.netuid,
                     validator_node_id=validator_node_id,
                     version_key=version_numerical,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True,
+                    wait_for_inclusion=False,
+                    wait_for_finalization=False,
                 )
 
                 if success:
