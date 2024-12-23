@@ -105,8 +105,6 @@ class AgentValidator:
             self.app = factory_app(debug=False)
             self.register_routes()
 
-            self.fetch_registered_agents()
-
             # Start background tasks
             asyncio.create_task(self.sync_loop())  # sync loop
             asyncio.create_task(
@@ -639,8 +637,8 @@ class AgentValidator:
                     netuid=self.netuid,
                     validator_node_id=validator_node_id,
                     version_key=version_numerical,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True,
+                    wait_for_inclusion=False,
+                    wait_for_finalization=False,
                 )
 
                 if success:
@@ -759,7 +757,7 @@ class AgentValidator:
 
                     node = self.metagraph.nodes[hotkey]
                     uid = node.node_id
-                    hotkey = node.hotkey
+                    # hotkey = node.hotkey
                     await self.deregister_agent(hotkey, uid)
 
                     # TODO reset local data / posts for uid to be fair to scoring
