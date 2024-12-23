@@ -238,6 +238,14 @@ class AgentValidator:
                                 await self.node_registration_callback(
                                     full_node, payload
                                 )
+                            else:
+                                payload = {
+                                    "registered": "Agent failed to register",
+                                    "message": f"Failed to register with tweet {tweet_id}",
+                                }
+                                await self.node_registration_callback(
+                                    full_node, payload
+                                )
 
                     except Exception as e:
                         logger.error(
