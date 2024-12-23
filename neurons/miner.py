@@ -34,6 +34,7 @@ logger = get_logger(__name__)
 
 class DecryptedPayload(BaseModel):
     registered: str
+    message: Optional[str] = None
 
 
 class AgentMiner:

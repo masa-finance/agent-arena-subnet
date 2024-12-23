@@ -34,6 +34,7 @@ from interfaces.types import (
     Profile,
 )
 
+from neurons.miner import DecryptedPayload
 
 logger = get_logger(__name__)
 
@@ -230,7 +231,13 @@ class AgentValidator:
                                     screen_name,
                                     avatar,
                                 )
-                                await self.node_registration_callback(full_node)
+                                payload = {
+                                    "registered": str(screen_name),
+                                    "message": "Agent successfully registered!",
+                                }
+                                await self.node_registration_callback(
+                                    full_node, payload
+                                )
 
                     except Exception as e:
                         logger.error(
@@ -270,7 +277,9 @@ class AgentValidator:
             )
             return None
 
-    async def node_registration_callback(self, node: Node) -> None:
+    async def node_registration_callback(
+        self, node: Node, payload: DecryptedPayload
+    ) -> None:
         registered_node = self.connected_nodes.get(node.hotkey)
         agent = self.registered_agents.get(node.hotkey)
         logger.info(f"Registration Callback for {agent.Username}")
@@ -288,7 +297,7 @@ class AgentValidator:
             miner_ss58_address=node.hotkey,
             keypair=self.keypair,
             fernet=registered_node.fernet,
-            payload={"registered": str(agent.Username)},
+            payload=payload,
         )
 
         if registration_response.status_code == 200:
