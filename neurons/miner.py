@@ -34,6 +34,7 @@ logger = get_logger(__name__)
 
 class DecryptedPayload(BaseModel):
     registered: str
+    message: Optional[str] = None
 
 
 class AgentMiner:
@@ -221,6 +222,7 @@ class AgentMiner:
             dependencies=[
                 Depends(self.get_self),
                 Depends(blacklist_low_stake),
+                # TODO is there a verify_request for get requests?
             ],
         )
 

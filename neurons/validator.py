@@ -34,6 +34,7 @@ from interfaces.types import (
     Profile,
 )
 
+from neurons.miner import DecryptedPayload
 
 logger = get_logger(__name__)
 
@@ -104,8 +105,6 @@ class AgentValidator:
             self.httpx_client = httpx.AsyncClient()
             self.app = factory_app(debug=False)
             self.register_routes()
-
-            self.fetch_registered_agents()
 
             # Start background tasks
             asyncio.create_task(self.sync_loop())  # sync loop
@@ -232,7 +231,21 @@ class AgentValidator:
                                     screen_name,
                                     avatar,
                                 )
-                                await self.node_registration_callback(full_node)
+                                payload = {
+                                    "registered": str(screen_name),
+                                    "message": "Agent successfully registered!",
+                                }
+                                await self.node_registration_callback(
+                                    full_node, payload
+                                )
+                            else:
+                                payload = {
+                                    "registered": "Agent failed to register",
+                                    "message": f"Failed to register with tweet {tweet_id}",
+                                }
+                                await self.node_registration_callback(
+                                    full_node, payload
+                                )
 
                     except Exception as e:
                         logger.error(
@@ -272,7 +285,9 @@ class AgentValidator:
             )
             return None
 
-    async def node_registration_callback(self, node: Node) -> None:
+    async def node_registration_callback(
+        self, node: Node, payload: DecryptedPayload
+    ) -> None:
         registered_node = self.connected_nodes.get(node.hotkey)
         agent = self.registered_agents.get(node.hotkey)
         logger.info(f"Registration Callback for {agent.Username}")
@@ -290,7 +305,7 @@ class AgentValidator:
             miner_ss58_address=node.hotkey,
             keypair=self.keypair,
             fernet=registered_node.fernet,
-            payload={"registered": str(agent.Username)},
+            payload=payload,
         )
 
         if registration_response.status_code == 200:
@@ -639,8 +654,8 @@ class AgentValidator:
                     netuid=self.netuid,
                     validator_node_id=validator_node_id,
                     version_key=version_numerical,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True,
+                    wait_for_inclusion=False,
+                    wait_for_finalization=False,
                 )
 
                 if success:
@@ -759,7 +774,7 @@ class AgentValidator:
 
                     node = self.metagraph.nodes[hotkey]
                     uid = node.node_id
-                    hotkey = node.hotkey
+                    # hotkey = node.hotkey
                     await self.deregister_agent(hotkey, uid)
 
                     # TODO reset local data / posts for uid to be fair to scoring
