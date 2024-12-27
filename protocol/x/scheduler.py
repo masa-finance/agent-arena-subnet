@@ -141,12 +141,10 @@ class XSearchScheduler:
 
         # Always use a 1-day lookback period
         start_time = current_time - timedelta(days=1)
-        one_day_forward = current_time + timedelta(days=1)
 
         # Format the query string with date range only (no time component)
         query = (
             f"({term['query']}) "
-            f"until:{one_day_forward.strftime('%Y-%m-%d')} "
             f"since:{start_time.strftime('%Y-%m-%d')}"
         )
 
