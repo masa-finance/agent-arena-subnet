@@ -613,11 +613,7 @@ class AgentValidator:
                         isActive=False,
                         emissions=agent_emissions,
                         verification_tweet=verification_tweet,
-                        profile={
-                            "data": Profile(
-                                # UserID="".join(random.choices("0123456789", k=16))
-                            )
-                        },
+                        profile={"data": Profile(UserID="None")},
                     )
                     logger.info(f"Update UID Data: {update_data}")
                     update_data = json.loads(
