@@ -612,6 +612,7 @@ class AgentValidator:
                         isActive=False,
                         emissions=agent_emissions,
                         verification_tweet=verification_tweet,
+                        profile=None,
                     )
                     logger.info(f"Update UID Data: {update_data}")
                     update_data = json.loads(
