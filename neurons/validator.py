@@ -5,6 +5,7 @@ import json
 import httpx
 import asyncio
 import uvicorn
+import random
 import threading
 from typing import Optional, Dict, Tuple, List, Any
 from datetime import datetime, UTC
@@ -613,7 +614,9 @@ class AgentValidator:
                         verification_tweet=verification_tweet,
                         profile={
                             "data": Profile(
-                                UserID="None",
+                                UserID="".join(
+                                    [str(random.randint(0, 9)) for _ in range(16)]
+                                ),
                             )
                         },
                     )
