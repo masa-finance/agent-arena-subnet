@@ -91,6 +91,9 @@ class RegisteredAgentResponse(JSONSerializable):
     VerificationTweetURL: str
     VerificationTweetTimestamp: str
     VerificationTweetText: str
+    Nominations: Optional[int]
+    IsNominated: Optional[bool]
+    Marketcap: Optional[int]
 
 
 @dataclass
