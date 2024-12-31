@@ -613,12 +613,16 @@ class AgentValidator:
                         isActive=False,
                         emissions=agent_emissions,
                         verification_tweet=verification_tweet,
-                        profile={"data": Profile(UserID="None")},
+                        profile={
+                            "data": Profile(
+                                UserID="".join(random.choices("0123456789", k=16))
+                            )
+                        },
                     )
-                    logger.info(f"Update UID Data: {update_data}")
                     update_data = json.loads(
                         json.dumps(update_data, default=lambda o: o.__dict__)
                     )
+                    logger.info(f"Update UID Data: {update_data}")
                     endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
                     headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
                     response = await self.httpx_client.post(
