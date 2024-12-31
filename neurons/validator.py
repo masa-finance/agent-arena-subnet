@@ -597,6 +597,12 @@ class AgentValidator:
                     logger.info(
                         f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
                     )
+                    verification_tweet = VerifiedTweet(
+                        tweet_id="",
+                        url="",
+                        timestamp="",
+                        full_text="",
+                    )
                     update_data = RegisteredAgentRequest(
                         hotkey=hotkey,
                         uid=str(uid),
@@ -604,7 +610,7 @@ class AgentValidator:
                         version=str(4),
                         isActive=False,
                         emissions=agent_emissions,
-                        verification_tweet="",
+                        verification_tweet=verification_tweet,
                         profile={
                             "data": Profile(
                                 UserID="",
