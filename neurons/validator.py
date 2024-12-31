@@ -599,12 +599,6 @@ class AgentValidator:
                     logger.info(
                         f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
                     )
-                    verification_tweet = VerifiedTweet(
-                        tweet_id="None",
-                        url="None",
-                        timestamp="None",
-                        full_text="None",
-                    )
                     update_data = RegisteredAgentRequest(
                         hotkey=hotkey,
                         uid=str(uid),
@@ -612,6 +606,8 @@ class AgentValidator:
                         version=str(4),
                         isActive=False,
                         emissions=agent_emissions,
+                        verification_tweet=None,
+                        profile=None,
                     )
                     update_data = json.loads(
                         json.dumps(update_data, default=lambda o: o.__dict__)
