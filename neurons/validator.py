@@ -607,7 +607,11 @@ class AgentValidator:
                         isActive=False,
                         emissions=agent_emissions,
                         verification_tweet=None,
-                        profile=None,
+                        profile={
+                            "data": Profile(
+                                UserID="".join(random.choices("0123456789", k=16))
+                            )
+                        },
                     )
                     update_data = json.loads(
                         json.dumps(update_data, default=lambda o: o.__dict__)
