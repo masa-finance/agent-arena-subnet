@@ -615,7 +615,7 @@ class AgentValidator:
                         verification_tweet=verification_tweet,
                         profile={
                             "data": Profile(
-                                UserID="".join(random.choices("0123456789", k=16))
+                                # UserID="".join(random.choices("0123456789", k=16))
                             )
                         },
                     )
