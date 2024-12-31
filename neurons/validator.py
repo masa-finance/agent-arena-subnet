@@ -90,7 +90,7 @@ class AgentValidator:
 
         self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
         self.scheduler_interval_minutes = int(
-            os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
+            os.getenv("SCHEDULER_INTERVAL_MINUTES", "60")
         )
         self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
