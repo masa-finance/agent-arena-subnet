@@ -604,6 +604,13 @@ class AgentValidator:
                         version=str(4),
                         isActive=False,
                         emissions=agent_emissions,
+                        verification_tweet="",
+                        profile={
+                            "data": Profile(
+                                UserID="",
+                                Username="",
+                            )
+                        },
                     )
                     update_data = json.loads(
                         json.dumps(update_data, default=lambda o: o.__dict__)
