@@ -598,10 +598,10 @@ class AgentValidator:
                         f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
                     )
                     verification_tweet = VerifiedTweet(
-                        tweet_id="",
-                        url="",
-                        timestamp="",
-                        full_text="",
+                        tweet_id="None",
+                        url="None",
+                        timestamp="None",
+                        full_text="None",
                     )
                     update_data = RegisteredAgentRequest(
                         hotkey=hotkey,
@@ -613,11 +613,11 @@ class AgentValidator:
                         verification_tweet=verification_tweet,
                         profile={
                             "data": Profile(
-                                UserID="",
-                                Username="",
+                                UserID="None",
                             )
                         },
                     )
+                    logger.info(f"Update UID Data: {update_data}")
                     update_data = json.loads(
                         json.dumps(update_data, default=lambda o: o.__dict__)
                     )
