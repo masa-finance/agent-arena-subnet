@@ -105,6 +105,7 @@ class AgentValidator:
         try:
             self.httpx_client = httpx.AsyncClient()
             self.app = factory_app(debug=False)
+            await self.fetch_registered_agents()
             self.register_routes()
 
             # Start background tasks
