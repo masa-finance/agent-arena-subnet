@@ -522,51 +522,87 @@ class AgentValidator:
 
     async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.get_emissions(None)
-        for hotkey, agent in self.registered_agents.items():
-            x_profile = await self.fetch_x_profile(agent.Username)
-            logger.info(f"X Profile To Update: {x_profile}")
-            if x_profile is None:
-                logger.info(
-                    f"Trying to refetch username for agent: {
-                            agent.Username}"
-                )
-                verified_tweet, user_id, username, avatar = await self.verify_tweet(
-                    agent.VerificationTweetID, agent.HotKey
-                )
-                x_profile = await self.fetch_x_profile(username)
+        for hotkey, agent in self.connected_nodes.items():
+            # for hotkey, agent in self.registered_agents.items():
+            agent = self.registered_agents.get(hotkey, None)
+            if agent:
+                x_profile = await self.fetch_x_profile(agent.Username)
                 logger.info(f"X Profile To Update: {x_profile}")
-            try:
-                agent_emissions = emissions[int(agent.UID)]
+                if x_profile is None:
+                    logger.info(
+                        f"Trying to refetch username for agent: {
+                                agent.Username}"
+                    )
+                    verified_tweet, user_id, username, avatar = await self.verify_tweet(
+                        agent.VerificationTweetID, agent.HotKey
+                    )
+                    x_profile = await self.fetch_x_profile(username)
+                    logger.info(f"X Profile To Update: {x_profile}")
+                try:
+                    agent_emissions = emissions[int(agent.UID)]
+                    logger.info(
+                        f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
+                    )
+                    verification_tweet = VerifiedTweet(
+                        tweet_id=agent.VerificationTweetID,
+                        url=agent.VerificationTweetURL,
+                        timestamp=agent.VerificationTweetTimestamp,
+                        full_text=agent.VerificationTweetText,
+                    )
+                    update_data = RegisteredAgentRequest(
+                        hotkey=hotkey,
+                        uid=str(agent.UID),
+                        subnet_id=int(self.netuid),
+                        version=str(4),
+                        isActive=True,
+                        emissions=agent_emissions,
+                        verification_tweet=verification_tweet,
+                        profile={
+                            "data": Profile(
+                                UserID=agent.UserID,
+                                Username=x_profile["data"]["Username"],
+                                Avatar=x_profile["data"]["Avatar"],
+                                Banner=x_profile["data"]["Banner"],
+                                Biography=x_profile["data"]["Biography"],
+                                FollowersCount=x_profile["data"]["FollowersCount"],
+                                FollowingCount=x_profile["data"]["FollowingCount"],
+                                LikesCount=x_profile["data"]["LikesCount"],
+                                Name=x_profile["data"]["Name"],
+                            )
+                        },
+                    )
+                    update_data = json.loads(
+                        json.dumps(update_data, default=lambda o: o.__dict__)
+                    )
+                    endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
+                    headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+                    response = await self.httpx_client.post(
+                        endpoint, json=update_data, headers=headers
+                    )
+                    if response.status_code == 200:
+                        logger.info("Successfully updated agent!")
+                    else:
+                        logger.error(
+                            f"Failed to update agent, status code: {
+                                response.status_code}, message: {response.text}"
+                        )
+                except Exception as e:
+                    logger.error(f"Exception occurred during agent update: {str(e)}")
+            else:
+                # note no agent found, update emissions etc
+                node = self.metagraph.nodes[hotkey]
+                uid = node.node_id
+                agent_emissions = emissions[int(uid)]
                 logger.info(
-                    f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
-                )
-                verification_tweet = VerifiedTweet(
-                    tweet_id=agent.VerificationTweetID,
-                    url=agent.VerificationTweetURL,
-                    timestamp=agent.VerificationTweetTimestamp,
-                    full_text=agent.VerificationTweetText,
+                    f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
                 )
                 update_data = RegisteredAgentRequest(
                     hotkey=hotkey,
-                    uid=str(agent.UID),
+                    uid=str(uid),
                     subnet_id=int(self.netuid),
                     version=str(4),
-                    isActive=True,
+                    isActive=False,
                     emissions=agent_emissions,
-                    verification_tweet=verification_tweet,
-                    profile={
-                        "data": Profile(
-                            UserID=agent.UserID,
-                            Username=x_profile["data"]["Username"],
-                            Avatar=x_profile["data"]["Avatar"],
-                            Banner=x_profile["data"]["Banner"],
-                            Biography=x_profile["data"]["Biography"],
-                            FollowersCount=x_profile["data"]["FollowersCount"],
-                            FollowingCount=x_profile["data"]["FollowingCount"],
-                            LikesCount=x_profile["data"]["LikesCount"],
-                            Name=x_profile["data"]["Name"],
-                        )
-                    },
                 )
                 update_data = json.loads(
                     json.dumps(update_data, default=lambda o: o.__dict__)
@@ -577,14 +613,12 @@ class AgentValidator:
                     endpoint, json=update_data, headers=headers
                 )
                 if response.status_code == 200:
-                    logger.info("Successfully updated agent!")
+                    logger.info("Successfully updated UID with emissions!")
                 else:
                     logger.error(
-                        f"Failed to update agent, status code: {
+                        f"Failed to update UID, status code: {
                             response.status_code}, message: {response.text}"
                     )
-            except Exception as e:
-                logger.error(f"Exception occurred during agent update: {str(e)}")
 
     async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
