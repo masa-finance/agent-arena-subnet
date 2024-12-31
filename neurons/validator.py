@@ -522,7 +522,8 @@ class AgentValidator:
 
     async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.get_emissions(None)
-        for hotkey, _ in self.connected_nodes.items():
+        for hotkey, node in self.metagraph.nodes.items():
+            # for hotkey, _ in self.connected_nodes.items():
             # for hotkey, agent in self.registered_agents.items():
             agent = self.registered_agents.get(hotkey, None)
             if agent:
@@ -590,7 +591,6 @@ class AgentValidator:
                     logger.error(f"Exception occurred during agent update: {str(e)}")
             else:
                 # note no agent found, update emissions etc
-                node = self.metagraph.nodes[hotkey]
                 uid = node.node_id
                 agent_emissions = emissions[int(uid)]
                 logger.info(
