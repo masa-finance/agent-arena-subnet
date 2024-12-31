@@ -590,35 +590,38 @@ class AgentValidator:
                 except Exception as e:
                     logger.error(f"Exception occurred during agent update: {str(e)}")
             else:
-                # note no agent found, update emissions etc
-                uid = node.node_id
-                agent_emissions = emissions[int(uid)]
-                logger.info(
-                    f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
-                )
-                update_data = RegisteredAgentRequest(
-                    hotkey=hotkey,
-                    uid=str(uid),
-                    subnet_id=int(self.netuid),
-                    version=str(4),
-                    isActive=False,
-                    emissions=agent_emissions,
-                )
-                update_data = json.loads(
-                    json.dumps(update_data, default=lambda o: o.__dict__)
-                )
-                endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-                headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
-                response = await self.httpx_client.post(
-                    endpoint, json=update_data, headers=headers
-                )
-                if response.status_code == 200:
-                    logger.info("Successfully updated UID with emissions!")
-                else:
-                    logger.error(
-                        f"Failed to update UID, status code: {
-                            response.status_code}, message: {response.text}"
+                try:
+                    # note no agent found, update emissions etc
+                    uid = node.node_id
+                    agent_emissions = emissions[int(uid)]
+                    logger.info(
+                        f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
                     )
+                    update_data = RegisteredAgentRequest(
+                        hotkey=hotkey,
+                        uid=str(uid),
+                        subnet_id=int(self.netuid),
+                        version=str(4),
+                        isActive=False,
+                        emissions=agent_emissions,
+                    )
+                    update_data = json.loads(
+                        json.dumps(update_data, default=lambda o: o.__dict__)
+                    )
+                    endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
+                    headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+                    response = await self.httpx_client.post(
+                        endpoint, json=update_data, headers=headers
+                    )
+                    if response.status_code == 200:
+                        logger.info("Successfully updated UID with emissions!")
+                    else:
+                        logger.error(
+                            f"Failed to update UID, status code: {
+                                response.status_code}, message: {response.text}"
+                        )
+                except Exception as e:
+                    logger.error(f"Exception occurred during UID update: {str(e)}")
 
     async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
