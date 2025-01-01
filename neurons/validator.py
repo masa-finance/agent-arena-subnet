@@ -222,7 +222,7 @@ class AgentValidator:
                         full_node = raw_nodes[node_hotkey]
                         if full_node:
                             tweet_id = await self.get_agent_tweet_id(full_node)
-                            verified_tweet, user_id, screen_name, avatar = (
+                            verified_tweet, user_id, screen_name, avatar, name = (
                                 await self.verify_tweet(tweet_id, full_node.hotkey)
                             )
                             if verified_tweet and user_id:
@@ -232,6 +232,7 @@ class AgentValidator:
                                     user_id,
                                     screen_name,
                                     avatar,
+                                    name,
                                 )
                                 payload = {
                                     "registered": str(screen_name),
@@ -364,6 +365,7 @@ class AgentValidator:
         user_id: str,
         screen_name: str,
         avatar: str,
+        name: str,
     ) -> None:
         """Register an agent"""
         node_emissions, _ = self.get_emissions(node)
@@ -376,7 +378,9 @@ class AgentValidator:
             verification_tweet=verified_tweet,
             emissions=node_emissions,
             profile={
-                "data": Profile(UserID=user_id, Username=screen_name, Avatar=avatar)
+                "data": Profile(
+                    UserID=user_id, Username=screen_name, Avatar=avatar, Name=name
+                )
             },
         )
         # prep for json
@@ -536,8 +540,8 @@ class AgentValidator:
                         f"Trying to refetch username for agent: {
                                 agent.Username}"
                     )
-                    verified_tweet, user_id, username, avatar = await self.verify_tweet(
-                        agent.VerificationTweetID, agent.HotKey
+                    verified_tweet, user_id, username, avatar, name = (
+                        await self.verify_tweet(agent.VerificationTweetID, agent.HotKey)
                     )
                     x_profile = await self.fetch_x_profile(username)
                     logger.info(f"X Profile To Update: {x_profile}")
@@ -760,7 +764,9 @@ class AgentValidator:
             )
 
             screen_name = user.get("legacy", {}).get("screen_name")
+            name = user.get("legacy", {}).get("name")
             user_id = user.get("rest_id")
+
             full_text = tweet_data_result.get("legacy", {}).get("full_text")
             avatar = user.get("legacy", {}).get("profile_image_url_https")
 
@@ -788,7 +794,7 @@ class AgentValidator:
                 ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 full_text=full_text,
             )
-            return verification_tweet, user_id, screen_name, avatar
+            return verification_tweet, user_id, screen_name, avatar, name
         except Exception as e:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
