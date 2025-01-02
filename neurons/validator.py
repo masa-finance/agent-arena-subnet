@@ -5,6 +5,7 @@ import json
 import httpx
 import asyncio
 import uvicorn
+import random
 import threading
 from typing import Optional, Dict, Tuple, List, Any
 from datetime import datetime, UTC
@@ -36,13 +37,19 @@ from interfaces.types import (
 
 from neurons.miner import DecryptedPayload
 
+import math
+
 logger = get_logger(__name__)
 
+BLOCKS_PER_WEIGHT_SETTING = 100
+BLOCK_TIME_SECONDS = 12
+TIME_PER_WEIGHT_SETTING = BLOCKS_PER_WEIGHT_SETTING * BLOCK_TIME_SECONDS
 
-AGENT_REGISTRATION_CADENCE_SECONDS = 30
-SYNC_LOOP_CADENCE_SECONDS = 30
-SCORE_LOOP_CADENCE_SECONDS = 60
-SET_WEIGHTS_LOOP_CADENCE_SECONDS = 300
+AGENT_REGISTRATION_CADENCE_SECONDS = 300  # 5 minutes
+SYNC_LOOP_CADENCE_SECONDS = 60  # 1 minute
+SCORE_LOOP_CADENCE_SECONDS = (
+    TIME_PER_WEIGHT_SETTING / 2
+)  # half of a weight setting period
 UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
 
 
@@ -90,7 +97,7 @@ class AgentValidator:
 
         self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
         self.scheduler_interval_minutes = int(
-            os.getenv("SCHEDULER_INTERVAL_MINUTES", "15")
+            os.getenv("SCHEDULER_INTERVAL_MINUTES", "60")
         )
         self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
@@ -104,6 +111,7 @@ class AgentValidator:
         try:
             self.httpx_client = httpx.AsyncClient()
             self.app = factory_app(debug=False)
+            await self.fetch_registered_agents()
             self.register_routes()
 
             # Start background tasks
@@ -220,7 +228,7 @@ class AgentValidator:
                         full_node = raw_nodes[node_hotkey]
                         if full_node:
                             tweet_id = await self.get_agent_tweet_id(full_node)
-                            verified_tweet, user_id, screen_name, avatar = (
+                            verified_tweet, user_id, screen_name, avatar, name = (
                                 await self.verify_tweet(tweet_id, full_node.hotkey)
                             )
                             if verified_tweet and user_id:
@@ -230,6 +238,7 @@ class AgentValidator:
                                     user_id,
                                     screen_name,
                                     avatar,
+                                    name,
                                 )
                                 payload = {
                                     "registered": str(screen_name),
@@ -340,6 +349,7 @@ class AgentValidator:
 
             search_terms.append({"query": f"to:{agent.Username}", "metadata": agent})
             search_terms.append({"query": f"from:{agent.Username}", "metadata": agent})
+            search_terms.append({"query": f"@{agent.Username}", "metadata": agent})
 
         return search_terms
 
@@ -362,6 +372,7 @@ class AgentValidator:
         user_id: str,
         screen_name: str,
         avatar: str,
+        name: str,
     ) -> None:
         """Register an agent"""
         node_emissions, _ = self.get_emissions(node)
@@ -374,7 +385,9 @@ class AgentValidator:
             verification_tweet=verified_tweet,
             emissions=node_emissions,
             profile={
-                "data": Profile(UserID=user_id, Username=screen_name, Avatar=avatar)
+                "data": Profile(
+                    UserID=user_id, Username=screen_name, Avatar=avatar, Name=name
+                )
             },
         )
         # prep for json
@@ -497,10 +510,10 @@ class AgentValidator:
             try:
                 if len(self.scored_posts) > 0:
                     await self.set_weights()
-                await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS)
+                await asyncio.sleep(60)
             except Exception as e:
                 logger.error(f"Error in setting weights: {str(e)}")
-                await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS / 2)
+                await asyncio.sleep(60)
 
     async def score_loop(self) -> None:
         """Background task to score agents"""
@@ -522,69 +535,122 @@ class AgentValidator:
 
     async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.get_emissions(None)
-        for hotkey, agent in self.registered_agents.items():
-            x_profile = await self.fetch_x_profile(agent.Username)
-            logger.info(f"X Profile To Update: {x_profile}")
-            if x_profile is None:
-                logger.info(
-                    f"Trying to refetch username for agent: {
-                            agent.Username}"
-                )
-                verified_tweet, user_id, username, avatar = await self.verify_tweet(
-                    agent.VerificationTweetID, agent.HotKey
-                )
-                x_profile = await self.fetch_x_profile(username)
+        for hotkey, node in self.metagraph.nodes.items():
+            # for hotkey, _ in self.connected_nodes.items():
+            # for hotkey, agent in self.registered_agents.items():
+            agent = self.registered_agents.get(hotkey, None)
+            if agent:
+                x_profile = await self.fetch_x_profile(agent.Username)
                 logger.info(f"X Profile To Update: {x_profile}")
-            try:
-                agent_emissions = emissions[int(agent.UID)]
-                logger.info(
-                    f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
-                )
-                verification_tweet = VerifiedTweet(
-                    tweet_id=agent.VerificationTweetID,
-                    url=agent.VerificationTweetURL,
-                    timestamp=agent.VerificationTweetTimestamp,
-                    full_text=agent.VerificationTweetText,
-                )
-                update_data = RegisteredAgentRequest(
-                    hotkey=hotkey,
-                    uid=str(agent.UID),
-                    subnet_id=int(self.netuid),
-                    version=str(4),
-                    isActive=True,
-                    emissions=agent_emissions,
-                    verification_tweet=verification_tweet,
-                    profile={
-                        "data": Profile(
-                            UserID=agent.UserID,
-                            Username=x_profile["data"]["Username"],
-                            Avatar=x_profile["data"]["Avatar"],
-                            Banner=x_profile["data"]["Banner"],
-                            Biography=x_profile["data"]["Biography"],
-                            FollowersCount=x_profile["data"]["FollowersCount"],
-                            FollowingCount=x_profile["data"]["FollowingCount"],
-                            LikesCount=x_profile["data"]["LikesCount"],
-                            Name=x_profile["data"]["Name"],
+                if x_profile is None:
+                    try:
+                        logger.info(
+                            f"Trying to refetch username for agent: {
+                                    agent.Username}"
                         )
-                    },
-                )
-                update_data = json.loads(
-                    json.dumps(update_data, default=lambda o: o.__dict__)
-                )
-                endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-                headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
-                response = await self.httpx_client.post(
-                    endpoint, json=update_data, headers=headers
-                )
-                if response.status_code == 200:
-                    logger.info("Successfully updated agent!")
-                else:
-                    logger.error(
-                        f"Failed to update agent, status code: {
-                            response.status_code}, message: {response.text}"
+                        verified_tweet, user_id, username, avatar, name = (
+                            await self.verify_tweet(
+                                agent.VerificationTweetID, agent.HotKey
+                            )
+                        )
+                        x_profile = await self.fetch_x_profile(username)
+                        logger.info(f"X Profile To Update: {x_profile}")
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to fetch profile for {agent.Username}, continuing..."
+                        )
+                        # TODO handle this better?
+                        continue
+                try:
+                    agent_emissions = emissions[int(agent.UID)]
+                    logger.info(
+                        f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
                     )
-            except Exception as e:
-                logger.error(f"Exception occurred during agent update: {str(e)}")
+                    verification_tweet = VerifiedTweet(
+                        tweet_id=agent.VerificationTweetID,
+                        url=agent.VerificationTweetURL,
+                        timestamp=agent.VerificationTweetTimestamp,
+                        full_text=agent.VerificationTweetText,
+                    )
+                    update_data = RegisteredAgentRequest(
+                        hotkey=hotkey,
+                        uid=str(agent.UID),
+                        subnet_id=int(self.netuid),
+                        version=str(4),
+                        isActive=True,
+                        emissions=agent_emissions,
+                        verification_tweet=verification_tweet,
+                        profile={
+                            "data": Profile(
+                                UserID=agent.UserID,
+                                Username=x_profile["data"]["Username"],
+                                Avatar=x_profile["data"]["Avatar"],
+                                Banner=x_profile["data"]["Banner"],
+                                Biography=x_profile["data"]["Biography"],
+                                FollowersCount=x_profile["data"]["FollowersCount"],
+                                FollowingCount=x_profile["data"]["FollowingCount"],
+                                LikesCount=x_profile["data"]["LikesCount"],
+                                Name=x_profile["data"]["Name"],
+                            )
+                        },
+                    )
+                    update_data = json.loads(
+                        json.dumps(update_data, default=lambda o: o.__dict__)
+                    )
+                    endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
+                    headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+                    response = await self.httpx_client.post(
+                        endpoint, json=update_data, headers=headers
+                    )
+                    if response.status_code == 200:
+                        logger.info("Successfully updated agent!")
+                    else:
+                        logger.error(
+                            f"Failed to update agent, status code: {
+                                response.status_code}, message: {response.text}"
+                        )
+                except Exception as e:
+                    logger.error(f"Exception occurred during agent update: {str(e)}")
+            else:
+                try:
+                    # note no agent found, update emissions etc
+                    uid = node.node_id
+                    agent_emissions = emissions[int(uid)]
+                    logger.info(
+                        f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
+                    )
+                    update_data = RegisteredAgentRequest(
+                        hotkey=hotkey,
+                        uid=str(uid),
+                        subnet_id=int(self.netuid),
+                        version=str(4),
+                        isActive=False,
+                        emissions=agent_emissions,
+                        verification_tweet=None,
+                        profile={
+                            "data": Profile(
+                                UserID="".join(random.choices("0123456789", k=16))
+                            )
+                        },
+                    )
+                    update_data = json.loads(
+                        json.dumps(update_data, default=lambda o: o.__dict__)
+                    )
+                    logger.info(f"Update UID Data: {update_data}")
+                    endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
+                    headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+                    response = await self.httpx_client.post(
+                        endpoint, json=update_data, headers=headers
+                    )
+                    if response.status_code == 200:
+                        logger.info("Successfully updated UID with emissions!")
+                    else:
+                        logger.error(
+                            f"Failed to update UID, status code: {
+                                response.status_code}, message: {response.text}"
+                        )
+                except Exception as e:
+                    logger.error(f"Exception occurred during UID update: {str(e)}")
 
     async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
@@ -641,7 +707,7 @@ class AgentValidator:
             logger.info(f"Waiting {wait_seconds} seconds...")
             await asyncio.sleep(wait_seconds)
 
-        uids, scores = self.get_average_score()
+        uids, scores = self.get_scores()
 
         # Set weights with multiple attempts
         for attempt in range(3):
@@ -671,22 +737,6 @@ class AgentValidator:
 
         logger.error("Failed to set weights after all attempts")
 
-    def get_average_score(self) -> Tuple[List[int], List[float]]:
-        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
-        scores_by_uid = {}
-        for post in self.scored_posts:
-            uid = int(post["uid"])
-            if uid not in scores_by_uid:
-                scores_by_uid[uid] = []
-            scores_by_uid[uid].append(post["average_score"])
-
-        average_scores = {
-            uid: sum(scores) / len(scores) for uid, scores in scores_by_uid.items()
-        }
-        # Extract just the values from the average_scores dictionary, maintaining order of uids
-        scores = [average_scores[uid] for uid in uids]
-        return uids, scores
-
     async def verify_tweet(
         self, id: str, hotkey: str
     ) -> tuple[VerifiedTweet, str, str]:
@@ -714,7 +764,9 @@ class AgentValidator:
             )
 
             screen_name = user.get("legacy", {}).get("screen_name")
+            name = user.get("legacy", {}).get("name")
             user_id = user.get("rest_id")
+
             full_text = tweet_data_result.get("legacy", {}).get("full_text")
             avatar = user.get("legacy", {}).get("profile_image_url_https")
 
@@ -742,7 +794,7 @@ class AgentValidator:
                 ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 full_text=full_text,
             )
-            return verification_tweet, user_id, screen_name, avatar
+            return verification_tweet, user_id, screen_name, avatar, name
         except Exception as e:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
@@ -857,3 +909,43 @@ class AgentValidator:
             tags=["healthcheck"],
             dependencies=[Depends(self.get_self)],
         )
+
+    def get_scores(self) -> Tuple[List[int], List[float]]:
+        """Calculate scores for each UID considering quality and volume.
+        
+        Returns:
+            Tuple[List[int], List[float]]: A tuple containing:
+                - List of UIDs
+                - List of corresponding scores (0-1) with volume bonus
+        """
+        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
+        scores_by_uid = {}
+        
+        # Initialize score accumulators
+        for uid in uids:
+            scores_by_uid[uid] = {
+                'score_sum': 0.0,
+                'post_count': 0
+            }
+        
+        # Calculate scores
+        for post in self.scored_posts:
+            uid = int(post["uid"])
+            for score_data in post['scores']:
+                scores_by_uid[uid]['score_sum'] += score_data['score']
+                scores_by_uid[uid]['post_count'] += 1
+
+        # Calculate final scores with volume bonus
+        final_scores = {}
+        for uid in uids:
+            data = scores_by_uid[uid]
+            if data['post_count'] > 0:
+                base_score = data['score_sum'] / data['post_count']
+                volume_bonus = math.log1p(data['post_count']) / 10
+                final_scores[uid] = min(1.0, base_score * (1 + volume_bonus))
+            else:
+                final_scores[uid] = 0.0
+
+        # Return UIDs and scores in matching order
+        scores = [final_scores[uid] for uid in uids]
+        return uids, scores

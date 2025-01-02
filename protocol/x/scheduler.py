@@ -25,7 +25,7 @@ VALIDATOR_DB_BASE = os.getenv("MASA_API_PATH", "/api/v1/data")
 VALIDATOR_DB_PATH = f"{VALIDATOR_DB_BASE}/twitter/tweets/recent"
 
 # Default constants for scheduler configuration
-DEFAULT_INTERVAL_MINUTES = 15
+DEFAULT_INTERVAL_MINUTES = 60
 DEFAULT_BATCH_SIZE = 100
 DEFAULT_PRIORITY = 100
 DEFAULT_SEARCH_COUNT = 450
@@ -139,16 +139,8 @@ class XSearchScheduler:
         """
         current_time = datetime.now(UTC)
 
-        # Always use a 1-day lookback period
-        start_time = current_time - timedelta(days=1)
-        one_day_forward = current_time + timedelta(days=1)
-
-        # Format the query string with date range only (no time component)
-        query = (
-            f"({term['query']}) "
-            f"until:{one_day_forward.strftime('%Y-%m-%d')} "
-            f"since:{start_time.strftime('%Y-%m-%d')}"
-        )
+        # Format the query string with today's date
+        query = f"({term['query']}) " f"since:{current_time.strftime('%Y-%m-%d')}"
 
         return {
             "query": query,
