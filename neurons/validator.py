@@ -536,15 +536,24 @@ class AgentValidator:
                 x_profile = await self.fetch_x_profile(agent.Username)
                 logger.info(f"X Profile To Update: {x_profile}")
                 if x_profile is None:
-                    logger.info(
-                        f"Trying to refetch username for agent: {
-                                agent.Username}"
-                    )
-                    verified_tweet, user_id, username, avatar, name = (
-                        await self.verify_tweet(agent.VerificationTweetID, agent.HotKey)
-                    )
-                    x_profile = await self.fetch_x_profile(username)
-                    logger.info(f"X Profile To Update: {x_profile}")
+                    try:
+                        logger.info(
+                            f"Trying to refetch username for agent: {
+                                    agent.Username}"
+                        )
+                        verified_tweet, user_id, username, avatar, name = (
+                            await self.verify_tweet(
+                                agent.VerificationTweetID, agent.HotKey
+                            )
+                        )
+                        x_profile = await self.fetch_x_profile(username)
+                        logger.info(f"X Profile To Update: {x_profile}")
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to fetch profile for {agent.Username}, continuing..."
+                        )
+                        # TODO handle this better?
+                        continue
                 try:
                     agent_emissions = emissions[int(agent.UID)]
                     logger.info(
