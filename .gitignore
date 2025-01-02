@@ -15,4 +15,8 @@ nodes.json
 *.pyc
 data/*
 .DS_Store
+/protocol/data_processing/__pycache__
+/protocol/data_processing/__pycache__
+*.pyc
 notebooks/.DS_Store
+
