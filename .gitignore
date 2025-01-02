@@ -14,3 +14,5 @@ nodes.json
 /protocol/x/__pycache__
 *.pyc
 data/*
+.DS_Store
+notebooks/.DS_Store
