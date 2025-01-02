@@ -37,6 +37,8 @@ from interfaces.types import (
 
 from neurons.miner import DecryptedPayload
 
+import math
+
 logger = get_logger(__name__)
 
 
@@ -701,7 +703,7 @@ class AgentValidator:
             logger.info(f"Waiting {wait_seconds} seconds...")
             await asyncio.sleep(wait_seconds)
 
-        uids, scores = self.get_average_score()
+        uids, scores = self.get_scores()
 
         # Set weights with multiple attempts
         for attempt in range(3):
@@ -730,22 +732,6 @@ class AgentValidator:
                 await asyncio.sleep(10)  # Wait between attempts
 
         logger.error("Failed to set weights after all attempts")
-
-    def get_average_score(self) -> Tuple[List[int], List[float]]:
-        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
-        scores_by_uid = {}
-        for post in self.scored_posts:
-            uid = int(post["uid"])
-            if uid not in scores_by_uid:
-                scores_by_uid[uid] = []
-            scores_by_uid[uid].append(post["average_score"])
-
-        average_scores = {
-            uid: sum(scores) / len(scores) for uid, scores in scores_by_uid.items()
-        }
-        # Extract just the values from the average_scores dictionary, maintaining order of uids
-        scores = [average_scores[uid] for uid in uids]
-        return uids, scores
 
     async def verify_tweet(
         self, id: str, hotkey: str
@@ -919,3 +905,43 @@ class AgentValidator:
             tags=["healthcheck"],
             dependencies=[Depends(self.get_self)],
         )
+
+    def get_scores(self) -> Tuple[List[int], List[float]]:
+        """Calculate scores for each UID considering quality and volume.
+        
+        Returns:
+            Tuple[List[int], List[float]]: A tuple containing:
+                - List of UIDs
+                - List of corresponding scores (0-1) with volume bonus
+        """
+        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
+        scores_by_uid = {}
+        
+        # Initialize score accumulators
+        for uid in uids:
+            scores_by_uid[uid] = {
+                'score_sum': 0.0,
+                'post_count': 0
+            }
+        
+        # Calculate scores
+        for post in self.scored_posts:
+            uid = int(post["uid"])
+            for score_data in post['scores']:
+                scores_by_uid[uid]['score_sum'] += score_data['score']
+                scores_by_uid[uid]['post_count'] += 1
+
+        # Calculate final scores with volume bonus
+        final_scores = {}
+        for uid in uids:
+            data = scores_by_uid[uid]
+            if data['post_count'] > 0:
+                base_score = data['score_sum'] / data['post_count']
+                volume_bonus = math.log1p(data['post_count']) / 10
+                final_scores[uid] = min(1.0, base_score * (1 + volume_bonus))
+            else:
+                final_scores[uid] = 0.0
+
+        # Return UIDs and scores in matching order
+        scores = [final_scores[uid] for uid in uids]
+        return uids, scores
