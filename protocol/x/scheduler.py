@@ -139,11 +139,8 @@ class XSearchScheduler:
         """
         current_time = datetime.now(UTC)
 
-        # Always use a 1-day lookback period
-        start_time = current_time - timedelta(days=1)
-
-        # Format the query string with date range only (no time component)
-        query = f"({term['query']}) " f"since:{start_time.strftime('%Y-%m-%d')}"
+        # Format the query string with today's date
+        query = f"({term['query']}) " f"since:{current_time.strftime('%Y-%m-%d')}"
 
         return {
             "query": query,
