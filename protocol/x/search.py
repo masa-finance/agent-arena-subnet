@@ -8,16 +8,18 @@ import os
 load_dotenv()
 
 # Get environment variables with fallbacks
-DEFAULT_BASE_URL = os.getenv('MASA_BASE_URL', "http://localhost:8080")
-DEFAULT_API_BASE = os.getenv('MASA_API_PATH', "/api/v1/data")
+DEFAULT_BASE_URL = os.getenv("MASA_BASE_URL", "http://localhost:8080")
+DEFAULT_API_BASE = os.getenv("MASA_API_PATH", "/api/v1/data")
 DEFAULT_API_PATH = f"{DEFAULT_API_BASE}/twitter/tweets/recent"
+SCHEDULER_SEARCH_COUNT = int(os.getenv("SCHEDULER_SEARCH_COUNT", 10))
+
 
 def search_x(
     base_url: str = DEFAULT_BASE_URL,
     api_path: str = DEFAULT_API_PATH,
     query: str = "#Bitcoin",
-    count: int = 10,
-    additional_params: Optional[Dict[str, Any]] = None
+    count: int = SCHEDULER_SEARCH_COUNT,
+    additional_params: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Send a POST request to the Masa API endpoint to search recent tweets.
@@ -44,16 +46,10 @@ def search_x(
     api_url = f"{base_url.rstrip('/')}/{api_path.lstrip('/')}"
 
     # Prepare headers
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json"
-    }
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Prepare request body
-    body = {
-        "query": query,
-        "count": count
-    }
+    body = {"query": query, "count": count}
 
     # Add any additional parameters if provided
     if additional_params:
@@ -61,11 +57,7 @@ def search_x(
 
     try:
         # Send POST request
-        response = requests.post(
-            api_url,
-            headers=headers,
-            json=body
-        )
+        response = requests.post(api_url, headers=headers, json=body)
 
         # Try to get detailed error message from response
         try:
@@ -76,10 +68,7 @@ def search_x(
 
             # Ensure consistent response structure
             if response_data is None:
-                return {
-                    "data": None,
-                    "recordCount": 0
-                }
+                return {"data": None, "recordCount": 0}
 
             # If data is missing or None, ensure it's properly structured
             if "data" not in response_data or response_data["data"] is None:
@@ -109,5 +98,7 @@ def search_x(
         raise Exception(f"Failed to connect to API: {str(e)}")
     except json.JSONDecodeError as e:
         # Handle invalid JSON in successful response
-        raise Exception(f"Invalid JSON in API response: {
-                        str(e)}\nResponse text: {response.text}")
+        raise Exception(
+            f"Invalid JSON in API response: {
+                        str(e)}\nResponse text: {response.text}"
+        )

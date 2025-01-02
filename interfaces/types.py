@@ -52,7 +52,7 @@ class RegisteredAgentRequest(JSONSerializable):
     version: str
     isActive: bool
     emissions: float
-    verification_tweet: VerifiedTweet
+    verification_tweet: Optional[VerifiedTweet]
     profile: Optional[dict[str, Profile]]
 
 
