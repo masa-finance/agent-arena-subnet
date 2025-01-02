@@ -673,7 +673,7 @@ class AgentValidator:
         """Score posts"""
         posts = self.posts_loader.load_posts(
             subnet_id=self.netuid,
-            created_at_range=(
+            timestamp_range=(
                 int(datetime.now(UTC).timestamp()) - 86400,
                 int(datetime.now(UTC).timestamp()),
             ),
