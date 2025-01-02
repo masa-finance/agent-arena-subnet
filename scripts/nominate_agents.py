@@ -231,6 +231,16 @@ async def upload_agent(agent_with_profile: Dict[str, Any]) -> None:
         )
 
 
+async def upload_agents(agents_with_profiles: list) -> None:
+    """Upload a list of agents to the server, showing a progress bar.
+
+    Args:
+        agents_with_profiles (list): A list of dictionaries, each containing agent and profile data.
+    """
+    for agent_with_profile in tqdm(agents_with_profiles, desc="Uploading Agents"):
+        await upload_agent(agent_with_profile)
+
+
 def write_profiles_to_csv(
     virtuals_profiles, creatorbid_profiles, csv_file_path="agent_profiles.csv"
 ):
@@ -282,55 +292,6 @@ if __name__ == "__main__":
     import asyncio
 
     try:
-
-        # Fetch Twitter profiles for creator.bid agents
-        # creatorbid_profiles = asyncio.run(fetch_creator_bid_agents_twitter_profiles())
-
-        # import csv
-
-        # # Define the CSV file path
-        # csv_file_path = "agent_profiles.csv"
-
-        # # Combine virtuals and creatorbid profiles
-        # combined_profiles = virtuals_profiles + creatorbid_profiles
-
-        # # Define the CSV headers
-        # csv_headers = [
-        #     "UserID",
-        #     "Username",
-        #     "Avatar",
-        #     "Banner",
-        #     "Biography",
-        #     "FollowersCount",
-        #     "FollowingCount",
-        #     "LikesCount",
-        #     "Name",
-        # ]
-
-        # # Write the combined profiles to a CSV file
-        # with open(csv_file_path, mode="w", newline="", encoding="utf-8") as csv_file:
-        #     writer = csv.DictWriter(csv_file, fieldnames=csv_headers)
-        #     writer.writeheader()
-
-        #     for profile in combined_profiles:
-        #         profile_data = profile.get("data", {})
-        #         writer.writerow(
-        #             {
-        #                 "UserID": profile_data.get("UserID"),
-        #                 "Username": profile_data.get("Username"),
-        #                 "Avatar": profile_data.get("Avatar"),
-        #                 "Banner": profile_data.get("Banner"),
-        #                 "Biography": profile_data.get("Biography"),
-        #                 "FollowersCount": profile_data.get("FollowersCount"),
-        #                 "FollowingCount": profile_data.get("FollowingCount"),
-        #                 "LikesCount": profile_data.get("LikesCount"),
-        #                 "Name": profile_data.get("Name"),
-        #             }
-        #         )
-
-        # print(f"CSV file '{csv_file_path}' has been created with agent profiles.")
-        # for profile in profiles:
-
         virtuals_profiles = asyncio.run(fetch_agents_twitter_profiles())
         creatorbid_profiles = asyncio.run(fetch_creator_bid_agents_twitter_profiles())
 
@@ -340,7 +301,8 @@ if __name__ == "__main__":
             virtuals_profiles=virtuals_profiles, creatorbid_profiles=creatorbid_profiles
         )
 
-        # asyncio.run(upload_agent(creatorbid_profiles[0]))
+        asyncio.run(upload_agents(creatorbid_profiles))
+        asyncio.run(upload_agents(virtuals_profiles))
         # print(profiles)  # Print the list of profiles
 
     except Exception as e:
