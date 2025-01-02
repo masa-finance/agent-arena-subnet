@@ -343,6 +343,7 @@ class AgentValidator:
 
             search_terms.append({"query": f"to:{agent.Username}", "metadata": agent})
             search_terms.append({"query": f"from:{agent.Username}", "metadata": agent})
+            search_terms.append({"query": f"@{agent.Username}", "metadata": agent})
 
         return search_terms
 
