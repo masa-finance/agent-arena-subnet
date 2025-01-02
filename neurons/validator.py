@@ -39,11 +39,15 @@ from neurons.miner import DecryptedPayload
 
 logger = get_logger(__name__)
 
+BLOCKS_PER_WEIGHT_SETTING = 100
+BLOCK_TIME_SECONDS = 12
+TIME_PER_WEIGHT_SETTING = BLOCKS_PER_WEIGHT_SETTING * BLOCK_TIME_SECONDS
 
-AGENT_REGISTRATION_CADENCE_SECONDS = 30
-SYNC_LOOP_CADENCE_SECONDS = 30
-SCORE_LOOP_CADENCE_SECONDS = 60
-SET_WEIGHTS_LOOP_CADENCE_SECONDS = 300
+AGENT_REGISTRATION_CADENCE_SECONDS = 300  # 5 minutes
+SYNC_LOOP_CADENCE_SECONDS = 60  # 1 minute
+SCORE_LOOP_CADENCE_SECONDS = (
+    TIME_PER_WEIGHT_SETTING / 2
+)  # half of a weight setting period
 UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
 
 
@@ -504,10 +508,10 @@ class AgentValidator:
             try:
                 if len(self.scored_posts) > 0:
                     await self.set_weights()
-                await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS)
+                await asyncio.sleep(60)
             except Exception as e:
                 logger.error(f"Error in setting weights: {str(e)}")
-                await asyncio.sleep(SET_WEIGHTS_LOOP_CADENCE_SECONDS / 2)
+                await asyncio.sleep(60)
 
     async def score_loop(self) -> None:
         """Background task to score agents"""
