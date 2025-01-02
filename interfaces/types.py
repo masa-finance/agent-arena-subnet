@@ -46,14 +46,31 @@ class Profile(JSONSerializable):
 
 @dataclass
 class RegisteredAgentRequest(JSONSerializable):
-    hotkey: str
-    uid: int
-    subnet_id: int
-    version: str
-    isActive: bool
-    emissions: float
-    verification_tweet: VerifiedTweet
-    profile: Optional[dict[str, Profile]]
+    def __init__(
+        self,
+        subnet_id: int,
+        version: str,
+        isActive: bool,
+        isNominated: bool,
+        nominations: int,
+        marketcap: int,
+        profile: dict,
+        hotkey: Optional[str] = None,
+        uid: Optional[str] = None,
+        emissions: Optional[int] = None,
+        verification_tweet: Optional[str] = None,
+    ):
+        self.subnet_id = subnet_id
+        self.version = version
+        self.isActive = isActive
+        self.isNominated = isNominated
+        self.nominations = nominations
+        self.marketcap = marketcap
+        self.profile = profile
+        self.hotkey = hotkey
+        self.uid = uid
+        self.emissions = emissions
+        self.verification_tweet = verification_tweet
 
 
 @dataclass
