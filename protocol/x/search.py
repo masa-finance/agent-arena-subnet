@@ -11,12 +11,13 @@ load_dotenv()
 DEFAULT_BASE_URL = os.getenv('MASA_BASE_URL', "http://localhost:8080")
 DEFAULT_API_BASE = os.getenv('MASA_API_PATH', "/api/v1/data")
 DEFAULT_API_PATH = f"{DEFAULT_API_BASE}/twitter/tweets/recent"
+DEFAULT_SEARCH_COUNT = int(os.getenv('SEARCH_DEFAULT_COUNT', 10))
 
 def search_x(
     base_url: str = DEFAULT_BASE_URL,
     api_path: str = DEFAULT_API_PATH,
     query: str = "#Bitcoin",
-    count: int = 10,
+    count: int = DEFAULT_SEARCH_COUNT,
     additional_params: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
