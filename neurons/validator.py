@@ -26,6 +26,7 @@ from protocol.data_processing.post_loader import LoadPosts
 from protocol.scoring.post_scorer import PostScorer
 from protocol.x.scheduler import XSearchScheduler
 from protocol.x.queue import RequestQueue
+from protocol.scoring.miner_weights import MinerWeights
 
 from interfaces.types import (
     VerifiedTweet,
@@ -104,6 +105,7 @@ class AgentValidator:
 
         self.posts_loader = LoadPosts()
         self.post_scorer = PostScorer()
+        self.miner_weights = MinerWeights(self.post_scorer)
 
     async def start(self) -> None:
         """Start the validator service"""
@@ -911,41 +913,5 @@ class AgentValidator:
         )
 
     def get_scores(self) -> Tuple[List[int], List[float]]:
-        """Calculate scores for each UID considering quality and volume.
-        
-        Returns:
-            Tuple[List[int], List[float]]: A tuple containing:
-                - List of UIDs
-                - List of corresponding scores (0-1) with volume bonus
-        """
-        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
-        scores_by_uid = {}
-        
-        # Initialize score accumulators
-        for uid in uids:
-            scores_by_uid[uid] = {
-                'score_sum': 0.0,
-                'post_count': 0
-            }
-        
-        # Calculate scores
-        for post in self.scored_posts:
-            uid = int(post["uid"])
-            for score_data in post['scores']:
-                scores_by_uid[uid]['score_sum'] += score_data['score']
-                scores_by_uid[uid]['post_count'] += 1
-
-        # Calculate final scores with volume bonus
-        final_scores = {}
-        for uid in uids:
-            data = scores_by_uid[uid]
-            if data['post_count'] > 0:
-                base_score = data['score_sum'] / data['post_count']
-                volume_bonus = math.log1p(data['post_count']) / 10
-                final_scores[uid] = min(1.0, base_score * (1 + volume_bonus))
-            else:
-                final_scores[uid] = 0.0
-
-        # Return UIDs and scores in matching order
-        scores = [final_scores[uid] for uid in uids]
-        return uids, scores
+        """Calculate scores for each UID considering quality and volume."""
+        return self.miner_weights.calculate_weights(self.scored_posts)

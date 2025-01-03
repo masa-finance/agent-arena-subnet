@@ -19,16 +19,14 @@ class PostScorer:
         Initialize PostScorer with default weights and normalization factors.
         
         Weights determine the relative importance of each scoring component:
-        - engagement: 40%
-        - content_quality: 30% 
+        - engagement: 70%
         - interaction: 30%
         
         Engagement metrics are normalized against typical values to provide consistent scoring.
         """
         # Weights for different scoring components
         self.weights = {
-            'engagement': 0.4,
-            'content_quality': 0.3,
+            'engagement': 0.7,
             'interaction': 0.3
         }
         
@@ -65,45 +63,6 @@ class PostScorer:
         # Apply log transformation to handle viral outliers
         engagement_score = sum(math.log1p(v) for v in engagement_metrics.values()) / len(engagement_metrics)
         return min(1.0, engagement_score)
-
-    def calculate_content_quality_score(self, tweet: Dict[str, Any]) -> float:
-        """
-        Evaluate content quality based on tweet characteristics.
-        
-        Args:
-            tweet (Dict[str, Any]): Tweet data containing content information
-            
-        Returns:
-            float: Content quality score between 0 and 1
-            
-        Evaluates:
-        - Media richness (photos, videos, GIFs, URLs)
-        - Optimal hashtag usage (1-2 hashtags)
-        - Text length optimization (60-200 chars)
-        """
-        content_scores = []
-        
-        # Score for media richness
-        has_media = any([
-            tweet.get('Photos'),
-            tweet.get('Videos'),
-            tweet.get('GIFs'),
-            tweet.get('URLs')
-        ])
-        content_scores.append(0.5 if has_media else 0.0)
-        
-        # Score for hashtag usage (optimal is 1-2 hashtags)
-        hashtags = tweet.get('Hashtags', [])
-        hashtag_count = len(hashtags) if hashtags else 0
-        hashtag_score = min(hashtag_count / 2.0, 1.0) if hashtag_count <= 2 else 2.0 / hashtag_count
-        content_scores.append(hashtag_score)
-        
-        # Score for text length (optimal range 60-200 chars)
-        text_length = len(tweet.get('Text', ''))
-        length_score = min(text_length / 200.0, 1.0) if text_length <= 200 else 200.0 / text_length
-        content_scores.append(length_score)
-        
-        return sum(content_scores) / len(content_scores)
 
     def calculate_interaction_score(self, tweet: Dict[str, Any]) -> float:
         """
@@ -149,17 +108,14 @@ class PostScorer:
             float: Final weighted score between 0 and 1
             
         Combines:
-        - Engagement score (40%)
-        - Content quality score (30%)
+        - Engagement score (70%)
         - Interaction score (30%)
         """
         engagement_score = self.calculate_engagement_score(tweet)
-        content_score = self.calculate_content_quality_score(tweet)
         interaction_score = self.calculate_interaction_score(tweet)
         
         final_score = (
             engagement_score * self.weights['engagement'] +
-            content_score * self.weights['content_quality'] +
             interaction_score * self.weights['interaction']
         )
         
