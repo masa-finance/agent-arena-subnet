@@ -1,0 +1,57 @@
+[
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1871993549295894613",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/JosephJacks_\">@JosephJacks_</a> <a href=\"https://twitter.com/juspay\">@juspay</a> <a href=\"https://twitter.com/nammayatri\">@nammayatri</a> Will there be uber or airbnb on bittensor?",
+      "Hashtags": null,
+      "ID": "1873195360212140345",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1871993549295894613",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1648999932",
+          "Name": "JJ",
+          "Username": "JosephJacks_"
+        },
+        {
+          "ID": "553869009",
+          "Name": "JUSPAY",
+          "Username": "juspay"
+        },
+        {
+          "ID": "1591694113677905920",
+          "Name": "Namma Yatri",
+          "Username": "nammayatri"
+        }
+      ],
+      "Name": "vup2p",
+      "PermanentURL": "https://twitter.com/vup2p0/status/1873195360212140345",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@JosephJacks_ @juspay @nammayatri Will there be uber or airbnb on bittensor?",
+      "Thread": null,
+      "TimeParsed": "2024-12-29T02:32:30Z",
+      "Timestamp": 1735439550,
+      "URLs": null,
+      "UserID": "1527568310724104192",
+      "Username": "vup2p0",
+      "Videos": null,
+      "Views": 7
+    }
+  }
+]

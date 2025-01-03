@@ -1,0 +1,985 @@
+[
+  {
+    "Tweet": {
+      "ConversationID": "1869226634831856047",
+      "GIFs": null,
+      "Hashtags": null,
+      "HTML": "5FntxaU1C1NcFYVaaZ9Eh3R8wM3S9UeqFgFxeRkRneDFXQTX",
+      "ID": "1869226634831856047",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsQuoted": false,
+      "IsPin": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "Mentions": null,
+      "PermanentURL": "https://twitter.com/workers8/status/1869226634831856047",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "Retweets": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Text": "5FntxaU1C1NcFYVaaZ9Eh3R8wM3S9UeqFgFxeRkRneDFXQTX",
+      "Thread": null,
+      "TimeParsed": "2024-12-18T03:42:12Z",
+      "Timestamp": 1734493332,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 2,
+      "SensitiveContent": false
+    },
+    "Error": null
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1869546045476401313",
+      "GIFs": null,
+      "HTML": "Investors should be prepared for potential supply shortages and volatility when Ripple's RLUSD stablecoin launches, according to Ripple's CTO.",
+      "Hashtags": null,
+      "ID": "1869546045476401313",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1869546045476401313",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Investors should be prepared for potential supply shortages and volatility when Ripple's RLUSD stablecoin launches, according to Ripple's CTO.",
+      "Thread": null,
+      "TimeParsed": "2024-12-19T00:51:26Z",
+      "Timestamp": 1734569486,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 4
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1869655786508693875",
+      "GIFs": null,
+      "HTML": "Bitcoin facing resistance near $100,000. Bulls holding ground increases chances of upside breakout. <a href=\"https://twitter.com/hashtag/Bitcoin\">#Bitcoin</a>",
+      "Hashtags": [
+        "Bitcoin"
+      ],
+      "ID": "1869655786508693875",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1869655786508693875",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Bitcoin facing resistance near $100,000. Bulls holding ground increases chances of upside breakout. #Bitcoin",
+      "Thread": null,
+      "TimeParsed": "2024-12-19T08:07:30Z",
+      "Timestamp": 1734595650,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1869690407501906308",
+      "GIFs": null,
+      "HTML": "Synthetix's new mobile DeFi trading app by Mass offers up to 25x leverage on perpetual futures, aiming to bridge the gap between centralized and decentralized exchanges. <a href=\"https://twitter.com/hashtag/DeFi\">#DeFi</a>",
+      "Hashtags": [
+        "DeFi"
+      ],
+      "ID": "1869690407501906308",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1869690407501906308",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Synthetix's new mobile DeFi trading app by Mass offers up to 25x leverage on perpetual futures, aiming to bridge the gap between centralized and decentralized exchanges. #DeFi",
+      "Thread": null,
+      "TimeParsed": "2024-12-19T10:25:04Z",
+      "Timestamp": 1734603904,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1869907186211549294",
+      "GIFs": null,
+      "HTML": "Subscribe to Markets Outlook newsletter for critical insights on investment opportunities and trading strategies.",
+      "Hashtags": null,
+      "ID": "1869907186211549294",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1869907186211549294",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Subscribe to Markets Outlook newsletter for critical insights on investment opportunities and trading strategies.",
+      "Thread": null,
+      "TimeParsed": "2024-12-20T00:46:29Z",
+      "Timestamp": 1734655589,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1869898679341228117",
+      "GIFs": null,
+      "HTML": "As the crypto market continues to expand, the potential for growth is attracting attention from regulators and investors alike. With the right regulations in place, the market could reach new heights in the coming years. <a href=\"https://twitter.com/hashtag/Crypto\">#Crypto</a>",
+      "Hashtags": [
+        "Crypto"
+      ],
+      "ID": "1869898679341228117",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1869898679341228117",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "As the crypto market continues to expand, the potential for growth is attracting attention from regulators and investors alike. With the right regulations in place, the market could reach new heights in the coming years. #Crypto",
+      "Thread": null,
+      "TimeParsed": "2024-12-20T00:12:40Z",
+      "Timestamp": 1734653560,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1870722617650635259",
+      "GIFs": null,
+      "HTML": "Bitcoin's record-breaking week saw it hit $100,000 for the first time ever. <a href=\"https://twitter.com/hashtag/Bitcoin\">#Bitcoin</a>",
+      "Hashtags": [
+        "Bitcoin"
+      ],
+      "ID": "1870722617650635259",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1870722617650635259",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Bitcoin's record-breaking week saw it hit $100,000 for the first time ever. #Bitcoin",
+      "Thread": null,
+      "TimeParsed": "2024-12-22T06:46:43Z",
+      "Timestamp": 1734850003,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1871533520541339774",
+      "GIFs": null,
+      "HTML": "Pepe memecoin surpasses Uniswap in market cap, hitting a $11 billion ATH. \ud83d\ude80 <a href=\"https://twitter.com/11oganhenderson\">@11oganhenderson</a> <a href=\"https://twitter.com/iamcjlouis\">@iamcjlouis</a> <a href=\"https://twitter.com/hashtag/Pepe\">#Pepe</a> <a href=\"https://twitter.com/hashtag/ATH\">#ATH</a> URL: <a href=\"https://coinmarketcap.com/community/search/latest/?q=ATH\">https://t.co/ZJL7NFNWOa</a>",
+      "Hashtags": [
+        "Pepe",
+        "ATH"
+      ],
+      "ID": "1871533520541339774",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "765037171",
+          "Name": "Logan Henderson",
+          "Username": "11oganhenderson"
+        },
+        {
+          "ID": "2183062735",
+          "Name": "Cj Louis",
+          "Username": "iamcjlouis"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1871533520541339774",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Pepe memecoin surpasses Uniswap in market cap, hitting a $11 billion ATH. \ud83d\ude80 @11oganhenderson @iamcjlouis #Pepe #ATH URL: https://t.co/ZJL7NFNWOa",
+      "Thread": null,
+      "TimeParsed": "2024-12-24T12:28:57Z",
+      "Timestamp": 1735043337,
+      "URLs": [
+        "https://coinmarketcap.com/community/search/latest/?q=ATH"
+      ],
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 10
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1872860849028907050",
+      "GIFs": null,
+      "HTML": "BNB rallying above $667 but facing selling pressure. Support at 20-day EMA. Bulls targeting $722 &amp; $810. \ud83d\ude4c \u2728 <a href=\"https://twitter.com/Donte98024643\">@Donte98024643</a> <a href=\"https://twitter.com/whtvrx\">@whtvrx</a> <a href=\"https://twitter.com/hashtag/CryptoTrading\">#CryptoTrading</a>  <a href=\"https://coinmarketcap.com/community/search/latest/?q=price\">https://t.co/nS8kOpcPHY</a>",
+      "Hashtags": [
+        "CryptoTrading"
+      ],
+      "ID": "1872860849028907050",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 1,
+      "Mentions": [
+        {
+          "ID": "3303425620",
+          "Name": "Donte",
+          "Username": "Donte98024643"
+        },
+        {
+          "ID": "4872208340",
+          "Name": "J.",
+          "Username": "whtvrx"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1872860849028907050",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "BNB rallying above $667 but facing selling pressure. Support at 20-day EMA. Bulls targeting $722 &amp; $810. \ud83d\ude4c \u2728 @Donte98024643 @whtvrx #CryptoTrading  https://t.co/nS8kOpcPHY",
+      "Thread": null,
+      "TimeParsed": "2024-12-28T04:23:17Z",
+      "Timestamp": 1735359797,
+      "URLs": [
+        "https://coinmarketcap.com/community/search/latest/?q=price"
+      ],
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1872494511454310458",
+      "GIFs": null,
+      "HTML": "Cardano crosses $0.80 hurdle, indicating uptrend continuation towards $1 resistance and $1.25 potential target. \ud83c\udf1f\ud83d\ude4c\u2764\ufe0f <a href=\"https://twitter.com/TMalterer\">@TMalterer</a> <a href=\"https://twitter.com/SafariGolfVB\">@SafariGolfVB</a> <a href=\"https://twitter.com/hashtag/ADA\">#ADA</a> <a href=\"https://twitter.com/hashtag/cryptoupdate\">#cryptoupdate</a> <a href=\"https://coinmarketcap.com/community/search/latest/?q=a\">https://t.co/OZzMsALnjZ</a>",
+      "Hashtags": [
+        "ADA",
+        "cryptoupdate"
+      ],
+      "ID": "1872494511454310458",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 5,
+      "Mentions": [
+        {
+          "ID": "363755957",
+          "Name": "taylor malterer",
+          "Username": "TMalterer"
+        },
+        {
+          "ID": "298151482",
+          "Name": "Safari Golf & Games",
+          "Username": "SafariGolfVB"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1872494511454310458",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Cardano crosses $0.80 hurdle, indicating uptrend continuation towards $1 resistance and $1.25 potential target. \ud83c\udf1f\ud83d\ude4c\u2764\ufe0f @TMalterer @SafariGolfVB #ADA #cryptoupdate https://t.co/OZzMsALnjZ",
+      "Thread": null,
+      "TimeParsed": "2024-12-27T04:07:35Z",
+      "Timestamp": 1735272455,
+      "URLs": [
+        "https://coinmarketcap.com/community/search/latest/?q=a"
+      ],
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 26
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873206351331246180",
+      "GIFs": null,
+      "HTML": "Bitcoin's dip under $92,000 sparks speculations of a rally to $100,000. Bulls face a crucial test in current market conditions. <a href=\"https://twitter.com/Bleepboopbleep\">@Bleepboopbleep</a> <a href=\"https://twitter.com/SafariGolfVB\">@SafariGolfVB</a> \u2728 <a href=\"https://twitter.com/hashtag/Bitcoin\">#Bitcoin</a> <a href=\"https://twitter.com/hashtag/Bulls\">#Bulls</a> Stay updated on the latest trends at:",
+      "Hashtags": [
+        "Bitcoin",
+        "Bulls"
+      ],
+      "ID": "1873206351331246180",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 1,
+      "Mentions": [
+        {
+          "ID": "542932645",
+          "Name": "made sandrolini",
+          "Username": "Bleepboopbleep"
+        },
+        {
+          "ID": "298151482",
+          "Name": "Safari Golf & Games",
+          "Username": "SafariGolfVB"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1873206351331246180",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Bitcoin's dip under $92,000 sparks speculations of a rally to $100,000. Bulls face a crucial test in current market conditions. @Bleepboopbleep @SafariGolfVB \u2728 #Bitcoin #Bulls Stay updated on the latest trends at:",
+      "Thread": null,
+      "TimeParsed": "2024-12-29T03:16:11Z",
+      "Timestamp": 1735442171,
+      "URLs": null,
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 20
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873926214509093320",
+      "GIFs": null,
+      "HTML": "SEC reported record $8.2 billion in fiscal penalties, including $4.47 billion from Terraform Labs settlement. <a href=\"https://twitter.com/xQueenLoreex\">@xQueenLoreex</a> <a href=\"https://twitter.com/FeelingLyrical\">@FeelingLyrical</a> \ud83d\ude02 Discover more at <a href=\"https://coinmarketcap.com/community/search/latest/?q=coming\">https://t.co/gfxa8yUTXl</a>",
+      "Hashtags": null,
+      "ID": "1873926214509093320",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 1,
+      "Mentions": [
+        {
+          "ID": "572646966",
+          "Name": "Ashley",
+          "Username": "xQueenLoreex"
+        },
+        {
+          "ID": "2987840295",
+          "Name": "Lyrics",
+          "Username": "FeelingLyrical"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1873926214509093320",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "SEC reported record $8.2 billion in fiscal penalties, including $4.47 billion from Terraform Labs settlement. @xQueenLoreex @FeelingLyrical \ud83d\ude02 Discover more at https://t.co/gfxa8yUTXl",
+      "Thread": null,
+      "TimeParsed": "2024-12-31T02:56:40Z",
+      "Timestamp": 1735613800,
+      "URLs": [
+        "https://coinmarketcap.com/community/search/latest/?q=coming"
+      ],
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873573891202818530",
+      "GIFs": null,
+      "HTML": "Is measuring blockchain TPS still relevant in 2024? Dive into the latest DeFi trends and financial opportunities. Stay informed! \ud83d\udd25\ud83c\udf1f <a href=\"https://twitter.com/LoveGraham94\">@LoveGraham94</a> <a href=\"https://twitter.com/donteldoit\">@donteldoit</a> <a href=\"https://coinmarketcap.com/community/search/latest/?q=still\">https://t.co/usUKNybNXW</a>",
+      "Hashtags": null,
+      "ID": "1873573891202818530",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 25,
+      "Mentions": [
+        {
+          "ID": "1136573402",
+          "Name": "Courtney love",
+          "Username": "LoveGraham94"
+        },
+        {
+          "ID": "454583239",
+          "Name": "dontel bailey",
+          "Username": "donteldoit"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1873573891202818530",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Is measuring blockchain TPS still relevant in 2024? Dive into the latest DeFi trends and financial opportunities. Stay informed! \ud83d\udd25\ud83c\udf1f @LoveGraham94 @donteldoit https://t.co/usUKNybNXW",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T03:36:39Z",
+      "Timestamp": 1735529799,
+      "URLs": [
+        "https://coinmarketcap.com/community/search/latest/?q=still"
+      ],
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 116
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874287568902381745",
+      "GIFs": null,
+      "HTML": "Think of Bitcoin as a ticket to financial sovereignty. \ud83d\udee1\ufe0f Decentralized, secure, and unstoppable. \ud83d\udd25<br><a href=\"https://twitter.com/hashtag/Bitcoin\">#Bitcoin</a> <a href=\"https://twitter.com/hashtag/FutureOfMoney\">#FutureOfMoney</a><br>\ud83d\udd17 Start your journey: <a href=\"https://cointelegraph.com\">https://t.co/NOQ7E8sPZA</a> <a href=\"https://twitter.com/jan_delay\">@jan_delay</a> <a href=\"https://twitter.com/WhiteHouse\">@WhiteHouse</a>",
+      "Hashtags": [
+        "Bitcoin",
+        "FutureOfMoney"
+      ],
+      "ID": "1874287568902381745",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "51032042",
+          "Name": "Jan Delay",
+          "Username": "jan_delay"
+        },
+        {
+          "ID": "1323730225067339784",
+          "Name": "The White House",
+          "Username": "WhiteHouse"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1874287568902381745",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Think of Bitcoin as a ticket to financial sovereignty. \ud83d\udee1\ufe0f Decentralized, secure, and unstoppable. \ud83d\udd25\n#Bitcoin #FutureOfMoney\n\ud83d\udd17 Start your journey: https://t.co/NOQ7E8sPZA @jan_delay @WhiteHouse",
+      "Thread": null,
+      "TimeParsed": "2025-01-01T02:52:33Z",
+      "Timestamp": 1735699953,
+      "URLs": [
+        "https://cointelegraph.com"
+      ],
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 4
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874668443309666418",
+      "GIFs": null,
+      "HTML": "Just in: Metaplanet makes its biggest-ever 620 Bitcoin buy worth $60 million! \ud83d\ude80\ud83d\udcb0 Time to <a href=\"https://twitter.com/hashtag/CryptoInvestor\">#CryptoInvestor</a> and stay ahead in the world of <a href=\"https://twitter.com/hashtag/Cryptocurrency\">#Cryptocurrency</a> <a href=\"https://twitter.com/verosolanaprice\">@verosolanaprice</a> <a href=\"https://twitter.com/nicola100xcoin\">@nicola100xcoin</a><br>\ud83d\udc49 <a href=\"https://cointelegraph.com/news/metaplanet-massive-bitcoin-purchase\">https://t.co/roZwDUbf7I</a>",
+      "Hashtags": [
+        "CryptoInvestor",
+        "Cryptocurrency"
+      ],
+      "ID": "1874668443309666418",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1568783947",
+          "Name": "veronique",
+          "Username": "verosolanaprice"
+        },
+        {
+          "ID": "3732415401",
+          "Name": "Nicolas Gomez",
+          "Username": "nicola100xcoin"
+        }
+      ],
+      "Name": "\u0924\u0928\u094d\u0939\u093e \u090f\u0939\u0938\u093e\u0938",
+      "PermanentURL": "https://twitter.com/workers8/status/1874668443309666418",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Just in: Metaplanet makes its biggest-ever 620 Bitcoin buy worth $60 million! \ud83d\ude80\ud83d\udcb0 Time to #CryptoInvestor and stay ahead in the world of #Cryptocurrency @verosolanaprice @nicola100xcoin\n\ud83d\udc49 https://t.co/roZwDUbf7I",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T04:06:01Z",
+      "Timestamp": 1735790761,
+      "URLs": [
+        "https://cointelegraph.com/news/metaplanet-massive-bitcoin-purchase"
+      ],
+      "UserID": "3955985836",
+      "Username": "workers8",
+      "Videos": null,
+      "Views": 4
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874672197941506196",
+      "GIFs": null,
+      "HTML": "I'm in a giving mood! \ud83c\udf89 I\u2019ll send 0.2 BTC to a random lucky person who likes this tweet! Let\u2019s ride this bull cycle together! \ud83d\ude80 <br><br><a href=\"https://twitter.com/Mohammed_A_250\">@Mohammed_A_250</a> <a href=\"https://twitter.com/SamH0892\">@SamH0892</a> <a href=\"https://twitter.com/hashtag/CryptoBullCycle\">#CryptoBullCycle</a> <a href=\"https://twitter.com/hashtag/BTC\">#BTC</a> <br><a href=\"https://t.co/6twraXiaT1\"><img src=\"https://pbs.twimg.com/media/GgQsC_LWoAApM_P.jpg\"/></a>",
+      "Hashtags": [
+        "CryptoBullCycle",
+        "BTC"
+      ],
+      "ID": "1874672197941506196",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1874651122608300032",
+          "Name": "Mohammed A",
+          "Username": "Mohammed_A_250"
+        },
+        {
+          "ID": "1874658008313036800",
+          "Name": "Sam",
+          "Username": "SamH0892"
+        }
+      ],
+      "Name": "Mohammed A",
+      "PermanentURL": "https://twitter.com/Mohammed_A_250/status/1874672197941506196",
+      "Photos": [
+        {
+          "ID": "1874671774723383296",
+          "URL": "https://pbs.twimg.com/media/GgQsC_LWoAApM_P.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "I'm in a giving mood! \ud83c\udf89 I\u2019ll send 0.2 BTC to a random lucky person who likes this tweet! Let\u2019s ride this bull cycle together! \ud83d\ude80 \n\n@Mohammed_A_250 @SamH0892 #CryptoBullCycle #BTC https://t.co/6twraXiaT1",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T04:20:56Z",
+      "Timestamp": 1735791656,
+      "URLs": null,
+      "UserID": "1874651122608300032",
+      "Username": "Mohammed_A_250",
+      "Videos": null,
+      "Views": 3
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874671372225638498",
+      "GIFs": null,
+      "HTML": "Feeling generous! \ud83d\udcb0 I\u2019m giving away 0.05 BTC to a random person who likes this tweet! \ud83d\udd25 Don\u2019t miss out! <br><br><a href=\"https://twitter.com/Mohammed_A_250\">@Mohammed_A_250</a> <a href=\"https://twitter.com/SamH0892\">@SamH0892</a> <a href=\"https://twitter.com/hashtag/CryptoBullCycle\">#CryptoBullCycle</a> <a href=\"https://twitter.com/hashtag/BTC\">#BTC</a> <br><a href=\"https://t.co/OVOhgbhKqt\"><img src=\"https://pbs.twimg.com/media/GgQj2YPW8AA5Os5.jpg\"/></a>",
+      "Hashtags": [
+        "CryptoBullCycle",
+        "BTC"
+      ],
+      "ID": "1874671372225638498",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1874651122608300032",
+          "Name": "Mohammed A",
+          "Username": "Mohammed_A_250"
+        },
+        {
+          "ID": "1874658008313036800",
+          "Name": "Sam",
+          "Username": "SamH0892"
+        }
+      ],
+      "Name": "Mohammed A",
+      "PermanentURL": "https://twitter.com/Mohammed_A_250/status/1874671372225638498",
+      "Photos": [
+        {
+          "ID": "1874662762019745792",
+          "URL": "https://pbs.twimg.com/media/GgQj2YPW8AA5Os5.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Feeling generous! \ud83d\udcb0 I\u2019m giving away 0.05 BTC to a random person who likes this tweet! \ud83d\udd25 Don\u2019t miss out! \n\n@Mohammed_A_250 @SamH0892 #CryptoBullCycle #BTC https://t.co/OVOhgbhKqt",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T04:17:39Z",
+      "Timestamp": 1735791459,
+      "URLs": null,
+      "UserID": "1874651122608300032",
+      "Username": "Mohammed_A_250",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874657650375548936",
+      "GIFs": null,
+      "HTML": "5E7sgZmcZaTDSRM6t34QGiuQ93W6jKBTTYZMyGwteBW1PEwk",
+      "Hashtags": null,
+      "ID": "1874657650375548936",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "Mohammed A",
+      "PermanentURL": "https://twitter.com/Mohammed_A_250/status/1874657650375548936",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "5E7sgZmcZaTDSRM6t34QGiuQ93W6jKBTTYZMyGwteBW1PEwk",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T03:23:07Z",
+      "Timestamp": 1735788187,
+      "URLs": null,
+      "UserID": "1874651122608300032",
+      "Username": "Mohammed_A_250",
+      "Videos": null,
+      "Views": 4
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874863510833988037",
+      "GIFs": null,
+      "HTML": "Excited to announce I'm giving away 0.2 BTC to a random lucky winner who likes this tweet! \ud83c\udf89 Join the fun and let's make magic happen! \ud83d\ude80 <br><br><a href=\"https://twitter.com/Mohammed_A_250\">@Mohammed_A_250</a> <a href=\"https://twitter.com/SamH0892\">@SamH0892</a> <a href=\"https://twitter.com/hashtag/CryptoBullCycle\">#CryptoBullCycle</a> <a href=\"https://twitter.com/hashtag/BTC\">#BTC</a> <br><a href=\"https://t.co/SyW8Osc9EX\"><img src=\"https://pbs.twimg.com/media/GgTaVtZWAAAVupJ.jpg\"/></a>",
+      "Hashtags": [
+        "CryptoBullCycle",
+        "BTC"
+      ],
+      "ID": "1874863510833988037",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1874651122608300032",
+          "Name": "Mohammed A",
+          "Username": "Mohammed_A_250"
+        },
+        {
+          "ID": "1874658008313036800",
+          "Name": "Sam",
+          "Username": "SamH0892"
+        }
+      ],
+      "Name": "Mohammed A",
+      "PermanentURL": "https://twitter.com/Mohammed_A_250/status/1874863510833988037",
+      "Photos": [
+        {
+          "ID": "1874863411390971904",
+          "URL": "https://pbs.twimg.com/media/GgTaVtZWAAAVupJ.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Excited to announce I'm giving away 0.2 BTC to a random lucky winner who likes this tweet! \ud83c\udf89 Join the fun and let's make magic happen! \ud83d\ude80 \n\n@Mohammed_A_250 @SamH0892 #CryptoBullCycle #BTC https://t.co/SyW8Osc9EX",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T17:01:08Z",
+      "Timestamp": 1735837268,
+      "URLs": null,
+      "UserID": "1874651122608300032",
+      "Username": "Mohammed_A_250",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1875011115715084527",
+      "GIFs": null,
+      "HTML": "Exciting news! \ud83c\udf89 I\u2019m giving away 0.15 BTC to a random person who likes this tweet! Let\u2019s make this crypto bull cycle unforgettable! <br><br><a href=\"https://twitter.com/Mohammed_A_250\">@Mohammed_A_250</a> <a href=\"https://twitter.com/hashtag/BTC\">#BTC</a> <a href=\"https://twitter.com/SamH0892\">@SamH0892</a> <a href=\"https://twitter.com/hashtag/CryptoBullCycle\">#CryptoBullCycle</a> <br><a href=\"https://t.co/VQzcB5scod\"><img src=\"https://pbs.twimg.com/media/GgVgqNHWoAAE32L.jpg\"/></a>",
+      "Hashtags": [
+        "BTC",
+        "CryptoBullCycle"
+      ],
+      "ID": "1875011115715084527",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1874651122608300032",
+          "Name": "Mohammed A",
+          "Username": "Mohammed_A_250"
+        },
+        {
+          "ID": "1874658008313036800",
+          "Name": "Sam",
+          "Username": "SamH0892"
+        }
+      ],
+      "Name": "Mohammed A",
+      "PermanentURL": "https://twitter.com/Mohammed_A_250/status/1875011115715084527",
+      "Photos": [
+        {
+          "ID": "1875011098060955648",
+          "URL": "https://pbs.twimg.com/media/GgVgqNHWoAAE32L.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Exciting news! \ud83c\udf89 I\u2019m giving away 0.15 BTC to a random person who likes this tweet! Let\u2019s make this crypto bull cycle unforgettable! \n\n@Mohammed_A_250 #BTC @SamH0892 #CryptoBullCycle https://t.co/VQzcB5scod",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T02:47:40Z",
+      "Timestamp": 1735872460,
+      "URLs": null,
+      "UserID": "1874651122608300032",
+      "Username": "Mohammed_A_250",
+      "Videos": null,
+      "Views": 2
+    }
+  }
+]

@@ -1,0 +1,1921 @@
+[
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1869954788512936433",
+      "GIFs": null,
+      "HTML": "<a href=\"https://vnexpress.net/tottenham-da-vang-man-utd-khoi-cup-lien-doan-4829888.html\">https://t.co/GEMT4e2cUB</a>",
+      "Hashtags": null,
+      "ID": "1869954788512936433",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "\u0635\u0644\u0648\u062d\u062d",
+      "PermanentURL": "https://twitter.com/ping2788_66688/status/1869954788512936433",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "https://t.co/GEMT4e2cUB",
+      "Thread": null,
+      "TimeParsed": "2024-12-20T03:55:38Z",
+      "Timestamp": 1734666938,
+      "URLs": [
+        "https://vnexpress.net/tottenham-da-vang-man-utd-khoi-cup-lien-doan-4829888.html"
+      ],
+      "UserID": "1061325248",
+      "Username": "ping2788_66688",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873529932816544146",
+      "GIFs": [
+        {
+          "ID": "1873692562135064576",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCxdUBaIAAdjU-.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCxdUBaIAAdjU-.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/Vietnambk01\">@Vietnambk01</a> <br><a href=\"https://t.co/B2U5pXOrV9\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCxdUBaIAAdjU-.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873692573073899525",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873529932816544146",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1009612612600905735",
+          "Name": "Viet Nam 5902",
+          "Username": "Vietnambk01"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873692573073899525",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Vietnambk01 https://t.co/B2U5pXOrV9",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:28:15Z",
+      "Timestamp": 1735558095,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 0
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533794495426818",
+      "GIFs": [
+        {
+          "ID": "1873692481109544960",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCxYmLa0AAg8g_.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCxYmLa0AAg8g_.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/Tuannam5905\">@Tuannam5905</a> <br><a href=\"https://t.co/OIcggzuHlH\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCxYmLa0AAg8g_.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873692491746316736",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533794495426818",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002213263745024",
+          "Name": "Tuan Nam 5905",
+          "Username": "Tuannam5905"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873692491746316736",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Tuannam5905 https://t.co/OIcggzuHlH",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:27:56Z",
+      "Timestamp": 1735558076,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 0
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533794495426818",
+      "GIFs": [
+        {
+          "ID": "1873692075964985344",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCxBA5bcAAwNLO.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCxBA5bcAAwNLO.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/Tuannam5905\">@Tuannam5905</a> <br><a href=\"https://t.co/ExkufIoAHM\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCxBA5bcAAwNLO.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873692087276941338",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533794495426818",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002213263745024",
+          "Name": "Tuan Nam 5905",
+          "Username": "Tuannam5905"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873692087276941338",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Tuannam5905 https://t.co/ExkufIoAHM",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:26:19Z",
+      "Timestamp": 1735557979,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533724404379650",
+      "GIFs": [
+        {
+          "ID": "1873691977059065856",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCw7Qca4AA4o9R.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCw7Qca4AA4o9R.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/Thanruabk02\">@Thanruabk02</a> <br><a href=\"https://t.co/lxU9xRGLIJ\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCw7Qca4AA4o9R.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873691981941276741",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533724404379650",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1871748881526210560",
+          "Name": "Viet Nam 5903",
+          "Username": "Thanruabk02"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873691981941276741",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Thanruabk02 https://t.co/lxU9xRGLIJ",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:25:54Z",
+      "Timestamp": 1735557954,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 0
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533601158951080",
+      "GIFs": [
+        {
+          "ID": "1873691785257734144",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCwwF7a0AAUE6V.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCwwF7a0AAUE6V.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/Vietnambk01\">@Vietnambk01</a> <br><a href=\"https://t.co/eryzzKNZD8\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCwwF7a0AAUE6V.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873691796053889238",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533601158951080",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1009612612600905735",
+          "Name": "Viet Nam 5902",
+          "Username": "Vietnambk01"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873691796053889238",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Vietnambk01 https://t.co/eryzzKNZD8",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:25:10Z",
+      "Timestamp": 1735557910,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 0
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873532977046565235",
+      "GIFs": [
+        {
+          "ID": "1873691343840780288",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCwWZhaoAA_puY.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCwWZhaoAA_puY.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/ThanRuabk\">@ThanRuabk</a> \u0102n s\u00e1ng sang qu\u00e1 <br><a href=\"https://t.co/FmNCHRRW0V\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCwWZhaoAA_puY.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873691354733363648",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873532977046565235",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "962184092698624001",
+          "Name": "Bui Viet Nam",
+          "Username": "ThanRuabk"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873691354733363648",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@ThanRuabk \u0102n s\u00e1ng sang qu\u00e1 https://t.co/FmNCHRRW0V",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:23:25Z",
+      "Timestamp": 1735557805,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 5
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873531891598364695",
+      "GIFs": [
+        {
+          "ID": "1873691195530170368",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCwNxBaUAABInG.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCwNxBaUAABInG.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/Vietnam5904\">@Vietnam5904</a> Qu\u1ea9y \u0111i b\u1ea1n \u01a1i <br><a href=\"https://t.co/vpIomv63B7\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCwNxBaUAABInG.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873691206351487344",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873531891598364695",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1871759811450380288",
+          "Name": "Viet Nam 5904",
+          "Username": "Vietnam5904"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873691206351487344",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Vietnam5904 Qu\u1ea9y \u0111i b\u1ea1n \u01a1i https://t.co/vpIomv63B7",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:22:49Z",
+      "Timestamp": 1735557769,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 4
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873530744196178329",
+      "GIFs": [
+        {
+          "ID": "1873690843737157632",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCv5Sfa8AAsSXA.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCv5Sfa8AAsSXA.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/ThanRuabk\">@ThanRuabk</a> Tu\u1ea7n m\u1edbi may m\u1eafn nh\u00e9 b\u1ea1n ! <br><a href=\"https://t.co/CQBIPZcbVE\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCv5Sfa8AAsSXA.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873690848682209479",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873530744196178329",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "962184092698624001",
+          "Name": "Bui Viet Nam",
+          "Username": "ThanRuabk"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873690848682209479",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@ThanRuabk Tu\u1ea7n m\u1edbi may m\u1eafn nh\u00e9 b\u1ea1n ! https://t.co/CQBIPZcbVE",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:21:24Z",
+      "Timestamp": 1735557684,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 4
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873530175628976378",
+      "GIFs": [
+        {
+          "ID": "1873690744499978240",
+          "Preview": "https://pbs.twimg.com/tweet_video_thumb/GgCvzgzbwAASq63.jpg",
+          "URL": "https://video.twimg.com/tweet_video/GgCvzgzbwAASq63.mp4"
+        }
+      ],
+      "HTML": "<a href=\"https://twitter.com/xuka5910\">@xuka5910</a> Ch\u00e0o tu\u1ea7n m\u1edbi <br><a href=\"https://t.co/HZwgpa5HDB\"><img src=\"https://pbs.twimg.com/tweet_video_thumb/GgCvzgzbwAASq63.jpg\"/></a>",
+      "Hashtags": null,
+      "ID": "1873690750569123880",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873530175628976378",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873023036338900992",
+          "Name": "Xuka5910",
+          "Username": "xuka5910"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873690750569123880",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@xuka5910 Ch\u00e0o tu\u1ea7n m\u1edbi https://t.co/HZwgpa5HDB",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:21:01Z",
+      "Timestamp": 1735557661,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873529922813079577",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Vietnam5904\">@Vietnam5904</a> Ch\u00e0o tu\u1ea7n m\u1edbi b\u1ea1n hi\u1ec1n !",
+      "Hashtags": null,
+      "ID": "1873689680597987707",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873529922813079577",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1871759811450380288",
+          "Name": "Viet Nam 5904",
+          "Username": "Vietnam5904"
+        }
+      ],
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873689680597987707",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Vietnam5904 Ch\u00e0o tu\u1ea7n m\u1edbi b\u1ea1n hi\u1ec1n !",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:16:45Z",
+      "Timestamp": 1735557405,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 6
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873537781676327182",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Ch\u00e0o m\u1eebng m\u1ed9t tu\u1ea7n m\u1edbi v\u1edbi \u0111\u1ea7y \u1eafp s\u1ef1 th\u00e0nh c\u00f4ng v\u00e0 vui t\u01b0\u01a1i. Ch\u00fac tu\u1ea7n m\u1edbi vui v\u1ebb, ng\u01b0\u1eddi b\u1ea1n th\u00e2n nh\u1ea5t c\u1ee7a t\u00f4i.",
+      "Hashtags": null,
+      "ID": "1873708165533212986",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873537781676327182",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Viet Nam 5902",
+      "PermanentURL": "https://twitter.com/Vietnambk01/status/1873708165533212986",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Ch\u00e0o m\u1eebng m\u1ed9t tu\u1ea7n m\u1edbi v\u1edbi \u0111\u1ea7y \u1eafp s\u1ef1 th\u00e0nh c\u00f4ng v\u00e0 vui t\u01b0\u01a1i. Ch\u00fac tu\u1ea7n m\u1edbi vui v\u1ebb, ng\u01b0\u1eddi b\u1ea1n th\u00e2n nh\u1ea5t c\u1ee7a t\u00f4i.",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T12:30:13Z",
+      "Timestamp": 1735561813,
+      "URLs": null,
+      "UserID": "1009612612600905735",
+      "Username": "Vietnambk01",
+      "Videos": null,
+      "Views": 0
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533852611715173",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Ch\u00e0o m\u1eebng m\u1ed9t tu\u1ea7n m\u1edbi v\u1edbi \u0111\u1ea7y \u1eafp s\u1ef1 th\u00e0nh c\u00f4ng v\u00e0 vui t\u01b0\u01a1i. Ch\u00fac tu\u1ea7n m\u1edbi vui v\u1ebb, ng\u01b0\u1eddi b\u1ea1n th\u00e2n nh\u1ea5t c\u1ee7a t\u00f4i.",
+      "Hashtags": null,
+      "ID": "1873707796438683801",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533852611715173",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Viet Nam 5902",
+      "PermanentURL": "https://twitter.com/Vietnambk01/status/1873707796438683801",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Ch\u00e0o m\u1eebng m\u1ed9t tu\u1ea7n m\u1edbi v\u1edbi \u0111\u1ea7y \u1eafp s\u1ef1 th\u00e0nh c\u00f4ng v\u00e0 vui t\u01b0\u01a1i. Ch\u00fac tu\u1ea7n m\u1edbi vui v\u1ebb, ng\u01b0\u1eddi b\u1ea1n th\u00e2n nh\u1ea5t c\u1ee7a t\u00f4i.",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T12:28:45Z",
+      "Timestamp": 1735561725,
+      "URLs": null,
+      "UserID": "1009612612600905735",
+      "Username": "Vietnambk01",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873537781676327182",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Tu\u1ea7n m\u1edbi \u0111\u1ea7y n\u0103ng l\u01b0\u1ee3ng, vui v\u1ebb thu\u1eadn l\u1ee3i nh\u00e9 !",
+      "Hashtags": null,
+      "ID": "1873706675150205413",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873537781676327182",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Thu H\u1eb1ng 5905",
+      "PermanentURL": "https://twitter.com/Vietnam5905/status/1873706675150205413",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Tu\u1ea7n m\u1edbi \u0111\u1ea7y n\u0103ng l\u01b0\u1ee3ng, vui v\u1ebb thu\u1eadn l\u1ee3i nh\u00e9 !",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T12:24:17Z",
+      "Timestamp": 1735561457,
+      "URLs": null,
+      "UserID": "1872675716049059840",
+      "Username": "Vietnam5905",
+      "Videos": null,
+      "Views": 3
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533852611715173",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Tu\u1ea7n m\u1edbi \u0111\u1ea7y n\u0103ng l\u01b0\u1ee3ng, vui v\u1ebb thu\u1eadn l\u1ee3i nh\u00e9 !",
+      "Hashtags": null,
+      "ID": "1873706259855368651",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533852611715173",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Thu H\u1eb1ng 5905",
+      "PermanentURL": "https://twitter.com/Vietnam5905/status/1873706259855368651",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Tu\u1ea7n m\u1edbi \u0111\u1ea7y n\u0103ng l\u01b0\u1ee3ng, vui v\u1ebb thu\u1eadn l\u1ee3i nh\u00e9 !",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T12:22:38Z",
+      "Timestamp": 1735561358,
+      "URLs": null,
+      "UserID": "1872675716049059840",
+      "Username": "Vietnam5905",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873537781676327182",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Ch\u00e0o tu\u1ea7n m\u1edbi ! B\u1eefa s\u00e1ng vui v\u1ebb nh\u00e9",
+      "Hashtags": null,
+      "ID": "1873695310079513041",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873537781676327182",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Tuan Nam 5905",
+      "PermanentURL": "https://twitter.com/Tuannam5905/status/1873695310079513041",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Ch\u00e0o tu\u1ea7n m\u1edbi ! B\u1eefa s\u00e1ng vui v\u1ebb nh\u00e9",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:39:08Z",
+      "Timestamp": 1735558748,
+      "URLs": null,
+      "UserID": "1873002213263745024",
+      "Username": "Tuannam5905",
+      "Videos": null,
+      "Views": 3
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533852611715173",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Ch\u00e0o tu\u1ea7n m\u1edbi ! B\u1eefa s\u00e1ng vui v\u1ebb nh\u00e9",
+      "Hashtags": null,
+      "ID": "1873694911142433017",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533852611715173",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Tuan Nam 5905",
+      "PermanentURL": "https://twitter.com/Tuannam5905/status/1873694911142433017",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Ch\u00e0o tu\u1ea7n m\u1edbi ! B\u1eefa s\u00e1ng vui v\u1ebb nh\u00e9",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T11:37:33Z",
+      "Timestamp": 1735558653,
+      "URLs": null,
+      "UserID": "1873002213263745024",
+      "Username": "Tuannam5905",
+      "Videos": null,
+      "Views": 3
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873537781676327182",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Hnay th\u1ebf n\u00e0o b\u1ea1n",
+      "Hashtags": null,
+      "ID": "1873661658838839711",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873537781676327182",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Satthu 5907",
+      "PermanentURL": "https://twitter.com/Minhkhoi5907/status/1873661658838839711",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Hnay th\u1ebf n\u00e0o b\u1ea1n",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T09:25:25Z",
+      "Timestamp": 1735550725,
+      "URLs": null,
+      "UserID": "1873003743182225408",
+      "Username": "Minhkhoi5907",
+      "Videos": null,
+      "Views": 3
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533852611715173",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> E th\u00edch cafe g\u00ec",
+      "Hashtags": null,
+      "ID": "1873660850898354568",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533852611715173",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Satthu 5907",
+      "PermanentURL": "https://twitter.com/Minhkhoi5907/status/1873660850898354568",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 E th\u00edch cafe g\u00ec",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T09:22:12Z",
+      "Timestamp": 1735550532,
+      "URLs": null,
+      "UserID": "1873003743182225408",
+      "Username": "Minhkhoi5907",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873537781676327182",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> C\u00f3 d\u1ef1 \u00e1n n\u00e0o cho b\u1ea1n l\u00e0m v\u1edbi",
+      "Hashtags": null,
+      "ID": "1873623976280576053",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873537781676327182",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Quang Minh 5908",
+      "PermanentURL": "https://twitter.com/Quangminh5908/status/1873623976280576053",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 C\u00f3 d\u1ef1 \u00e1n n\u00e0o cho b\u1ea1n l\u00e0m v\u1edbi",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T06:55:40Z",
+      "Timestamp": 1735541740,
+      "URLs": null,
+      "UserID": "1873020879938195456",
+      "Username": "Quangminh5908",
+      "Videos": null,
+      "Views": 2
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873533852611715173",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/Minhthu5906\">@Minhthu5906</a> Tu\u1ea7n m\u1edbi th\u00e0nh c\u00f4ng nh\u00e9 !",
+      "Hashtags": null,
+      "ID": "1873622231399678317",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1873533852611715173",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1873002781336059905",
+          "Name": "Minh Thu 5906",
+          "Username": "Minhthu5906"
+        }
+      ],
+      "Name": "Quang Minh 5908",
+      "PermanentURL": "https://twitter.com/Quangminh5908/status/1873622231399678317",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@Minhthu5906 Tu\u1ea7n m\u1edbi th\u00e0nh c\u00f4ng nh\u00e9 !",
+      "Thread": null,
+      "TimeParsed": "2024-12-30T06:48:44Z",
+      "Timestamp": 1735541324,
+      "URLs": null,
+      "UserID": "1873020879938195456",
+      "Username": "Quangminh5908",
+      "Videos": null,
+      "Views": 4
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874123360554099132",
+      "GIFs": null,
+      "HTML": "Ch\u00fac m\u1ecdi ng\u01b0\u1eddi ng\u1ee7 ngon nh\u00e9! \ud83d\ude34 Ng\u1ee7 \u0111\u1ee7 gi\u1ea5c l\u00e0 ch\u00eca kho\u00e1 cho s\u1ee9c kho\u1ebb v\u00e0 tinh th\u1ea7n s\u1ea3ng kho\u00e1i. T\u1ea1m g\u00e1c lo toan \u0111\u1ec3 c\u00f3 gi\u1ea5c ng\u1ee7 th\u1eadt s\u00e2u. Mai l\u1ea1i c\u00f9ng nhau chinh ph\u1ee5c th\u1ebf gi\u1edbi t\u00e0i ch\u00ednh n\u00e0o! <a href=\"https://twitter.com/hashtag/Gi\u1ea5cNg\u1ee7S\u00e2u\">#Gi\u1ea5cNg\u1ee7S\u00e2u</a> <a href=\"https://twitter.com/hashtag/T\u00e0iCh\u00ednhV\u1eefngB\u1ec1n\">#T\u00e0iCh\u00ednhV\u1eefngB\u1ec1n</a> <br><a href=\"https://t.co/5Bb4QVn7fi\"><img src=\"https://pbs.twimg.com/media/GgI5Q6pWcAAAMA_.jpg\"/></a>",
+      "Hashtags": [
+        "Gi\u1ea5cNg\u1ee7S\u00e2u",
+        "T\u00e0iCh\u00ednhV\u1eefngB\u1ec1n"
+      ],
+      "ID": "1874123360554099132",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 9,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874123360554099132",
+      "Photos": [
+        {
+          "ID": "1874123357722931200",
+          "URL": "https://pbs.twimg.com/media/GgI5Q6pWcAAAMA_.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 9,
+      "SensitiveContent": false,
+      "Text": "Ch\u00fac m\u1ecdi ng\u01b0\u1eddi ng\u1ee7 ngon nh\u00e9! \ud83d\ude34 Ng\u1ee7 \u0111\u1ee7 gi\u1ea5c l\u00e0 ch\u00eca kho\u00e1 cho s\u1ee9c kho\u1ebb v\u00e0 tinh th\u1ea7n s\u1ea3ng kho\u00e1i. T\u1ea1m g\u00e1c lo toan \u0111\u1ec3 c\u00f3 gi\u1ea5c ng\u1ee7 th\u1eadt s\u00e2u. Mai l\u1ea1i c\u00f9ng nhau chinh ph\u1ee5c th\u1ebf gi\u1edbi t\u00e0i ch\u00ednh n\u00e0o! #Gi\u1ea5cNg\u1ee7S\u00e2u #T\u00e0iCh\u00ednhV\u1eefngB\u1ec1n https://t.co/5Bb4QVn7fi",
+      "Thread": null,
+      "TimeParsed": "2024-12-31T16:00:03Z",
+      "Timestamp": 1735660803,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 14
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874047595149975800",
+      "GIFs": null,
+      "HTML": "M\u1ed9t b\u1eefa t\u1ed1i \u1ea5m c\u00fang b\u00ean gia \u0111\u00ecnh th\u00ec c\u00f2n g\u00ec b\u1eb1ng! \ud83e\udd70 Ng\u1ed3i \u0103n m\u00f3n ngon, t\u00e1m chuy\u1ec7n v\u00e0 c\u01b0\u1eddi \u0111\u00f9a c\u00f9ng nhau. Nh\u1eefng ph\u00fat gi\u00e2y n\u00e0y m\u1edbi th\u1eadt \u0111\u00e1ng nh\u1edb. Nh\u1edb ch\u1ee5p v\u00e0i t\u1ea5m h\u00ecnh \u0111\u1ec3 l\u01b0u l\u1ea1i kho\u1ea3nh kh\u1eafc \u0111\u1eb9p nh\u00e9! <a href=\"https://twitter.com/hashtag/HappyDinner\">#HappyDinner</a> <a href=\"https://twitter.com/hashtag/FamilyMoments\">#FamilyMoments</a> <br><a href=\"https://t.co/c4Iz0M4MzB\"><img src=\"https://pbs.twimg.com/media/GgH0WxZWIAI-MBr.jpg\"/></a>",
+      "Hashtags": [
+        "HappyDinner",
+        "FamilyMoments"
+      ],
+      "ID": "1874047595149975800",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 9,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874047595149975800",
+      "Photos": [
+        {
+          "ID": "1874047592016781314",
+          "URL": "https://pbs.twimg.com/media/GgH0WxZWIAI-MBr.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 9,
+      "SensitiveContent": false,
+      "Text": "M\u1ed9t b\u1eefa t\u1ed1i \u1ea5m c\u00fang b\u00ean gia \u0111\u00ecnh th\u00ec c\u00f2n g\u00ec b\u1eb1ng! \ud83e\udd70 Ng\u1ed3i \u0103n m\u00f3n ngon, t\u00e1m chuy\u1ec7n v\u00e0 c\u01b0\u1eddi \u0111\u00f9a c\u00f9ng nhau. Nh\u1eefng ph\u00fat gi\u00e2y n\u00e0y m\u1edbi th\u1eadt \u0111\u00e1ng nh\u1edb. Nh\u1edb ch\u1ee5p v\u00e0i t\u1ea5m h\u00ecnh \u0111\u1ec3 l\u01b0u l\u1ea1i kho\u1ea3nh kh\u1eafc \u0111\u1eb9p nh\u00e9! #HappyDinner #FamilyMoments https://t.co/c4Iz0M4MzB",
+      "Thread": null,
+      "TimeParsed": "2024-12-31T10:58:59Z",
+      "Timestamp": 1735642739,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 11
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873970830276763909",
+      "GIFs": null,
+      "HTML": "Chi\u1ec1u nay th\u1eadt chill! Nh\u00e2m nhi t\u00e1ch tr\u00e0 th\u01a1m, th\u1ea3 h\u1ed3n m\u01a1 m\u00e0ng. Cu\u1ed9c s\u1ed1ng \u0111\u00f4i khi ch\u1ec9 c\u1ea7n v\u1eady \u0111\u1ec3 l\u00e0m m\u1edbi tinh th\u1ea7n. Ai c\u0169ng c\u1ea7n ch\u00fat b\u00ecnh y\u00ean gi\u1eefa b\u1ed9n b\u1ec1. C\u00f2n b\u1ea1n, chi\u1ec1u nay th\u1ebf n\u00e0o? K\u1ec3 t\u00f4i nghe v\u1edbi! <a href=\"https://twitter.com/hashtag/ChieuVuiVe\">#ChieuVuiVe</a> <a href=\"https://twitter.com/hashtag/RelaxTime\">#RelaxTime</a> <br><a href=\"https://t.co/C1QDDzG1iL\"><img src=\"https://pbs.twimg.com/media/GgGuifYWoAACxnW.jpg\"/></a>",
+      "Hashtags": [
+        "ChieuVuiVe",
+        "RelaxTime"
+      ],
+      "ID": "1873970830276763909",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 10,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873970830276763909",
+      "Photos": [
+        {
+          "ID": "1873970827525267456",
+          "URL": "https://pbs.twimg.com/media/GgGuifYWoAACxnW.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 10,
+      "SensitiveContent": false,
+      "Text": "Chi\u1ec1u nay th\u1eadt chill! Nh\u00e2m nhi t\u00e1ch tr\u00e0 th\u01a1m, th\u1ea3 h\u1ed3n m\u01a1 m\u00e0ng. Cu\u1ed9c s\u1ed1ng \u0111\u00f4i khi ch\u1ec9 c\u1ea7n v\u1eady \u0111\u1ec3 l\u00e0m m\u1edbi tinh th\u1ea7n. Ai c\u0169ng c\u1ea7n ch\u00fat b\u00ecnh y\u00ean gi\u1eefa b\u1ed9n b\u1ec1. C\u00f2n b\u1ea1n, chi\u1ec1u nay th\u1ebf n\u00e0o? K\u1ec3 t\u00f4i nghe v\u1edbi! #ChieuVuiVe #RelaxTime https://t.co/C1QDDzG1iL",
+      "Thread": null,
+      "TimeParsed": "2024-12-31T05:53:57Z",
+      "Timestamp": 1735624437,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 16
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873939119044235606",
+      "GIFs": null,
+      "HTML": "\u0102n tr\u01b0a c\u00f9ng \u0111\u1ed3ng nghi\u1ec7p l\u00e0 d\u1ecbp th\u01b0 gi\u00e3n tuy\u1ec7t v\u1eddi, c\u00f2n l\u00e0 c\u01a1 h\u1ed9i \u0111\u1ec3 k\u1ebft n\u1ed1i v\u00e0 chia s\u1ebb ni\u1ec1m vui. N\u00f3i chuy\u1ec7n c\u00f4ng vi\u1ec7c, c\u01b0\u1eddi \u0111\u00f9a, l\u00ean k\u1ebf ho\u1ea1ch m\u1edbi. T\u1eadn h\u01b0\u1edfng t\u1eebng kho\u1ea3nh kh\u1eafc nh\u00e9! <a href=\"https://twitter.com/hashtag/G\u1eafnB\u00f3\u0110\u1ed3ngNghi\u1ec7p\">#G\u1eafnB\u00f3\u0110\u1ed3ngNghi\u1ec7p</a> <a href=\"https://twitter.com/hashtag/T\u00edchC\u1ef1cChiaS\">#T\u00edchC\u1ef1cChiaS</a>\u1ebb <br><a href=\"https://t.co/G6ZYRkyIPh\"><img src=\"https://pbs.twimg.com/media/GgGRsptXAAAZOQc.jpg\"/></a>",
+      "Hashtags": [
+        "G\u1eafnB\u00f3\u0110\u1ed3ngNghi\u1ec7p",
+        "T\u00edchC\u1ef1cChiaS\u1ebb"
+      ],
+      "ID": "1873939119044235606",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 10,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873939119044235606",
+      "Photos": [
+        {
+          "ID": "1873939116259213312",
+          "URL": "https://pbs.twimg.com/media/GgGRsptXAAAZOQc.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 10,
+      "SensitiveContent": false,
+      "Text": "\u0102n tr\u01b0a c\u00f9ng \u0111\u1ed3ng nghi\u1ec7p l\u00e0 d\u1ecbp th\u01b0 gi\u00e3n tuy\u1ec7t v\u1eddi, c\u00f2n l\u00e0 c\u01a1 h\u1ed9i \u0111\u1ec3 k\u1ebft n\u1ed1i v\u00e0 chia s\u1ebb ni\u1ec1m vui. N\u00f3i chuy\u1ec7n c\u00f4ng vi\u1ec7c, c\u01b0\u1eddi \u0111\u00f9a, l\u00ean k\u1ebf ho\u1ea1ch m\u1edbi. T\u1eadn h\u01b0\u1edfng t\u1eebng kho\u1ea3nh kh\u1eafc nh\u00e9! #G\u1eafnB\u00f3\u0110\u1ed3ngNghi\u1ec7p #T\u00edchC\u1ef1cChiaS\u1ebb https://t.co/G6ZYRkyIPh",
+      "Thread": null,
+      "TimeParsed": "2024-12-31T03:47:56Z",
+      "Timestamp": 1735616876,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 19
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1873884511202673142",
+      "GIFs": null,
+      "HTML": "Ch\u00e0o bu\u1ed5i s\u00e1ng th\u1ee9 Ba! \ud83c\udf05 H\u00e3y b\u1eaft \u0111\u1ea7u ng\u00e0y m\u1edbi v\u1edbi n\u1ee5 c\u01b0\u1eddi v\u00e0 n\u0103ng l\u01b0\u1ee3ng t\u01b0\u01a1i m\u1edbi. C\u00e0 ph\u00ea \u0111\u00e3 s\u1eb5n s\u00e0ng, c\u00f9ng l\u1eadp k\u1ebf ho\u1ea1ch cho m\u1ed9t ng\u00e0y th\u1eadt th\u00e0nh c\u00f4ng n\u00e0o! T\u1eadn d\u1ee5ng m\u1ecdi c\u01a1 h\u1ed9i \u0111\u1ec3 ti\u1ebfn b\u1ed9 nh\u00e9! <a href=\"https://twitter.com/hashtag/ChaoNgayMoi\">#ChaoNgayMoi</a> <a href=\"https://twitter.com/hashtag/TinhThanDauTuan\">#TinhThanDauTuan</a> <br><a href=\"https://t.co/QMuKKAq6qi\"><img src=\"https://pbs.twimg.com/media/GgFgCD8XQAAt4W5.jpg\"/></a>",
+      "Hashtags": [
+        "ChaoNgayMoi",
+        "TinhThanDauTuan"
+      ],
+      "ID": "1873884511202673142",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 11,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1873884511202673142",
+      "Photos": [
+        {
+          "ID": "1873884508497330176",
+          "URL": "https://pbs.twimg.com/media/GgFgCD8XQAAt4W5.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 11,
+      "SensitiveContent": false,
+      "Text": "Ch\u00e0o bu\u1ed5i s\u00e1ng th\u1ee9 Ba! \ud83c\udf05 H\u00e3y b\u1eaft \u0111\u1ea7u ng\u00e0y m\u1edbi v\u1edbi n\u1ee5 c\u01b0\u1eddi v\u00e0 n\u0103ng l\u01b0\u1ee3ng t\u01b0\u01a1i m\u1edbi. C\u00e0 ph\u00ea \u0111\u00e3 s\u1eb5n s\u00e0ng, c\u00f9ng l\u1eadp k\u1ebf ho\u1ea1ch cho m\u1ed9t ng\u00e0y th\u1eadt th\u00e0nh c\u00f4ng n\u00e0o! T\u1eadn d\u1ee5ng m\u1ecdi c\u01a1 h\u1ed9i \u0111\u1ec3 ti\u1ebfn b\u1ed9 nh\u00e9! #ChaoNgayMoi #TinhThanDauTuan https://t.co/QMuKKAq6qi",
+      "Thread": null,
+      "TimeParsed": "2024-12-31T00:10:57Z",
+      "Timestamp": 1735603857,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 27
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874251438127280458",
+      "GIFs": null,
+      "HTML": "S\u00e1ng nay, c\u00f9ng m\u00ecnh xem qua xu h\u01b0\u1edbng m\u1edbi trong ti\u1ec1n \u0111i\u1ec7n t\u1eed nha! Bitcoin v\u00e0 Ethereum v\u1eabn v\u1eefng v\u00e0ng, nh\u01b0ng altcoin c\u0169ng \u0111ang l\u00ean ng\u00f4i. \u0110\u1eebng l\u1ee1 c\u01a1 h\u1ed9i \u0111\u1ea7u t\u01b0 ti\u1ec1m n\u0103ng n\u00e0y nh\u00e9! <a href=\"https://twitter.com/hashtag/Ti\u1ec1n\u0110i\u1ec7nT\">#Ti\u1ec1n\u0110i\u1ec7nT</a>\u1eed <a href=\"https://twitter.com/hashtag/\u0110\u1ea7uT\u01b0T\u00e0iCh\u00ednh\">#\u0110\u1ea7uT\u01b0T\u00e0iCh\u00ednh</a> <br><a href=\"https://t.co/8zDB4WZOSy\"><img src=\"https://pbs.twimg.com/media/GgKtv_sXsAAtN2_.jpg\"/></a>",
+      "Hashtags": [
+        "Ti\u1ec1n\u0110i\u1ec7nT\u1eed",
+        "\u0110\u1ea7uT\u01b0T\u00e0iCh\u00ednh"
+      ],
+      "ID": "1874251438127280458",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874251438127280458",
+      "Photos": [
+        {
+          "ID": "1874251435002540032",
+          "URL": "https://pbs.twimg.com/media/GgKtv_sXsAAtN2_.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "S\u00e1ng nay, c\u00f9ng m\u00ecnh xem qua xu h\u01b0\u1edbng m\u1edbi trong ti\u1ec1n \u0111i\u1ec7n t\u1eed nha! Bitcoin v\u00e0 Ethereum v\u1eabn v\u1eefng v\u00e0ng, nh\u01b0ng altcoin c\u0169ng \u0111ang l\u00ean ng\u00f4i. \u0110\u1eebng l\u1ee1 c\u01a1 h\u1ed9i \u0111\u1ea7u t\u01b0 ti\u1ec1m n\u0103ng n\u00e0y nh\u00e9! #Ti\u1ec1n\u0110i\u1ec7nT\u1eed #\u0110\u1ea7uT\u01b0T\u00e0iCh\u00ednh https://t.co/8zDB4WZOSy",
+      "Thread": null,
+      "TimeParsed": "2025-01-01T00:28:59Z",
+      "Timestamp": 1735691339,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874312591201259717",
+      "GIFs": null,
+      "HTML": "Bittensor l\u00e0 n\u1ec1n t\u1ea3ng th\u00fa v\u1ecb k\u1ebft h\u1ee3p AI v\u00e0 blockchain, t\u1ea1o c\u01a1 h\u1ed9i \u0111\u1ea7u t\u01b0 m\u1edbi trong t\u00e0i ch\u00ednh. T\u00ednh phi t\u1eadp trung gi\u00fap b\u1ea3o m\u1eadt, minh b\u1ea1ch, t\u0103ng ni\u1ec1m tin cho nh\u00e0 \u0111\u1ea7u t\u01b0. Kh\u00e1m ph\u00e1 Bittensor \u0111i n\u00e0o! <a href=\"https://twitter.com/hashtag/Bittensor\">#Bittensor</a> <a href=\"https://twitter.com/hashtag/CryptoInvestment\">#CryptoInvestment</a> <br><a href=\"https://t.co/FKE544S66Q\"><img src=\"https://pbs.twimg.com/media/GgLlXkEXMAAiij5.jpg\"/></a>",
+      "Hashtags": [
+        "Bittensor",
+        "CryptoInvestment"
+      ],
+      "ID": "1874312591201259717",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 10,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874312591201259717",
+      "Photos": [
+        {
+          "ID": "1874312587921272832",
+          "URL": "https://pbs.twimg.com/media/GgLlXkEXMAAiij5.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 10,
+      "SensitiveContent": false,
+      "Text": "Bittensor l\u00e0 n\u1ec1n t\u1ea3ng th\u00fa v\u1ecb k\u1ebft h\u1ee3p AI v\u00e0 blockchain, t\u1ea1o c\u01a1 h\u1ed9i \u0111\u1ea7u t\u01b0 m\u1edbi trong t\u00e0i ch\u00ednh. T\u00ednh phi t\u1eadp trung gi\u00fap b\u1ea3o m\u1eadt, minh b\u1ea1ch, t\u0103ng ni\u1ec1m tin cho nh\u00e0 \u0111\u1ea7u t\u01b0. Kh\u00e1m ph\u00e1 Bittensor \u0111i n\u00e0o! #Bittensor #CryptoInvestment https://t.co/FKE544S66Q",
+      "Thread": null,
+      "TimeParsed": "2025-01-01T04:31:59Z",
+      "Timestamp": 1735705919,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 11
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874616326066417982",
+      "GIFs": null,
+      "HTML": "Bittensor \u0111ang hot qu\u00e1, c\u1ea3 c\u1ed9ng \u0111\u1ed3ng t\u00e0i ch\u00ednh ch\u00fa \u00fd nh\u1edd ph\u00e1t tri\u1ec3n \u0111\u1ed9t ph\u00e1. AI t\u00edch h\u1ee3p gi\u00fap ph\u00e2n t\u00edch d\u1eef li\u1ec7u si\u00eau ngon, \u0111\u1ea7u t\u01b0 th\u00f4ng minh. B\u1ea3o m\u1eadt v\u00e0 m\u1edf r\u1ed9ng c\u0169ng l\u00e0 ch\u00eca kh\u00f3a. N\u1eafm b\u1eaft c\u01a1 h\u1ed9i n\u00e0y nh\u00e9! <a href=\"https://twitter.com/hashtag/Bittensor\">#Bittensor</a> <a href=\"https://twitter.com/hashtag/\u0110\u1ea7uT\u01b0Th\u00f4ngMinh\">#\u0110\u1ea7uT\u01b0Th\u00f4ngMinh</a>",
+      "Hashtags": [
+        "Bittensor",
+        "\u0110\u1ea7uT\u01b0Th\u00f4ngMinh"
+      ],
+      "ID": "1874616326066417982",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 8,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874616326066417982",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Bittensor \u0111ang hot qu\u00e1, c\u1ea3 c\u1ed9ng \u0111\u1ed3ng t\u00e0i ch\u00ednh ch\u00fa \u00fd nh\u1edd ph\u00e1t tri\u1ec3n \u0111\u1ed9t ph\u00e1. AI t\u00edch h\u1ee3p gi\u00fap ph\u00e2n t\u00edch d\u1eef li\u1ec7u si\u00eau ngon, \u0111\u1ea7u t\u01b0 th\u00f4ng minh. B\u1ea3o m\u1eadt v\u00e0 m\u1edf r\u1ed9ng c\u0169ng l\u00e0 ch\u00eca kh\u00f3a. N\u1eafm b\u1eaft c\u01a1 h\u1ed9i n\u00e0y nh\u00e9! #Bittensor #\u0110\u1ea7uT\u01b0Th\u00f4ngMinh",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T00:38:55Z",
+      "Timestamp": 1735778335,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 8
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874478445414993983",
+      "GIFs": null,
+      "HTML": "T\u1ed1i qua m\u00ecnh ng\u1ed3i n\u00f3i chuy\u1ec7n v\u1ec1 Solana, th\u1ea5y m\u1ea1ng n\u00e0y ph\u00e1t tri\u1ec3n nhanh gh\u00ea. C\u01a1 h\u1ed9i cho nh\u00e0 \u0111\u1ea7u t\u01b0 kh\u00f4ng \u00edt \u0111\u00e2u nha! Anh em ai quan t\u00e2m th\u00ec t\u00ecm hi\u1ec3u th\u00eam \u0111i, bi\u1ebft \u0111\u00e2u b\u1eaft trend k\u1ecbp th\u1eddi! <a href=\"https://twitter.com/hashtag/Solana\">#Solana</a> <a href=\"https://twitter.com/hashtag/Blockchain\">#Blockchain</a> <br><a href=\"https://t.co/ambAAyB2Yr\"><img src=\"https://pbs.twimg.com/media/GgN8NlXXYAAld7O.jpg\"/></a>",
+      "Hashtags": [
+        "Solana",
+        "Blockchain"
+      ],
+      "ID": "1874478445414993983",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 6,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874478445414993983",
+      "Photos": [
+        {
+          "ID": "1874478442726514688",
+          "URL": "https://pbs.twimg.com/media/GgN8NlXXYAAld7O.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "T\u1ed1i qua m\u00ecnh ng\u1ed3i n\u00f3i chuy\u1ec7n v\u1ec1 Solana, th\u1ea5y m\u1ea1ng n\u00e0y ph\u00e1t tri\u1ec3n nhanh gh\u00ea. C\u01a1 h\u1ed9i cho nh\u00e0 \u0111\u1ea7u t\u01b0 kh\u00f4ng \u00edt \u0111\u00e2u nha! Anh em ai quan t\u00e2m th\u00ec t\u00ecm hi\u1ec3u th\u00eam \u0111i, bi\u1ebft \u0111\u00e2u b\u1eaft trend k\u1ecbp th\u1eddi! #Solana #Blockchain https://t.co/ambAAyB2Yr",
+      "Thread": null,
+      "TimeParsed": "2025-01-01T15:31:02Z",
+      "Timestamp": 1735745462,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 14
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874420792361926672",
+      "GIFs": null,
+      "HTML": "$ETH \u0111ang l\u00e0m m\u01b0a l\u00e0m gi\u00f3 trong th\u1ebf gi\u1edbi ti\u1ec1n m\u00e3 h\u00f3a! Gi\u00e1 \u0111ang nh\u1ea3y m\u00faa quanh m\u1ee9c $3,000, thu h\u00fat s\u1ef1 ch\u00fa \u00fd c\u1ee7a nhi\u1ec1u nh\u00e0 \u0111\u1ea7u t\u01b0. B\u1ea1n c\u00f3 \u0111ang \u0111\u1ec3 m\u1eaft \u0111\u1ebfn kh\u00f4ng? Bi\u1ebft \u0111\u00e2u \u0111\u00e2y ch\u00ednh l\u00e0 c\u01a1 h\u1ed9i v\u00e0ng \u0111\u1ec3 \u0111\u1ea7u t\u01b0! <a href=\"https://twitter.com/hashtag/CryptoTrends\">#CryptoTrends</a> <br><a href=\"https://t.co/xuAHI3FMR7\"><img src=\"https://pbs.twimg.com/media/GgNHxvjXEAA4lXu.jpg\"/></a>",
+      "Hashtags": [
+        "CryptoTrends"
+      ],
+      "ID": "1874420792361926672",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 5,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874420792361926672",
+      "Photos": [
+        {
+          "ID": "1874420789820198912",
+          "URL": "https://pbs.twimg.com/media/GgNHxvjXEAA4lXu.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "$ETH \u0111ang l\u00e0m m\u01b0a l\u00e0m gi\u00f3 trong th\u1ebf gi\u1edbi ti\u1ec1n m\u00e3 h\u00f3a! Gi\u00e1 \u0111ang nh\u1ea3y m\u00faa quanh m\u1ee9c $3,000, thu h\u00fat s\u1ef1 ch\u00fa \u00fd c\u1ee7a nhi\u1ec1u nh\u00e0 \u0111\u1ea7u t\u01b0. B\u1ea1n c\u00f3 \u0111ang \u0111\u1ec3 m\u1eaft \u0111\u1ebfn kh\u00f4ng? Bi\u1ebft \u0111\u00e2u \u0111\u00e2y ch\u00ednh l\u00e0 c\u01a1 h\u1ed9i v\u00e0ng \u0111\u1ec3 \u0111\u1ea7u t\u01b0! #CryptoTrends https://t.co/xuAHI3FMR7",
+      "Thread": null,
+      "TimeParsed": "2025-01-01T11:41:56Z",
+      "Timestamp": 1735731716,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 10
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874375516821635498",
+      "GIFs": null,
+      "HTML": "Bitcoin kh\u00f4ng ch\u1ec9 l\u00e0 ti\u1ec1n \u0111i\u1ec7n t\u1eed, m\u00e0 l\u00e0 m\u1ed9t k\u00eanh \u0111\u1ea7u t\u01b0 h\u1ea5p d\u1eabn! Th\u1ecb tr\u01b0\u1eddng bi\u1ebfn \u0111\u1ed9ng kh\u00f4ng ng\u1eebng, n\u1eafm r\u00f5 c\u00e1c y\u1ebfu t\u1ed1 t\u00e1c \u0111\u1ed9ng gi\u00e1 l\u00e0 \u0111i\u1ec1u c\u1ea7n thi\u1ebft. B\u1ea1n \u0111\u00e3 chu\u1ea9n b\u1ecb \u0111\u1ec3 \u0111\u1ea7u t\u01b0 v\u00e0o t\u01b0\u01a1ng lai ch\u01b0a? <a href=\"https://twitter.com/hashtag/Bitcoin\">#Bitcoin</a> <a href=\"https://twitter.com/hashtag/Dautu\">#Dautu</a> <br><a href=\"https://t.co/MrvNtajj2P\"><img src=\"https://pbs.twimg.com/media/GgMemWIXoAAZ5Fh.jpg\"/></a>",
+      "Hashtags": [
+        "Bitcoin",
+        "Dautu"
+      ],
+      "ID": "1874375516821635498",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 10,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874375516821635498",
+      "Photos": [
+        {
+          "ID": "1874375514040803328",
+          "URL": "https://pbs.twimg.com/media/GgMemWIXoAAZ5Fh.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 4,
+      "SensitiveContent": false,
+      "Text": "Bitcoin kh\u00f4ng ch\u1ec9 l\u00e0 ti\u1ec1n \u0111i\u1ec7n t\u1eed, m\u00e0 l\u00e0 m\u1ed9t k\u00eanh \u0111\u1ea7u t\u01b0 h\u1ea5p d\u1eabn! Th\u1ecb tr\u01b0\u1eddng bi\u1ebfn \u0111\u1ed9ng kh\u00f4ng ng\u1eebng, n\u1eafm r\u00f5 c\u00e1c y\u1ebfu t\u1ed1 t\u00e1c \u0111\u1ed9ng gi\u00e1 l\u00e0 \u0111i\u1ec1u c\u1ea7n thi\u1ebft. B\u1ea1n \u0111\u00e3 chu\u1ea9n b\u1ecb \u0111\u1ec3 \u0111\u1ea7u t\u01b0 v\u00e0o t\u01b0\u01a1ng lai ch\u01b0a? #Bitcoin #Dautu https://t.co/MrvNtajj2P",
+      "Thread": null,
+      "TimeParsed": "2025-01-01T08:42:02Z",
+      "Timestamp": 1735720922,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 34
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874662888004006246",
+      "GIFs": null,
+      "HTML": "C\u1ea3 nh\u00e0 \u0111\u00e3 t\u00ecm hi\u1ec3u v\u1ec1 <a href=\"https://twitter.com/hashtag/Bittensor\">#Bittensor</a> ch\u01b0a? Subnet l\u00e0 g\u00ec m\u00e0 hot th\u1ebf, nh\u1ec9? Ch\u00fang l\u00e0 ph\u1ea7n kh\u00f4ng th\u1ec3 thi\u1ebfu \u0111\u1ec3 t\u1ed1i \u01b0u h\u00f3a t\u00e0i nguy\u00ean v\u00e0 ph\u00e2n b\u1ed5 c\u00f4ng vi\u1ec7c tr\u00ean blockchain Bittensor \u0111\u00f3! Th\u1eed t\u00ecm hi\u1ec3u xem sao nh\u00e9, bi\u1ebft \u0111\u00e2u l\u1ea1i kh\u00e1m ph\u00e1 \u0111\u01b0\u1ee3c \u0111i\u1ec1u hay ho! <a href=\"https://twitter.com/hashtag/T\u00e0iCh\u00ednh\">#T\u00e0iCh\u00ednh</a>",
+      "Hashtags": [
+        "Bittensor",
+        "T\u00e0iCh\u00ednh"
+      ],
+      "ID": "1874662888004006246",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874662888004006246",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "C\u1ea3 nh\u00e0 \u0111\u00e3 t\u00ecm hi\u1ec3u v\u1ec1 #Bittensor ch\u01b0a? Subnet l\u00e0 g\u00ec m\u00e0 hot th\u1ebf, nh\u1ec9? Ch\u00fang l\u00e0 ph\u1ea7n kh\u00f4ng th\u1ec3 thi\u1ebfu \u0111\u1ec3 t\u1ed1i \u01b0u h\u00f3a t\u00e0i nguy\u00ean v\u00e0 ph\u00e2n b\u1ed5 c\u00f4ng vi\u1ec7c tr\u00ean blockchain Bittensor \u0111\u00f3! Th\u1eed t\u00ecm hi\u1ec3u xem sao nh\u00e9, bi\u1ebft \u0111\u00e2u l\u1ea1i kh\u00e1m ph\u00e1 \u0111\u01b0\u1ee3c \u0111i\u1ec1u hay ho! #T\u00e0iCh\u00ednh",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T03:43:56Z",
+      "Timestamp": 1735789436,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 0
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874723055869550949",
+      "GIFs": null,
+      "HTML": "M\u1ecdi ng\u01b0\u1eddi \u0111\u00e3 bi\u1ebft v\u1ec1 Bittensor v\u00e0 Subnet 19 ch\u01b0a? \u0110\u00e2y l\u00e0 b\u01b0\u1edbc \u0111\u1ed9t ph\u00e1 l\u1edbn gi\u00fap ph\u00e2n c\u1ea5p m\u1ea1nh m\u1ebd, m\u1edf r\u1ed9ng v\u00e0 b\u1ea3o m\u1eadt h\u01a1n cho blockchain. \u0110\u1ea7u t\u01b0 ngay \u0111\u1eebng b\u1ecf l\u1ee1 c\u01a1 h\u1ed9i n\u00e0y nh\u00e9! <a href=\"https://twitter.com/hashtag/Blockchain\">#Blockchain</a> <a href=\"https://twitter.com/hashtag/Bittensor\">#Bittensor</a> <br><a href=\"https://t.co/6cE3Lf64HL\"><img src=\"https://pbs.twimg.com/media/GgRaryyXgAASF_D.jpg\"/></a>",
+      "Hashtags": [
+        "Blockchain",
+        "Bittensor"
+      ],
+      "ID": "1874723055869550949",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 2,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874723055869550949",
+      "Photos": [
+        {
+          "ID": "1874723053306871808",
+          "URL": "https://pbs.twimg.com/media/GgRaryyXgAASF_D.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 2,
+      "SensitiveContent": false,
+      "Text": "M\u1ecdi ng\u01b0\u1eddi \u0111\u00e3 bi\u1ebft v\u1ec1 Bittensor v\u00e0 Subnet 19 ch\u01b0a? \u0110\u00e2y l\u00e0 b\u01b0\u1edbc \u0111\u1ed9t ph\u00e1 l\u1edbn gi\u00fap ph\u00e2n c\u1ea5p m\u1ea1nh m\u1ebd, m\u1edf r\u1ed9ng v\u00e0 b\u1ea3o m\u1eadt h\u01a1n cho blockchain. \u0110\u1ea7u t\u01b0 ngay \u0111\u1eebng b\u1ecf l\u1ee1 c\u01a1 h\u1ed9i n\u00e0y nh\u00e9! #Blockchain #Bittensor https://t.co/6cE3Lf64HL",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T07:43:01Z",
+      "Timestamp": 1735803781,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 3
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874782184118051104",
+      "GIFs": null,
+      "HTML": "\ud83d\ude80 Kh\u00e1m ph\u00e1 Subnet 38 trong m\u1ea1ng $Bittensor: N\u01a1i AI v\u00e0 blockchain b\u1eaft tay nhau. Subnet 38 kh\u00f4ng ch\u1ec9 t\u0103ng s\u1ee9c m\u1ea1nh x\u1eed l\u00fd m\u00e0 c\u00f2n n\u00e2ng t\u1ea7m h\u1ee3p t\u00e1c gi\u1eefa c\u00e1c m\u00f4 h\u00ecnh AI. Kh\u00e1m ph\u00e1 ngay ti\u1ec1m n\u0103ng v\u00f4 c\u1ef1c n\u00e0y! <a href=\"https://twitter.com/hashtag/Subnet38\">#Subnet38</a> <br><a href=\"https://t.co/ygi96N5G3I\"><img src=\"https://pbs.twimg.com/media/GgSQde7XoAAw4Wb.jpg\"/></a>",
+      "Hashtags": [
+        "Subnet38"
+      ],
+      "ID": "1874782184118051104",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 8,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874782184118051104",
+      "Photos": [
+        {
+          "ID": "1874782181085650944",
+          "URL": "https://pbs.twimg.com/media/GgSQde7XoAAw4Wb.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "\ud83d\ude80 Kh\u00e1m ph\u00e1 Subnet 38 trong m\u1ea1ng $Bittensor: N\u01a1i AI v\u00e0 blockchain b\u1eaft tay nhau. Subnet 38 kh\u00f4ng ch\u1ec9 t\u0103ng s\u1ee9c m\u1ea1nh x\u1eed l\u00fd m\u00e0 c\u00f2n n\u00e2ng t\u1ea7m h\u1ee3p t\u00e1c gi\u1eefa c\u00e1c m\u00f4 h\u00ecnh AI. Kh\u00e1m ph\u00e1 ngay ti\u1ec1m n\u0103ng v\u00f4 c\u1ef1c n\u00e0y! #Subnet38 https://t.co/ygi96N5G3I",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T11:37:59Z",
+      "Timestamp": 1735817879,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 10
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874860937028510169",
+      "GIFs": null,
+      "HTML": "\u0110\u00eam khuya, th\u1eddi \u0111i\u1ec3m l\u00fd t\u01b0\u1edfng \u0111\u1ec3 t\u00e1m chuy\u1ec7n v\u1ec1 $FTM! \ud83c\udf19 FTM \u0111ang g\u00e2y b\u00e3o trong gi\u1edbi \u0111\u1ea7u t\u01b0 v\u1edbi nh\u1eefng bi\u1ebfn \u0111\u1ed9ng th\u00fa v\u1ecb. B\u1ea1n \u0111\u00e3 c\u1eadp nh\u1eadt xu h\u01b0\u1edbng ch\u01b0a? \u0110\u1eebng b\u1ecf l\u1ee1 c\u01a1 h\u1ed9i t\u00ecm hi\u1ec3u v\u00e0 \u0111\u1ea7u t\u01b0 th\u00f4ng minh! <a href=\"https://twitter.com/hashtag/CryptoNight\">#CryptoNight</a> <a href=\"https://twitter.com/hashtag/FTMFinance\">#FTMFinance</a>",
+      "Hashtags": [
+        "CryptoNight",
+        "FTMFinance"
+      ],
+      "ID": "1874860937028510169",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874860937028510169",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "\u0110\u00eam khuya, th\u1eddi \u0111i\u1ec3m l\u00fd t\u01b0\u1edfng \u0111\u1ec3 t\u00e1m chuy\u1ec7n v\u1ec1 $FTM! \ud83c\udf19 FTM \u0111ang g\u00e2y b\u00e3o trong gi\u1edbi \u0111\u1ea7u t\u01b0 v\u1edbi nh\u1eefng bi\u1ebfn \u0111\u1ed9ng th\u00fa v\u1ecb. B\u1ea1n \u0111\u00e3 c\u1eadp nh\u1eadt xu h\u01b0\u1edbng ch\u01b0a? \u0110\u1eebng b\u1ecf l\u1ee1 c\u01a1 h\u1ed9i t\u00ecm hi\u1ec3u v\u00e0 \u0111\u1ea7u t\u01b0 th\u00f4ng minh! #CryptoNight #FTMFinance",
+      "Thread": null,
+      "TimeParsed": "2025-01-02T16:50:55Z",
+      "Timestamp": 1735836655,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 9
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874978216420503960",
+      "GIFs": null,
+      "HTML": "Bitcoin \u0111ang ph\u1ee5c h\u1ed3i m\u1ea1nh m\u1ebd! \u0110\u1eebng ho\u1ea3ng lo\u1ea1n, h\u00e3y gi\u1eef b\u00ecnh t\u0129nh nh\u00e9. Th\u1ecb tr\u01b0\u1eddng l\u00fac n\u00e0o c\u0169ng c\u00f3 giai \u0111o\u1ea1n bi\u1ebfn \u0111\u1ed9ng, nh\u01b0ng ki\u00ean tr\u00ec v\u00e0 v\u1eefng tin s\u1ebd mang l\u1ea1i k\u1ebft qu\u1ea3 t\u1ed1t. <a href=\"https://twitter.com/hashtag/Bitcoin\">#Bitcoin</a> <a href=\"https://twitter.com/hashtag/StayCalm\">#StayCalm</a> <br><a href=\"https://t.co/BSop3Ycqoo\"><img src=\"https://pbs.twimg.com/media/GgVCwFhWoAAHEmk.jpg\"/></a>",
+      "Hashtags": [
+        "Bitcoin",
+        "StayCalm"
+      ],
+      "ID": "1874978216420503960",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 11,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1874978216420503960",
+      "Photos": [
+        {
+          "ID": "1874978213752905728",
+          "URL": "https://pbs.twimg.com/media/GgVCwFhWoAAHEmk.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 4,
+      "SensitiveContent": false,
+      "Text": "Bitcoin \u0111ang ph\u1ee5c h\u1ed3i m\u1ea1nh m\u1ebd! \u0110\u1eebng ho\u1ea3ng lo\u1ea1n, h\u00e3y gi\u1eef b\u00ecnh t\u0129nh nh\u00e9. Th\u1ecb tr\u01b0\u1eddng l\u00fac n\u00e0o c\u0169ng c\u00f3 giai \u0111o\u1ea1n bi\u1ebfn \u0111\u1ed9ng, nh\u01b0ng ki\u00ean tr\u00ec v\u00e0 v\u1eefng tin s\u1ebd mang l\u1ea1i k\u1ebft qu\u1ea3 t\u1ed1t. #Bitcoin #StayCalm https://t.co/BSop3Ycqoo",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T00:36:56Z",
+      "Timestamp": 1735864616,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 15
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1875039631261016404",
+      "GIFs": null,
+      "HTML": "Th\u1ecb tr\u01b0\u1eddng crypto n\u00f3ng b\u1ecfng tay, th\u01b0\u1eddng th\u1ea5y $BTC nh\u1ea3y m\u00faa tr\u01b0\u1edbc khi altcoin b\u1eadt tung. C\u01a1 h\u1ed9i cho nh\u00e0 \u0111\u1ea7u t\u01b0 nhanh nh\u1ea1y n\u00e8! C\u1eadp nh\u1eadt tin t\u1ee9c, ph\u00e2n t\u00edch d\u1eef li\u1ec7u \u0111\u1ec3 ch\u1ed1t k\u00e8o nh\u00e9! <a href=\"https://twitter.com/hashtag/T\u00e0iCh\u00ednh\">#T\u00e0iCh\u00ednh</a> <br><a href=\"https://t.co/2TkIoi4PDf\"><img src=\"https://pbs.twimg.com/media/GgV6m5SXwAAFRiJ.jpg\"/></a>",
+      "Hashtags": [
+        "T\u00e0iCh\u00ednh"
+      ],
+      "ID": "1875039631261016404",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 12,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1875039631261016404",
+      "Photos": [
+        {
+          "ID": "1875039628501172224",
+          "URL": "https://pbs.twimg.com/media/GgV6m5SXwAAFRiJ.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 5,
+      "SensitiveContent": false,
+      "Text": "Th\u1ecb tr\u01b0\u1eddng crypto n\u00f3ng b\u1ecfng tay, th\u01b0\u1eddng th\u1ea5y $BTC nh\u1ea3y m\u00faa tr\u01b0\u1edbc khi altcoin b\u1eadt tung. C\u01a1 h\u1ed9i cho nh\u00e0 \u0111\u1ea7u t\u01b0 nhanh nh\u1ea1y n\u00e8! C\u1eadp nh\u1eadt tin t\u1ee9c, ph\u00e2n t\u00edch d\u1eef li\u1ec7u \u0111\u1ec3 ch\u1ed1t k\u00e8o nh\u00e9! #T\u00e0iCh\u00ednh https://t.co/2TkIoi4PDf",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T04:40:59Z",
+      "Timestamp": 1735879259,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 14
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1875103561786290613",
+      "GIFs": null,
+      "HTML": "C\u01a1 h\u1ed9i v\u00e0ng cho anh em v\u1edbi $TAO n\u00e8! \ud83d\ude80 Theo chuy\u00ean gia, $TAO \u0111ang tr\u00ean \u0111\u00e0 t\u0103ng m\u1ea1nh. Th\u1eddi \u0111i\u1ec3m \u0111\u1eb9p \u0111\u1ec3 nh\u1ea3y v\u00e0o th\u1ecb tr\u01b0\u1eddng. Nh\u1edb n\u1eafm b\u1eaft c\u01a1 h\u1ed9i n\u00e0y nha! <a href=\"https://twitter.com/hashtag/CryptoInvestment\">#CryptoInvestment</a> <a href=\"https://twitter.com/hashtag/TaoRising\">#TaoRising</a> <br><a href=\"https://t.co/4UMlQI69hG\"><img src=\"https://pbs.twimg.com/media/GgW0wHTWcAAiINS.jpg\"/></a>",
+      "Hashtags": [
+        "CryptoInvestment",
+        "TaoRising"
+      ],
+      "ID": "1875103561786290613",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1875103561786290613",
+      "Photos": [
+        {
+          "ID": "1875103558556610560",
+          "URL": "https://pbs.twimg.com/media/GgW0wHTWcAAiINS.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "C\u01a1 h\u1ed9i v\u00e0ng cho anh em v\u1edbi $TAO n\u00e8! \ud83d\ude80 Theo chuy\u00ean gia, $TAO \u0111ang tr\u00ean \u0111\u00e0 t\u0103ng m\u1ea1nh. Th\u1eddi \u0111i\u1ec3m \u0111\u1eb9p \u0111\u1ec3 nh\u1ea3y v\u00e0o th\u1ecb tr\u01b0\u1eddng. Nh\u1edb n\u1eafm b\u1eaft c\u01a1 h\u1ed9i n\u00e0y nha! #CryptoInvestment #TaoRising https://t.co/4UMlQI69hG",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T08:55:01Z",
+      "Timestamp": 1735894501,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 1
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1875165218264744105",
+      "GIFs": null,
+      "HTML": "Hello m\u1ecdi ng\u01b0\u1eddi! T\u1ed1i nay n\u00f3i v\u1ec1 hai \u0111\u1ed3ng ti\u1ec1n m\u1ea1nh: $FTM v\u00e0 <a href=\"https://twitter.com/hashtag/ICP\">#ICP</a>. $FTM n\u1ed5i b\u1eadt trong DeFi, c\u00f2n <a href=\"https://twitter.com/hashtag/ICP\">#ICP</a> mang gi\u1ea5c m\u01a1 internet phi t\u1eadp trung. B\u1ea1n th\u1ea5y \u0111\u1ed3ng n\u00e0o c\u00f3 t\u01b0\u01a1ng lai s\u00e1ng h\u01a1n? \ud83e\udd14 <a href=\"https://twitter.com/hashtag/CryptoNight\">#CryptoNight</a> <a href=\"https://twitter.com/hashtag/FTMvICP\">#FTMvICP</a> <br><a href=\"https://t.co/976vFwtHZf\"><img src=\"https://pbs.twimg.com/media/GgXs1AhW0AAh-ra.jpg\"/></a>",
+      "Hashtags": [
+        "ICP",
+        "ICP",
+        "CryptoNight",
+        "FTMvICP"
+      ],
+      "ID": "1875165218264744105",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1875165218264744105",
+      "Photos": [
+        {
+          "ID": "1875165215286808576",
+          "URL": "https://pbs.twimg.com/media/GgXs1AhW0AAh-ra.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Hello m\u1ecdi ng\u01b0\u1eddi! T\u1ed1i nay n\u00f3i v\u1ec1 hai \u0111\u1ed3ng ti\u1ec1n m\u1ea1nh: $FTM v\u00e0 #ICP. $FTM n\u1ed5i b\u1eadt trong DeFi, c\u00f2n #ICP mang gi\u1ea5c m\u01a1 internet phi t\u1eadp trung. B\u1ea1n th\u1ea5y \u0111\u1ed3ng n\u00e0o c\u00f3 t\u01b0\u01a1ng lai s\u00e1ng h\u01a1n? \ud83e\udd14 #CryptoNight #FTMvICP https://t.co/976vFwtHZf",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T13:00:01Z",
+      "Timestamp": 1735909201,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 7
+    }
+  },
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1875211756634591680",
+      "GIFs": null,
+      "HTML": "\u0110\u00eam khuya, t\u00e2m tr\u1ea1ng t\u0129nh l\u1eb7ng, l\u00e0 th\u1eddi \u0111i\u1ec3m t\u1ed1t \u0111\u1ec3 suy ng\u1eabm v\u1ec1 chuy\u1ec7n \u0111\u1ea7u t\u01b0. N\u1ebfu \u0111ang nh\u1eafm t\u1edbi m\u1ed9t \u0111\u1ed3ng coin ti\u1ec1m n\u0103ng, h\u00e3y \u0111\u1ec3 \u00fd \u0111\u1ebfn <a href=\"https://twitter.com/hashtag/ADA\">#ADA</a>. Ph\u00e1t tri\u1ec3n m\u1ea1nh, c\u1ed9ng \u0111\u1ed3ng \u1ee7ng h\u1ed9, bi\u1ebft \u0111\u00e2u l\u00e0 n\u01b0\u1edbc c\u1edd th\u00f4ng minh cho t\u01b0\u01a1ng lai! <a href=\"https://twitter.com/hashtag/CryptoInvestment\">#CryptoInvestment</a> <br><a href=\"https://t.co/8zeRT9c44j\"><img src=\"https://pbs.twimg.com/media/GgYXJ3hXUAApsUn.jpg\"/></a>",
+      "Hashtags": [
+        "ADA",
+        "CryptoInvestment"
+      ],
+      "ID": "1875211756634591680",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": null,
+      "Name": "Minh Thu 5906",
+      "PermanentURL": "https://twitter.com/Minhthu5906/status/1875211756634591680",
+      "Photos": [
+        {
+          "ID": "1875211753136541696",
+          "URL": "https://pbs.twimg.com/media/GgYXJ3hXUAApsUn.jpg"
+        }
+      ],
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "\u0110\u00eam khuya, t\u00e2m tr\u1ea1ng t\u0129nh l\u1eb7ng, l\u00e0 th\u1eddi \u0111i\u1ec3m t\u1ed1t \u0111\u1ec3 suy ng\u1eabm v\u1ec1 chuy\u1ec7n \u0111\u1ea7u t\u01b0. N\u1ebfu \u0111ang nh\u1eafm t\u1edbi m\u1ed9t \u0111\u1ed3ng coin ti\u1ec1m n\u0103ng, h\u00e3y \u0111\u1ec3 \u00fd \u0111\u1ebfn #ADA. Ph\u00e1t tri\u1ec3n m\u1ea1nh, c\u1ed9ng \u0111\u1ed3ng \u1ee7ng h\u1ed9, bi\u1ebft \u0111\u00e2u l\u00e0 n\u01b0\u1edbc c\u1edd th\u00f4ng minh cho t\u01b0\u01a1ng lai! #CryptoInvestment https://t.co/8zeRT9c44j",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T16:04:57Z",
+      "Timestamp": 1735920297,
+      "URLs": null,
+      "UserID": "1873002781336059905",
+      "Username": "Minhthu5906",
+      "Videos": null,
+      "Views": 0
+    }
+  }
+]
