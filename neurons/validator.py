@@ -752,6 +752,15 @@ class AgentValidator:
                 )
                 return False
 
+            userLabelType = (
+                result.get("data", {})
+                .get("user", {})
+                .get("result", {})
+                .get("affiliates_highlighted_label", {})
+                .get("label", {})
+                .get("userLabelType", None)
+            )
+
             tweet_data_result = (
                 result.get("data", {}).get("tweetResult", {}).get("result", {})
             )
@@ -774,6 +783,8 @@ class AgentValidator:
                 f"Got tweet result: {
                     tweet_id} - {screen_name} **** {full_text} - {avatar}"
             )
+
+            logger.info(f"userLabelType: {userLabelType}")
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
                 msg = "Invalid tweet data: screen_name or full_text is not a string"
@@ -912,7 +923,7 @@ class AgentValidator:
 
     def get_scores(self) -> Tuple[List[int], List[float]]:
         """Calculate scores for each UID considering quality and volume.
-        
+
         Returns:
             Tuple[List[int], List[float]]: A tuple containing:
                 - List of UIDs
@@ -920,28 +931,25 @@ class AgentValidator:
         """
         uids = list(set([int(post["uid"]) for post in self.scored_posts]))
         scores_by_uid = {}
-        
+
         # Initialize score accumulators
         for uid in uids:
-            scores_by_uid[uid] = {
-                'score_sum': 0.0,
-                'post_count': 0
-            }
-        
+            scores_by_uid[uid] = {"score_sum": 0.0, "post_count": 0}
+
         # Calculate scores
         for post in self.scored_posts:
             uid = int(post["uid"])
-            for score_data in post['scores']:
-                scores_by_uid[uid]['score_sum'] += score_data['score']
-                scores_by_uid[uid]['post_count'] += 1
+            for score_data in post["scores"]:
+                scores_by_uid[uid]["score_sum"] += score_data["score"]
+                scores_by_uid[uid]["post_count"] += 1
 
         # Calculate final scores with volume bonus
         final_scores = {}
         for uid in uids:
             data = scores_by_uid[uid]
-            if data['post_count'] > 0:
-                base_score = data['score_sum'] / data['post_count']
-                volume_bonus = math.log1p(data['post_count']) / 10
+            if data["post_count"] > 0:
+                base_score = data["score_sum"] / data["post_count"]
+                volume_bonus = math.log1p(data["post_count"]) / 10
                 final_scores[uid] = min(1.0, base_score * (1 + volume_bonus))
             else:
                 final_scores[uid] = 0.0
