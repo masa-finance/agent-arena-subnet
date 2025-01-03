@@ -756,8 +756,8 @@ class AgentValidator:
                 result.get("data", {}).get("tweetResult", {}).get("result", {})
             )
 
-            tweet_data_result = (
-                result.get("core", {})
+            userLabelType = (
+                tweet_data_result.get("core", {})
                 .get("user_results", {})
                 .get("result", {})
                 .get("affiliates_highlighted_label", {})
