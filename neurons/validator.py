@@ -752,17 +752,17 @@ class AgentValidator:
                 )
                 return False
 
-            userLabelType = (
-                result.get("data", {})
-                .get("user", {})
+            tweet_data_result = (
+                result.get("data", {}).get("tweetResult", {}).get("result", {})
+            )
+
+            tweet_data_result = (
+                result.get("core", {})
+                .get("user_results", {})
                 .get("result", {})
                 .get("affiliates_highlighted_label", {})
                 .get("label", {})
                 .get("userLabelType", None)
-            )
-
-            tweet_data_result = (
-                result.get("data", {}).get("tweetResult", {}).get("result", {})
             )
             created_at = tweet_data_result.get("legacy", {}).get("created_at")
             tweet_id = tweet_data_result.get("rest_id")
