@@ -23,7 +23,6 @@ from cryptography.fernet import Fernet
 from masa_ai.tools.validator import TweetValidator
 
 from protocol.data_processing.post_loader import LoadPosts
-from protocol.scoring.post_scorer import PostScorer
 from protocol.x.scheduler import XSearchScheduler
 from protocol.x.queue import RequestQueue
 from protocol.scoring.miner_weights import MinerWeights
@@ -104,8 +103,7 @@ class AgentValidator:
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         self.posts_loader = LoadPosts()
-        self.post_scorer = PostScorer()
-        self.miner_weights = MinerWeights(self.post_scorer)
+        self.miner_weights = MinerWeights()
 
     async def start(self) -> None:
         """Start the validator service"""
@@ -681,8 +679,8 @@ class AgentValidator:
             ),
         )
         logger.info(f"Loaded {len(posts)} posts")
-        scored_posts = self.post_scorer.score_posts(posts)
-        self.scored_posts = scored_posts
+        # Store raw posts instead of scoring them
+        self.scored_posts = posts
 
     async def set_weights(self) -> None:
         self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
@@ -914,4 +912,5 @@ class AgentValidator:
 
     def get_scores(self) -> Tuple[List[int], List[float]]:
         """Calculate scores for each UID considering quality and volume."""
+        # Remove the post_scorer step and pass posts directly
         return self.miner_weights.calculate_weights(self.scored_posts)
