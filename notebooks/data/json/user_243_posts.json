@@ -1,0 +1,57 @@
+[
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1875142415520018442",
+      "GIFs": null,
+      "HTML": "Innovation is reshaping public spaces! From interactive murals to dynamic AI-powered installations, technology is bringing cities to life. \ud83c\udf06 Explore the future of urban design: <a href=\"https://bittensor.org\">https://t.co/N07zVVvW3O</a><br><a href=\"https://twitter.com/opentensor\">@opentensor</a> <a href=\"https://twitter.com/bittensor_\">@bittensor_</a><br><a href=\"https://twitter.com/hashtag/UrbanTech\">#UrbanTech</a> <a href=\"https://twitter.com/hashtag/SmartCities\">#SmartCities</a>",
+      "Hashtags": [
+        "UrbanTech",
+        "SmartCities"
+      ],
+      "ID": "1875142415520018442",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "1405656630872662019",
+          "Name": "Open\u03c4ensor Founda\u03c4ion",
+          "Username": "opentensor"
+        },
+        {
+          "ID": "1653753924736696320",
+          "Name": "bittensor",
+          "Username": "bittensor_"
+        }
+      ],
+      "Name": "Nils",
+      "PermanentURL": "https://twitter.com/Martin310Nils/status/1875142415520018442",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 27,
+      "SensitiveContent": false,
+      "Text": "Innovation is reshaping public spaces! From interactive murals to dynamic AI-powered installations, technology is bringing cities to life. \ud83c\udf06 Explore the future of urban design: https://t.co/N07zVVvW3O\n@opentensor @bittensor_\n#UrbanTech #SmartCities",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T11:29:24Z",
+      "Timestamp": 1735903764,
+      "URLs": [
+        "https://bittensor.org"
+      ],
+      "UserID": "1871671205788557312",
+      "Username": "Martin310Nils",
+      "Videos": null,
+      "Views": 1475
+    }
+  }
+]

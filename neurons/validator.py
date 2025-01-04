@@ -23,9 +23,9 @@ from cryptography.fernet import Fernet
 from masa_ai.tools.validator import TweetValidator
 
 from protocol.data_processing.post_loader import LoadPosts
-from protocol.scoring.post_scorer import PostScorer
 from protocol.x.scheduler import XSearchScheduler
 from protocol.x.queue import RequestQueue
+from protocol.scoring.miner_weights import MinerWeights
 
 from interfaces.types import (
     VerifiedTweet,
@@ -38,6 +38,9 @@ from interfaces.types import (
 from neurons.miner import DecryptedPayload
 
 import math
+
+from protocol.validator.scoring import ValidatorScoring
+from protocol.validator.weight_setter import ValidatorWeightSetter
 
 logger = get_logger(__name__)
 
@@ -103,7 +106,15 @@ class AgentValidator:
         self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
 
         self.posts_loader = LoadPosts()
-        self.post_scorer = PostScorer()
+        self.miner_weights = MinerWeights()
+
+        self.scorer = ValidatorScoring(self.netuid)
+        self.weight_setter = ValidatorWeightSetter(
+            self.netuid, 
+            self.keypair,
+            self.substrate,
+            version_numerical
+        )
 
     async def start(self) -> None:
         """Start the validator service"""
@@ -509,7 +520,7 @@ class AgentValidator:
         while True:
             try:
                 if len(self.scored_posts) > 0:
-                    await self.set_weights()
+                    await self.weight_setter.set_weights(self.scored_posts)
                 await asyncio.sleep(60)
             except Exception as e:
                 logger.error(f"Error in setting weights: {str(e)}")
@@ -519,7 +530,7 @@ class AgentValidator:
         """Background task to score agents"""
         while True:
             try:
-                self.score_posts()
+                self.scored_posts = self.scorer.score_posts()
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in scoring: {str(e)}")
@@ -669,136 +680,6 @@ class AgentValidator:
                     SYNC_LOOP_CADENCE_SECONDS / 2
                 )  # Wait before retrying
 
-    def score_posts(self) -> None:
-        """Score posts"""
-        posts = self.posts_loader.load_posts(
-            subnet_id=self.netuid,
-            timestamp_range=(
-                int(datetime.now(UTC).timestamp()) - 86400,
-                int(datetime.now(UTC).timestamp()),
-            ),
-        )
-        logger.info(f"Loaded {len(posts)} posts")
-        scored_posts = self.post_scorer.score_posts(posts)
-        self.scored_posts = scored_posts
-
-    async def set_weights(self) -> None:
-        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
-        validator_node_id = self.substrate.query(
-            "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
-        ).value
-
-        blocks_since_update = weights._blocks_since_last_update(
-            self.substrate, self.netuid, validator_node_id
-        )
-        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
-
-        logger.info(f"Blocks since last update: {blocks_since_update}")
-        logger.info(f"Minimum interval required: {min_interval}")
-
-        if blocks_since_update is not None and blocks_since_update < min_interval:
-            wait_blocks = min_interval - blocks_since_update
-            logger.info(
-                f"Need to wait {
-                    wait_blocks} more blocks before setting weights"
-            )
-            # Assuming ~12 second block time
-            wait_seconds = wait_blocks * 12
-            logger.info(f"Waiting {wait_seconds} seconds...")
-            await asyncio.sleep(wait_seconds)
-
-        uids, scores = self.get_scores()
-
-        # Set weights with multiple attempts
-        for attempt in range(3):
-            try:
-                success = weights.set_node_weights(
-                    substrate=self.substrate,
-                    keypair=self.keypair,
-                    node_ids=uids,
-                    node_weights=scores,
-                    netuid=self.netuid,
-                    validator_node_id=validator_node_id,
-                    version_key=version_numerical,
-                    wait_for_inclusion=False,
-                    wait_for_finalization=False,
-                )
-
-                if success:
-                    logger.info("✅ Successfully set weights!")
-                    return
-                else:
-                    logger.error(f"❌ Failed to set weights on attempt {attempt + 1}")
-                    await asyncio.sleep(10)  # Wait between attempts
-
-            except Exception as e:
-                logger.error(f"Error on attempt {attempt + 1}: {str(e)}")
-                await asyncio.sleep(10)  # Wait between attempts
-
-        logger.error("Failed to set weights after all attempts")
-
-    async def verify_tweet(
-        self, id: str, hotkey: str
-    ) -> tuple[VerifiedTweet, str, str]:
-        """Fetch tweet from Twitter API"""
-        try:
-            logger.info(f"Verifying tweet: {id}")
-            result = TweetValidator().fetch_tweet(id)
-
-            if not result:
-                logger.error(
-                    f"Could not fetch tweet id {
-                        id} for node {hotkey}"
-                )
-                return False
-
-            tweet_data_result = (
-                result.get("data", {}).get("tweetResult", {}).get("result", {})
-            )
-            created_at = tweet_data_result.get("legacy", {}).get("created_at")
-            tweet_id = tweet_data_result.get("rest_id")
-            user = (
-                tweet_data_result.get("core", {})
-                .get("user_results", {})
-                .get("result", {})
-            )
-
-            screen_name = user.get("legacy", {}).get("screen_name")
-            name = user.get("legacy", {}).get("name")
-            user_id = user.get("rest_id")
-
-            full_text = tweet_data_result.get("legacy", {}).get("full_text")
-            avatar = user.get("legacy", {}).get("profile_image_url_https")
-
-            logger.info(
-                f"Got tweet result: {
-                    tweet_id} - {screen_name} **** {full_text} - {avatar}"
-            )
-
-            if not isinstance(screen_name, str) or not isinstance(full_text, str):
-                msg = "Invalid tweet data: screen_name or full_text is not a string"
-                logger.error(msg)
-                raise ValueError(msg)
-
-            # ensure hotkey is in the tweet text
-            if not hotkey in full_text:
-                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
-                logger.error(msg)
-                raise ValueError(msg)
-
-            verification_tweet = VerifiedTweet(
-                tweet_id=tweet_id,
-                url=f"https://twitter.com/{screen_name}/status/{tweet_id}",
-                timestamp=datetime.strptime(
-                    created_at, "%a %b %d %H:%M:%S %z %Y"
-                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                full_text=full_text,
-            )
-            return verification_tweet, user_id, screen_name, avatar, name
-        except Exception as e:
-            logger.error(f"Failed to register agent: {str(e)}")
-            return False
-
     async def sync_metagraph(self) -> None:
         """Synchronize local metagraph state with chain.
 
@@ -909,43 +790,3 @@ class AgentValidator:
             tags=["healthcheck"],
             dependencies=[Depends(self.get_self)],
         )
-
-    def get_scores(self) -> Tuple[List[int], List[float]]:
-        """Calculate scores for each UID considering quality and volume.
-        
-        Returns:
-            Tuple[List[int], List[float]]: A tuple containing:
-                - List of UIDs
-                - List of corresponding scores (0-1) with volume bonus
-        """
-        uids = list(set([int(post["uid"]) for post in self.scored_posts]))
-        scores_by_uid = {}
-        
-        # Initialize score accumulators
-        for uid in uids:
-            scores_by_uid[uid] = {
-                'score_sum': 0.0,
-                'post_count': 0
-            }
-        
-        # Calculate scores
-        for post in self.scored_posts:
-            uid = int(post["uid"])
-            for score_data in post['scores']:
-                scores_by_uid[uid]['score_sum'] += score_data['score']
-                scores_by_uid[uid]['post_count'] += 1
-
-        # Calculate final scores with volume bonus
-        final_scores = {}
-        for uid in uids:
-            data = scores_by_uid[uid]
-            if data['post_count'] > 0:
-                base_score = data['score_sum'] / data['post_count']
-                volume_bonus = math.log1p(data['post_count']) / 10
-                final_scores[uid] = min(1.0, base_score * (1 + volume_bonus))
-            else:
-                final_scores[uid] = 0.0
-
-        # Return UIDs and scores in matching order
-        scores = [final_scores[uid] for uid in uids]
-        return uids, scores

@@ -1,0 +1,58 @@
+[
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1872493124880064595",
+      "GIFs": null,
+      "HTML": "Will <a href=\"https://twitter.com/hashtag/Bitcoin\">#Bitcoin</a> surge to $100,000 soon? The rally to $98,742 is fueled by US spot Bitcoin exchange-traded funds inflows. \ud83c\udf89 <a href=\"https://twitter.com/iamcjlouis\">@iamcjlouis</a> <a href=\"https://twitter.com/LedShoes\">@LedShoes</a> <a href=\"https://twitter.com/hashtag/BTC\">#BTC</a> <a href=\"https://twitter.com/hashtag/cryptocurrency\">#cryptocurrency</a> <a href=\"https://coinmarketcap.com/community/search/latest/?q=$98,742\">https://t.co/MYGyqKJWCz</a>",
+      "Hashtags": [
+        "Bitcoin",
+        "BTC",
+        "cryptocurrency"
+      ],
+      "ID": "1872493124880064595",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": false,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 1,
+      "Mentions": [
+        {
+          "ID": "2183062735",
+          "Name": "Cj Louis",
+          "Username": "iamcjlouis"
+        },
+        {
+          "ID": "538210314",
+          "Name": "Presh Mems",
+          "Username": "LedShoes"
+        }
+      ],
+      "Name": "Reddy Sourav",
+      "PermanentURL": "https://twitter.com/ReddySourav/status/1872493124880064595",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "Will #Bitcoin surge to $100,000 soon? The rally to $98,742 is fueled by US spot Bitcoin exchange-traded funds inflows. \ud83c\udf89 @iamcjlouis @LedShoes #BTC #cryptocurrency https://t.co/MYGyqKJWCz",
+      "Thread": null,
+      "TimeParsed": "2024-12-27T04:02:04Z",
+      "Timestamp": 1735272124,
+      "URLs": [
+        "https://coinmarketcap.com/community/search/latest/?q=$98,742"
+      ],
+      "UserID": "2170453702",
+      "Username": "ReddySourav",
+      "Videos": null,
+      "Views": 9
+    }
+  }
+]

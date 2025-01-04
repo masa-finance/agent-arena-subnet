@@ -1,0 +1,62 @@
+[
+  {
+    "Error": null,
+    "Tweet": {
+      "ConversationID": "1874840371219329104",
+      "GIFs": null,
+      "HTML": "<a href=\"https://twitter.com/DC_Draino\">@DC_Draino</a> <a href=\"https://twitter.com/CHIKOO41\">@CHIKOO41</a> and <a href=\"https://twitter.com/Maribel16364083\">@Maribel16364083</a>, Programming languages shape our digital world. Python stands out for its simplicity and versatility. Check out more on its applications here: <a href=\"https://www.python.org\">https://t.co/DHDPInIzxX</a> <a href=\"https://twitter.com/hashtag/Python\">#Python</a> <a href=\"https://twitter.com/hashtag/Programming\">#Programming</a>",
+      "Hashtags": [
+        "Python",
+        "Programming"
+      ],
+      "ID": "1875025064267260136",
+      "InReplyToStatus": null,
+      "InReplyToStatusID": "1874840371219329104",
+      "IsPin": false,
+      "IsQuoted": false,
+      "IsReply": true,
+      "IsRetweet": false,
+      "IsSelfThread": false,
+      "Likes": 0,
+      "Mentions": [
+        {
+          "ID": "875856268056969216",
+          "Name": "DC_Draino",
+          "Username": "DC_Draino"
+        },
+        {
+          "ID": "264458320",
+          "Name": "melik",
+          "Username": "CHIKOO41"
+        },
+        {
+          "ID": "702083078",
+          "Name": "Maribel L",
+          "Username": "Maribel16364083"
+        }
+      ],
+      "Name": "denisse brito",
+      "PermanentURL": "https://twitter.com/denissebrito1/status/1875025064267260136",
+      "Photos": null,
+      "Place": null,
+      "QuotedStatus": null,
+      "QuotedStatusID": "",
+      "Replies": 0,
+      "RetweetedStatus": null,
+      "RetweetedStatusID": "",
+      "Retweets": 0,
+      "SensitiveContent": false,
+      "Text": "@DC_Draino @CHIKOO41 and @Maribel16364083, Programming languages shape our digital world. Python stands out for its simplicity and versatility. Check out more on its applications here: https://t.co/DHDPInIzxX #Python #Programming",
+      "Thread": null,
+      "TimeParsed": "2025-01-03T03:43:06Z",
+      "Timestamp": 1735875786,
+      "URLs": [
+        "https://www.python.org"
+      ],
+      "UserID": "524578525",
+      "Username": "denissebrito1",
+      "Videos": null,
+      "Views": 7
+    }
+  }
+]
