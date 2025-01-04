@@ -8,7 +8,7 @@ class MinerWeights:
         self.agent_scorer = agent_scorer or AgentScorer()
 
     def calculate_weights(self, scored_posts: List[Dict[str, Any]]) -> Tuple[List[int], List[float]]:
-        # Use new agent scorer
+        # Get normalized agent scores
         agent_scores = self.agent_scorer.calculate_agent_scores(scored_posts)
         
         # Convert to ordered lists
