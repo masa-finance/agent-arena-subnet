@@ -110,10 +110,7 @@ class AgentValidator:
 
         self.scorer = ValidatorScoring(self.netuid)
         self.weight_setter = ValidatorWeightSetter(
-            self.netuid, 
-            self.keypair,
-            self.substrate,
-            version_numerical
+            self.netuid, self.keypair, self.substrate, version_numerical
         )
 
     async def start(self) -> None:
@@ -214,6 +211,68 @@ class AgentValidator:
 
         thread = threading.Thread(target=run_scheduler)
         thread.start()
+
+    async def verify_tweet(
+        self, id: str, hotkey: str
+    ) -> tuple[VerifiedTweet, str, str]:
+        """Fetch tweet from Twitter API"""
+        try:
+            logger.info(f"Verifying tweet: {id}")
+            result = TweetValidator().fetch_tweet(id)
+
+            if not result:
+                logger.error(
+                    f"Could not fetch tweet id {
+                        id} for node {hotkey}"
+                )
+                return False
+
+            tweet_data_result = (
+                result.get("data", {}).get("tweetResult", {}).get("result", {})
+            )
+            created_at = tweet_data_result.get("legacy", {}).get("created_at")
+            tweet_id = tweet_data_result.get("rest_id")
+            user = (
+                tweet_data_result.get("core", {})
+                .get("user_results", {})
+                .get("result", {})
+            )
+
+            screen_name = user.get("legacy", {}).get("screen_name")
+            name = user.get("legacy", {}).get("name")
+            user_id = user.get("rest_id")
+
+            full_text = tweet_data_result.get("legacy", {}).get("full_text")
+            avatar = user.get("legacy", {}).get("profile_image_url_https")
+
+            logger.info(
+                f"Got tweet result: {
+                    tweet_id} - {screen_name} **** {full_text} - {avatar}"
+            )
+
+            if not isinstance(screen_name, str) or not isinstance(full_text, str):
+                msg = "Invalid tweet data: screen_name or full_text is not a string"
+                logger.error(msg)
+                raise ValueError(msg)
+
+            # ensure hotkey is in the tweet text
+            if not hotkey in full_text:
+                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
+                logger.error(msg)
+                raise ValueError(msg)
+
+            verification_tweet = VerifiedTweet(
+                tweet_id=tweet_id,
+                url=f"https://twitter.com/{screen_name}/status/{tweet_id}",
+                timestamp=datetime.strptime(
+                    created_at, "%a %b %d %H:%M:%S %z %Y"
+                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                full_text=full_text,
+            )
+            return verification_tweet, user_id, screen_name, avatar, name
+        except Exception as e:
+            logger.error(f"Failed to register agent: {str(e)}")
+            return False
 
     async def check_agents_registration_loop(self) -> None:
         while True:
