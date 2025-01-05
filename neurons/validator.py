@@ -728,16 +728,26 @@ class AgentValidator:
             try:
                 await self.sync_metagraph()
                 await self.connect_new_nodes()
+                
+                # Store current agents for comparison
+                previous_agents = self.registered_agents.copy() if self.registered_agents else {}
+                
+                # Fetch new agents
                 await self.fetch_registered_agents()
-                self.scheduler.search_terms = self.generate_search_terms(
-                    self.registered_agents
-                )
+                
+                # If agents changed, update and process immediately
+                if self.registered_agents != previous_agents:
+                    logger.info("New agents detected, updating scheduler...")
+                    self.scheduler.search_terms = self.generate_search_terms(
+                        self.registered_agents
+                    )
+                    # Trigger immediate processing of new terms
+                    self.scheduler.process_search_terms()
+                
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in sync metagraph: {str(e)}")
-                await asyncio.sleep(
-                    SYNC_LOOP_CADENCE_SECONDS / 2
-                )  # Wait before retrying
+                await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS / 2)
 
     async def sync_metagraph(self) -> None:
         """Synchronize local metagraph state with chain.
