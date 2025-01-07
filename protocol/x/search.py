@@ -62,22 +62,24 @@ def search_x(
         # Parse response regardless of status code
         response_data = response.json()
         
-        # Handle both 200 {"data": null} and 404 {"error": "No data returned"}
-        if (response.status_code == 404 and 
-            isinstance(response_data, dict) and 
-            response_data.get("error") == "No data returned"):
-            return {"data": None, "recordCount": 0}
-            
-        # Handle normal response
+        # If the API returns a 404 with "No data returned" message
+        if response.status_code == 404 and response_data.get("error") == "No data returned":
+            return {
+                "data": [],
+                "recordCount": 0,
+                "workerPeerId": response_data.get("workerPeerId")
+            }
+
+        # Handle other error status codes
         response.raise_for_status()
         
         # Ensure consistent response structure
         if response_data is None:
-            return {"data": None, "recordCount": 0}
+            return {"data": [], "recordCount": 0}
 
         # If data is missing or None, ensure it's properly structured
         if "data" not in response_data or response_data["data"] is None:
-            response_data["data"] = None
+            response_data["data"] = []
             response_data["recordCount"] = 0
         else:
             # Update recordCount based on actual data length

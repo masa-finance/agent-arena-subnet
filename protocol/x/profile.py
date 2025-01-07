@@ -74,8 +74,20 @@ def get_x_profile(
             response_data = response.json()
             logger.debug(f"Raw response: {response_data}")
             
+            # If the API returns a 404 with "No data returned" message
+            if response.status_code == 404 and response_data.get("error") == "No data returned":
+                logger.info(f"No profile data found for username: {username}")
+                return {
+                    "data": None,
+                    "recordCount": 0,
+                    "workerPeerId": response_data.get("workerPeerId")
+                }
+            
+            # Handle other error status codes
+            response.raise_for_status()
+            
             # Ensure consistent response structure
-            if response_data is None:
+            if response_data is None or "data" not in response_data:
                 logger.warning(f"No data found for username: {username}")
                 return {
                     "data": None,
