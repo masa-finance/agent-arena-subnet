@@ -6,6 +6,7 @@ import os
 from typing import Any, Dict, Callable, Optional
 from dotenv import load_dotenv
 import itertools
+import requests
 
 # Import the functions from their respective modules
 from protocol.x.profile import get_x_profile
@@ -207,8 +208,8 @@ class RequestQueue:
             logger.debug(f"Active requests increased to {self.active_requests}")
 
         try:
-            self._wait_for_rate_limit()  # Apply rate limiting before making request
-
+            self._wait_for_rate_limit()
+            
             if request_type == "profile":
                 response = get_x_profile(username=request_data["username"])
             elif request_type == "search":
@@ -220,19 +221,29 @@ class RequestQueue:
                 return response
 
             if response["data"] is not None:
-                logger.info(f"Processed {request_type} request: {response}")
-
+                record_count = len(response.get('data', []))
+                logger.info(
+                    f"Processed {request_type} request - Query: {request_data.get('query', 'N/A')} | "
+                    f"Count: {record_count} | Miner: {request_data.get('miner_id', 'N/A')}"
+                )
+                
                 metadata = {
                     "uid": request_data["metadata"].UID,
                     "user_id": request_data["metadata"].UserID,
                     "subnet_id": request_data["metadata"].SubnetID,
                     "query": request_data["query"],
-                    "count": len(response),
+                    "count": record_count,
                     "created_at": int(time.time()),
                 }
-
-                self.saver.save_post(response, metadata)
                 return response, metadata
+
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                logger.info(
+                    f"No data found for {request_type} request - Query: {request_data.get('query', 'N/A')} | "
+                    f"Count: 0 | Miner: {request_data.get('miner_id', 'N/A')}"
+                )
+                return {"data": None, "recordCount": 0}, None
 
         except Exception as e:
             logger.error(f"Error processing request: {e}")

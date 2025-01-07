@@ -3,6 +3,7 @@ import json
 from typing import Optional, Dict, Any
 from dotenv import load_dotenv
 import os
+from src.logging.logger import setup_logger, LogLevel
 
 # Load environment variables
 load_dotenv()
@@ -11,6 +12,10 @@ load_dotenv()
 DEFAULT_BASE_URL = os.getenv('MASA_BASE_URL', "http://localhost:8080")
 DEFAULT_API_BASE = os.getenv('MASA_API_PATH', "/api/v1/data")
 DEFAULT_API_PATH = f"{DEFAULT_API_BASE}/twitter/profile"
+
+# Setup logger
+logger = setup_logger("x_profile", LogLevel.INFO)
+## TODO setup loggin from .env 
 
 def get_x_profile(
     username: str,
@@ -40,6 +45,7 @@ def get_x_profile(
     
     # Construct full URL
     api_url = f"{base_url.rstrip('/')}/{api_path.lstrip('/')}/{username}"
+    logger.debug(f"Making request to: {api_url}")
     
     # Prepare headers
     headers = {
@@ -49,8 +55,10 @@ def get_x_profile(
     
     # Add any additional parameters if provided
     params = additional_params if additional_params else {}
+    logger.debug(f"Request parameters: {params}")
     
     try:
+        logger.info(f"Fetching profile for username: {username}")
         # Send GET request
         response = requests.get(
             api_url,
@@ -64,9 +72,11 @@ def get_x_profile(
             
             # Parse response
             response_data = response.json()
+            logger.debug(f"Raw response: {response_data}")
             
             # Ensure consistent response structure
             if response_data is None:
+                logger.warning(f"No data found for username: {username}")
                 return {
                     "data": None,
                     "recordCount": 0
@@ -74,10 +84,11 @@ def get_x_profile(
             
             # If data is missing or None, ensure it's properly structured
             if "data" not in response_data or response_data["data"] is None:
+                logger.warning(f"No profile data in response for username: {username}")
                 response_data["data"] = None
                 response_data["recordCount"] = 0
             else:
-                # Set recordCount to 1 since this is a single profile
+                logger.info(f"Successfully retrieved profile for username: {username}")
                 response_data["recordCount"] = 1
             
             return response_data
@@ -90,13 +101,17 @@ def get_x_profile(
             except json.JSONDecodeError:
                 error_detail = f": {response.text}"
             
-            raise Exception(
-                f"API request failed with status {response.status_code}{error_detail}"
-            ) from e
+            error_msg = f"API request failed with status {response.status_code}{error_detail}"
+            logger.error(error_msg)
+            raise Exception(error_msg) from e
         
     except requests.exceptions.RequestException as e:
         # Handle connection errors (timeout, DNS failure, etc.)
-        raise Exception(f"Failed to connect to API: {str(e)}")
+        error_msg = f"Failed to connect to API: {str(e)}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
     except json.JSONDecodeError as e:
         # Handle invalid JSON in successful response
-        raise Exception(f"Invalid JSON in API response: {str(e)}\nResponse text: {response.text}")
+        error_msg = f"Invalid JSON in API response: {str(e)}\nResponse text: {response.text}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
