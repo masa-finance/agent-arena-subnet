@@ -25,9 +25,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Constants
-DEFAULT_MAX_CONCURRENT_REQUESTS = 5  # Maximum parallel requests
-DEFAULT_API_REQUESTS_PER_SECOND = 20  # Default to 20 RPS
+DEFAULT_MAX_CONCURRENT_REQUESTS = 2  # Maximum parallel requests
+DEFAULT_API_REQUESTS_PER_SECOND = 2  # Default to 20 RPS
 DEFAULT_RETRIES = 10  # Number of retry attempts
+DEFAULT_SEARCH_DELAY = 1.0  # Delay between searches in seconds
 
 # Base priority level (higher = lower priority)
 DEFAULT_PRIORITY = 100
@@ -97,6 +98,8 @@ class RequestQueue:
 
         # Posts saver
         self.saver = PostSaver(storage_path=POSTS_STORAGE_PATH)
+
+        self.search_delay = DEFAULT_SEARCH_DELAY
 
         logger.debug(
             f"Initialized RequestQueue with max_concurrent_requests={max_concurrent_requests}, "
@@ -215,6 +218,8 @@ class RequestQueue:
                 response = get_x_profile(username=request_data["username"])
             elif request_type == "search":
                 response = search_x(query=request_data["query"])
+                # Add delay after search
+                time.sleep(self.search_delay)
             else:
                 raise ValueError(f"Unknown request type: {request_type}")
 
