@@ -7,6 +7,7 @@ from typing import Any, Dict, Callable, Optional
 from dotenv import load_dotenv
 import itertools
 import requests
+import json
 
 # Import the functions from their respective modules
 from protocol.x.profile import get_x_profile
@@ -220,33 +221,39 @@ class RequestQueue:
             if quick_return:
                 return response
 
-            if response["data"] is not None:
-                record_count = len(response.get('data', []))
-                logger.info(
-                    f"Processed {request_type} request - Query: {request_data.get('query', 'N/A')} | "
-                    f"Count: {record_count} | Miner: {request_data.get('miner_id', 'N/A')}"
-                )
-                
-                metadata = {
-                    "uid": request_data["metadata"].UID,
-                    "user_id": request_data["metadata"].UserID,
-                    "subnet_id": request_data["metadata"].SubnetID,
-                    "query": request_data["query"],
-                    "count": record_count,
-                    "created_at": int(time.time()),
-                }
-                return response, metadata
-
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
+            # Handle null data case (no results)
+            if response.get("data") is None:
                 logger.info(
                     f"No data found for {request_type} request - Query: {request_data.get('query', 'N/A')} | "
                     f"Count: 0 | Miner: {request_data.get('miner_id', 'N/A')}"
                 )
                 return {"data": None, "recordCount": 0}, None
 
-        except Exception as e:
-            logger.error(f"Error processing request: {e}")
+            # Handle successful data case
+            record_count = len(response.get('data', []))
+            logger.info(
+                f"Processed {request_type} request with {record_count} records"
+            )
+            logger.debug(f"Full response data: {json.dumps(response, indent=2)}")
+
+            metadata = {
+                "uid": request_data["metadata"].UID,
+                "user_id": request_data["metadata"].UserID,
+                "subnet_id": request_data["metadata"].SubnetID,
+                "query": request_data["query"],
+                "count": record_count,
+                "created_at": int(time.time()),
+            }
+            logger.debug(f"Request metadata: {json.dumps(metadata, indent=2)}")
+            
+            return response, metadata
+
+        except requests.exceptions.HTTPError as e:
+            logger.error(
+                f"HTTP {e.response.status_code} error for {request_type} request - "
+                f"Query: {request_data.get('query', 'N/A')} | "
+                f"Miner: {request_data.get('miner_id', 'N/A')}"
+            )
             self._retry_request(request_type, request_data)
         finally:
             with self.lock:
