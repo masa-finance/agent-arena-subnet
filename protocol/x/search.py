@@ -62,8 +62,8 @@ def search_x(
         # Parse response regardless of status code
         response_data = response.json()
         
-        # If the API returns a 404 with "No data returned" message
-        if response.status_code == 404 and response_data.get("error") == "No data returned":
+        # Handle "No data returned" response
+        if response_data.get("error") == "No data returned":
             return {
                 "data": [],
                 "recordCount": 0,

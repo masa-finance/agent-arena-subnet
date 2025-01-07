@@ -209,64 +209,70 @@ class RequestQueue:
         """
         with self.lock:
             self.active_requests += 1
-            logger.debug(f"Active requests increased to {self.active_requests}")
 
         try:
             self._wait_for_rate_limit()
             
-            if request_type == "profile":
-                response = get_x_profile(username=request_data["username"])
-            elif request_type == "search":
-                response = search_x(query=request_data["query"])
-                # Add delay after search
-                time.sleep(self.search_delay)
-            else:
-                raise ValueError(f"Unknown request type: {request_type}")
+            # Make the request
+            try:
+                if request_type == "profile":
+                    response = get_x_profile(username=request_data["username"])
+                elif request_type == "search":
+                    response = search_x(query=request_data["query"])
+                    time.sleep(self.search_delay)
+                else:
+                    raise ValueError(f"Unknown request type: {request_type}")
+            except Exception as e:
+                # Check if this is a "No data returned" response
+                if (isinstance(e, requests.exceptions.HTTPError) and 
+                    hasattr(e, 'response') and 
+                    e.response is not None and 
+                    e.response.status_code == 404):
+                    try:
+                        error_data = e.response.json()
+                        if error_data.get("error") == "No data returned":
+                            # This is a valid "no data" response
+                            return {
+                                "data": [],
+                                "recordCount": 0,
+                                "error": "No data returned",
+                                "workerPeerId": error_data.get("workerPeerId")
+                            }, None
+                    except:
+                        pass
+                # If we get here, it's a real error
+                raise
 
             if quick_return:
                 return response
 
-            # Handle null data case (no results)
-            if response.get("data") is None:
-                logger.info(
-                    f"No data found for {request_type} request - Query: {request_data.get('query', 'N/A')} | "
-                    f"Count: 0 | Miner: {request_data.get('miner_id', 'N/A')}"
-                )
-                return {"data": None, "recordCount": 0}, None
-
-            # Handle successful data case
-            record_count = len(response.get('data', []))
+            # Process successful response
+            record_count = len(response.get("data", []) or [])
             logger.info(
                 f"Processed {request_type} request with {record_count} records"
             )
-            logger.debug(f"Full response data: {json.dumps(response, indent=2)}")
 
-            metadata = {
-                "uid": request_data["metadata"].UID,
-                "user_id": request_data["metadata"].UserID,
-                "subnet_id": request_data["metadata"].SubnetID,
-                "query": request_data["query"],
-                "count": record_count,
-                "created_at": int(time.time()),
-            }
-            logger.debug(f"Request metadata: {json.dumps(metadata, indent=2)}")
-            
+            metadata = None
+            if "metadata" in request_data:
+                metadata = {
+                    "uid": request_data["metadata"].UID,
+                    "user_id": request_data["metadata"].UserID,
+                    "subnet_id": request_data["metadata"].SubnetID,
+                    "query": request_data.get("query", ""),
+                    "count": record_count,
+                    "created_at": int(time.time()),
+                }
+
             return response, metadata
 
-        except requests.exceptions.HTTPError as e:
-            logger.error(
-                f"HTTP {e.response.status_code} error for {request_type} request - "
-                f"Query: {request_data.get('query', 'N/A')} | "
-                f"Miner: {request_data.get('miner_id', 'N/A')}"
-            )
+        except Exception as e:
+            logger.error(f"Error processing request: {str(e)}")
             self._retry_request(request_type, request_data)
+            return None, None
+
         finally:
             with self.lock:
                 self.active_requests -= 1
-                logger.debug(
-                    f"Active requests decreased to {
-                             self.active_requests}"
-                )
 
     def _retry_request(
         self,
