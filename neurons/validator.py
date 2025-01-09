@@ -8,17 +8,17 @@ import uvicorn
 import random
 import threading
 from typing import Optional, Dict, Tuple, List, Any
-from datetime import datetime, UTC
+from datetime import datetime
 from neurons import version_numerical
 
-from fiber.chain import chain_utils, interface, weights
+from fiber.chain import chain_utils, interface
 from fiber.chain.metagraph import Metagraph
 from fiber.encrypted.validator import handshake, client as vali_client
 from fiber.miner.server import factory_app
 from fiber.networking.models import NodeWithFernet as Node
 from fiber.logging_utils import get_logger
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from cryptography.fernet import Fernet
 from masa_ai.tools.validator import TweetValidator
 
@@ -337,6 +337,7 @@ class AgentValidator:
                 logger.error("Error checking registered nodes: %s", str(e))
                 await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS / 2)
 
+    # TODO refactor this into a "non streamed get" function that takes an endpoint, and returns a generic .json() payload
     async def get_agent_tweet_id(self, node: Node) -> Optional[str]:
         logger.info(f"Attempting to register node {node.hotkey} agent")
         registered_node = self.connected_nodes.get(node.hotkey)
@@ -820,9 +821,6 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Exception occurred during agent deregistration: {str(e)}")
 
-    def get_self(self) -> None:
-        return self
-
     def healthcheck(self):
         try:
             info = {
@@ -847,5 +845,4 @@ class AgentValidator:
             self.healthcheck,
             methods=["GET"],
             tags=["healthcheck"],
-            dependencies=[Depends(self.get_self)],
         )
