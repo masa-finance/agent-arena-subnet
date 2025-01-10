@@ -137,10 +137,10 @@ class XSearchScheduler:
                 - count: Number of results to request
                 - miner_id: ID of the miner who provided the search term
         """
-        current_time = datetime.now(UTC)
+        yesterday = datetime.now(UTC) - timedelta(days=1)
 
-        # Format the query string with today's date
-        query = f"({term['query']}) " f"since:{current_time.strftime('%Y-%m-%d')}"
+        # Format the query string with just yesterday's date
+        query = f"({term['query']}) since:{yesterday.strftime('%Y-%m-%d')}"
 
         return {
             "query": query,
