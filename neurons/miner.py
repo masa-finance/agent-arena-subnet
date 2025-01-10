@@ -24,16 +24,10 @@ from fiber.logging_utils import get_logger
 
 from functools import partial
 from typing import Optional
-from pydantic import BaseModel
 from fastapi import FastAPI, Depends
-
+from interfaces.types import RegistrationCallback
 
 logger = get_logger(__name__)
-
-
-class DecryptedPayload(BaseModel):
-    registered: str
-    message: Optional[str] = None
 
 
 class AgentMiner:
@@ -155,13 +149,13 @@ class AgentMiner:
 
     async def registration_callback(
         self,
-        decrypted_payload: DecryptedPayload = Depends(
-            partial(decrypt_general_payload, DecryptedPayload),
+        payload: RegistrationCallback = Depends(
+            partial(decrypt_general_payload, RegistrationCallback),
         ),
     ) -> dict:
         """Registration Callback"""
         try:
-            logger.info(f"Decrypted Payload: {decrypted_payload}")
+            logger.info(f"Message From Validator: {payload}")
             logger.info(f"Registration Success!")
             return {"status": "Callback received"}
         except Exception as e:

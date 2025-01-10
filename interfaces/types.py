@@ -1,6 +1,7 @@
 from typing import Optional
 from cryptography.fernet import Fernet
 from dataclasses import dataclass, asdict
+from pydantic import BaseModel
 
 
 @dataclass
@@ -102,3 +103,8 @@ class ConnectedNode(JSONSerializable):
     symmetric_key: str
     symmetric_key_uuid: str
     fernet: Fernet
+
+
+class RegistrationCallback(BaseModel):
+    registered: str
+    message: Optional[str] = None

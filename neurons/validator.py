@@ -28,11 +28,12 @@ from interfaces.types import (
     ConnectedNode,
 )
 
-from neurons.miner import DecryptedPayload
 
 from protocol.validator.scoring import ValidatorScoring
 from protocol.validator.weight_setter import ValidatorWeightSetter
 from protocol.validator.registration import ValidatorRegistration
+
+from interfaces.types import RegistrationCallback
 
 logger = get_logger(__name__)
 
@@ -40,12 +41,12 @@ BLOCKS_PER_WEIGHT_SETTING = 100
 BLOCK_TIME_SECONDS = 12
 TIME_PER_WEIGHT_SETTING = BLOCKS_PER_WEIGHT_SETTING * BLOCK_TIME_SECONDS
 
-# AGENT_REGISTRATION_CADENCE_SECONDS = 300  # 5 minutes
-AGENT_REGISTRATION_CADENCE_SECONDS = 20  # 20 seconds
+AGENT_REGISTRATION_CADENCE_SECONDS = 60  # 1 minute
 SYNC_LOOP_CADENCE_SECONDS = 60  # 1 minute
 SCORE_LOOP_CADENCE_SECONDS = (
     TIME_PER_WEIGHT_SETTING / 2
 )  # half of a weight setting period
+
 UPDATE_PROFILE_LOOP_CADENCE_SECONDS = 3600
 
 
@@ -116,10 +117,8 @@ class AgentValidator:
             self.register_routes()
 
             # Start background tasks
-            asyncio.create_task(self.sync_loop())  # sync loop
-            asyncio.create_task(
-                self.check_agents_registration_loop()
-            )  # agent registration
+            asyncio.create_task(self.sync_loop())
+            asyncio.create_task(self.check_agents_registration_loop())
             asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
             asyncio.create_task(self.score_loop())
             asyncio.create_task(self.set_weights_loop())
@@ -183,63 +182,56 @@ class AgentValidator:
         thread = threading.Thread(target=run_scheduler)
         thread.start()
 
-    # TODO refactor this into a "non streamed get" function that takes an endpoint, and returns a generic .json() payload
-    async def get_agent_tweet_id(self, node: Node) -> Optional[str]:
-        logger.info(f"Attempting to register node {node.hotkey} agent")
+    async def make_non_streamed_get(self, node: Node, endpoint: str) -> Optional[Any]:
         registered_node = self.connected_nodes.get(node.hotkey)
-
         server_address = vali_client.construct_server_address(
             node=node,
             replace_with_docker_localhost=False,
             replace_with_localhost=True,
         )
-        registration_response = await vali_client.make_non_streamed_get(
+        response = await vali_client.make_non_streamed_get(
             httpx_client=self.httpx_client,
             server_address=server_address,
             symmetric_key_uuid=registered_node.symmetric_key_uuid,
-            endpoint="/get_verification_tweet_id",
+            endpoint=endpoint,
             validator_ss58_address=self.keypair.ss58_address,
         )
-
-        if registration_response.status_code == 200:
-            verification_tweet_id = registration_response.json()
-            return verification_tweet_id
+        if response.status_code == 200:
+            return response.json()
         else:
             logger.error(
-                f"Failed to get registration info, status code: {
-                    registration_response.status_code}"
+                f"Error making non streamed get: {
+                    response.status_code}"
             )
             return None
 
-    async def node_registration_callback(
-        self, node: Node, payload: DecryptedPayload
-    ) -> None:
-        registered_node = self.connected_nodes.get(node.hotkey)
-        agent = self.registered_agents.get(node.hotkey)
-        logger.info(f"Registration Callback for {agent.Username}")
+    async def make_non_streamed_post(
+        self, node: Node, endpoint: str, payload: Any
+    ) -> Optional[Any]:
+        connected_node = self.connected_nodes.get(node.hotkey)
         server_address = vali_client.construct_server_address(
             node=node,
             replace_with_docker_localhost=False,
             replace_with_localhost=True,
         )
-        registration_response = await vali_client.make_non_streamed_post(
+        response = await vali_client.make_non_streamed_post(
             httpx_client=self.httpx_client,
             server_address=server_address,
-            symmetric_key_uuid=registered_node.symmetric_key_uuid,
-            endpoint="/registration_callback",
+            symmetric_key_uuid=connected_node.symmetric_key_uuid,
+            endpoint=endpoint,
             validator_ss58_address=self.keypair.ss58_address,
             miner_ss58_address=node.hotkey,
             keypair=self.keypair,
-            fernet=registered_node.fernet,
+            fernet=connected_node.fernet,
             payload=payload,
         )
 
-        if registration_response.status_code == 200:
-            logger.info("Registration Callback Success")
+        if response.status_code == 200:
+            return response.json()
         else:
             logger.error(
-                f"Error in registration callback: {
-                    registration_response.status_code}"
+                f"Error making non streamed post: {
+                    response.status_code}"
             )
             return None
 

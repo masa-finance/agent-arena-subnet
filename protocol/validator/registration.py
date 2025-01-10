@@ -2,8 +2,10 @@ import os
 import json
 import httpx
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
+
 from fiber.logging_utils import get_logger
+from fiber.networking.models import NodeWithFernet as Node
 
 from masa_ai.tools.validator import TweetValidator
 
@@ -225,9 +227,9 @@ class ValidatorRegistration:
         unregistered_nodes = []
         try:
             # Iterate over each registered node to check if it has a registered agent
-            for node_hotkey in self.validator.connected_nodes:
-                if node_hotkey not in self.validator.registered_agents:
-                    unregistered_nodes.append(node_hotkey)
+            for hotkey in self.validator.connected_nodes:
+                if hotkey not in self.validator.registered_agents:
+                    unregistered_nodes.append(hotkey)
 
             # Log the unregistered nodes
             if unregistered_nodes:
@@ -238,19 +240,19 @@ class ValidatorRegistration:
             else:
                 logger.info("All nodes have registered agents.")
 
-            for node_hotkey in unregistered_nodes:
+            for hotkey in unregistered_nodes:
                 try:
-                    raw_nodes = self.validator.metagraph.nodes
-                    full_node = raw_nodes[node_hotkey]
-                    if full_node:
+                    nodes = self.validator.metagraph.nodes
+                    node = nodes[hotkey]
+                    if node:
                         # note, could refactor to this module but will keep vali <> miner calls in vali for now
-                        tweet_id = await self.validator.get_agent_tweet_id(full_node)
+                        tweet_id = await self.get_verification_tweet_id(node)
                         verified_tweet, user_id, screen_name, avatar, name = (
-                            await self.verify_tweet(tweet_id, full_node.hotkey)
+                            await self.verify_tweet(tweet_id, node.hotkey)
                         )
                         if verified_tweet and user_id:
                             await self.register_agent(
-                                full_node,
+                                node,
                                 verified_tweet,
                                 user_id,
                                 screen_name,
@@ -261,22 +263,22 @@ class ValidatorRegistration:
                                 "registered": str(screen_name),
                                 "message": "Agent successfully registered!",
                             }
-                            await self.validator.node_registration_callback(
-                                full_node, payload
-                            )
+                            response = await self.registration_callback(node, payload)
                         else:
                             payload = {
                                 "registered": "Agent failed to register",
                                 "message": f"Failed to register with tweet {tweet_id}",
                             }
-                            await self.validator.node_registration_callback(
-                                full_node, payload
-                            )
+                            response = await self.registration_callback(node, payload)
+
+                        logger.info(
+                            f"Miner Response From Registration Callback: {response}"
+                        )
 
                 except Exception as e:
                     logger.error(
                         f"Failed to get registration info for node {
-                                node_hotkey}: {str(e)}"
+                                hotkey}: {str(e)}"
                     )
 
         except Exception as e:
@@ -343,3 +345,23 @@ class ValidatorRegistration:
         except Exception as e:
             logger.error(f"Failed to register agent: {str(e)}")
             return False
+
+    async def get_verification_tweet_id(self, node: Node) -> Optional[str]:
+        try:
+            verification_tweet_id = await self.validator.make_non_streamed_get(
+                node, "/get_verification_tweet_id"
+            )
+            return verification_tweet_id
+        except Exception as e:
+            logger.error(f"Failed to get agent tweet id: {str(e)}")
+            return None
+
+    async def registration_callback(self, node: Node, payload: Any) -> Optional[str]:
+        try:
+            response = await self.validator.make_non_streamed_post(
+                node, "/registration_callback", payload
+            )
+            return response
+        except Exception as e:
+            logger.error(f"Failed to send registration callback: {str(e)}")
+            return None
