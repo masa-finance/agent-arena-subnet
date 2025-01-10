@@ -60,6 +60,7 @@ class ValidatorRegistration:
         except Exception as e:
             logger.error(f"Exception occurred while fetching active agents: {str(e)}")
 
+    # TODO add followers count
     async def register_agent(
         self,
         node: Any,
@@ -344,6 +345,7 @@ class ValidatorRegistration:
             )
             return verification_tweet, user_id, screen_name, avatar, name
         except Exception as e:
+            # TODO let the miner know what the issue is
             logger.error(f"Failed to register agent: {str(e)}")
             return False
 
