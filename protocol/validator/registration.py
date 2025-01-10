@@ -347,21 +347,15 @@ class ValidatorRegistration:
             return False
 
     async def get_verification_tweet_id(self, node: Node) -> Optional[str]:
+        endpoint = "/get_verification_tweet_id"
         try:
-            verification_tweet_id = await self.validator.make_non_streamed_get(
-                node, "/get_verification_tweet_id"
-            )
-            return verification_tweet_id
+            return await self.validator.make_non_streamed_get(node, endpoint)
         except Exception as e:
-            logger.error(f"Failed to get agent tweet id: {str(e)}")
-            return None
+            logger.error(f"Failed to get verification tweet id: {str(e)}")
 
     async def registration_callback(self, node: Node, payload: Any) -> Optional[str]:
+        endpoint = "/registration_callback"
         try:
-            response = await self.validator.make_non_streamed_post(
-                node, "/registration_callback", payload
-            )
-            return response
+            return await self.validator.make_non_streamed_post(node, endpoint, payload)
         except Exception as e:
             logger.error(f"Failed to send registration callback: {str(e)}")
-            return None
