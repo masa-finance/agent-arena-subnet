@@ -124,8 +124,8 @@ class XSearchScheduler:
         """Prepare search query with time range parameters.
 
         Takes a search term from the database and prepares it for processing by adding
-        a 1-day lookback period and the configured result count. The time range is
-        formatted as dates only (no time component) to match X's search syntax.
+        a 1-day lookback period and the configured result count. The time range uses
+        yesterday's date to ensure complete data collection.
 
         Args:
             term (Dict[str, Any]): Search term configuration from database containing
@@ -138,9 +138,10 @@ class XSearchScheduler:
                 - miner_id: ID of the miner who provided the search term
         """
         current_time = datetime.now(UTC)
+        yesterday = current_time - timedelta(days=1)
 
-        # Format the query string with today's date
-        query = f"({term['query']}) " f"since:{current_time.strftime('%Y-%m-%d')}"
+        # Format the query string with yesterday's date
+        query = f"({term['query']}) since:{yesterday.strftime('%Y-%m-%d')}"
 
         return {
             "query": query,
