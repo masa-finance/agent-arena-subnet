@@ -13,6 +13,7 @@ import json
 from protocol.x.profile import get_x_profile
 from protocol.x.search import search_x
 from protocol.data_processing.post_saver import PostSaver
+from protocol.x.errors import APIError
 
 # Load environment variables
 load_dotenv()
@@ -30,6 +31,7 @@ DEFAULT_API_REQUESTS_PER_SECOND = 20  # Default to 20 RPS
 DEFAULT_RETRIES = 10  # Number of retry attempts
 MAX_RETRIES = 10
 RETRY_ERRORS = (
+    APIError,
     requests.exceptions.RequestException,
     requests.exceptions.HTTPError,
     requests.exceptions.ConnectionError,
