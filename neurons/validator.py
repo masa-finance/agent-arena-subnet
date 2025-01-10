@@ -77,6 +77,7 @@ class AgentValidator:
         self.server: Optional[factory_app] = None
         self.app: Optional[FastAPI] = None
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
+        self.api_key = os.getenv("API_KEY", None)
 
         self.substrate = interface.get_substrate(
             subtensor_network=self.subtensor_network,
@@ -152,10 +153,9 @@ class AgentValidator:
     async def fetch_registered_agents(self) -> None:
         """Fetch active agents from the API and update registered_agents"""
         try:
-            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
             endpoint = f"{
                 self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
-            response = await self.httpx_client.get(endpoint, headers=headers)
+            response = await self.httpx_client.get(endpoint)
             if response.status_code == 200:
                 active_agents = response.json()
                 self.registered_agents = {
@@ -422,7 +422,7 @@ class AgentValidator:
         return search_terms
 
     def get_emissions(self, node: Optional[Node]) -> Tuple[float, List[float]]:
-        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+        self.sync_substrate()
         multiplier = 10**-9
         emissions = [
             emission * multiplier
@@ -464,7 +464,7 @@ class AgentValidator:
         )
         endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
         try:
-            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+            headers = {"Authorization": f"Bearer {self.api_key}"}
             response = await self.httpx_client.post(
                 endpoint, json=registration_data, headers=headers
             )
@@ -598,7 +598,6 @@ class AgentValidator:
         response = await queue.excecute_request(
             request_type="profile", request_data={"username": username}
         )
-
         return response
 
     async def update_agents_profiles_and_emissions(self) -> None:
@@ -607,8 +606,9 @@ class AgentValidator:
             agent = self.registered_agents.get(hotkey, None)
             if agent:
                 x_profile = await self.fetch_x_profile(agent.Username)
-                logger.info(f"X Profile To Update: {x_profile}")
                 if x_profile is None:
+                    # it is possible that the username has changed...
+                    # attempt to refetch the username using the tweet id
                     try:
                         logger.info(
                             f"Trying to refetch username for agent: {
@@ -620,7 +620,11 @@ class AgentValidator:
                             )
                         )
                         x_profile = await self.fetch_x_profile(username)
-                        logger.info(f"X Profile To Update: {x_profile}")
+                        if x_profile is None:
+                            logger.error(
+                                f"Failed to fetch X profile on second attempt for {username}, continuing..."
+                            )
+                            continue
                     except Exception as e:
                         logger.error(
                             f"Failed to fetch profile for {agent.Username}, continuing..."
@@ -628,6 +632,7 @@ class AgentValidator:
                         # TODO handle this better?
                         continue
                 try:
+                    logger.info(f"X Profile To Update: {x_profile}")
                     agent_emissions = emissions[int(agent.UID)]
                     logger.info(
                         f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
@@ -664,7 +669,7 @@ class AgentValidator:
                         json.dumps(update_data, default=lambda o: o.__dict__)
                     )
                     endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-                    headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+                    headers = {"Authorization": f"Bearer {self.api_key}"}
                     response = await self.httpx_client.post(
                         endpoint, json=update_data, headers=headers
                     )
@@ -695,47 +700,31 @@ class AgentValidator:
                     SYNC_LOOP_CADENCE_SECONDS / 2
                 )  # Wait before retrying
 
+    def sync_substrate(self) -> None:
+        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
+
     async def sync_metagraph(self) -> None:
-        """Synchronize local metagraph state with chain.
-
-        Creates new metagraph instance if needed and syncs node data.
-
-        Raises:
-            Exception: If metagraph sync fails
-        """
+        """Synchronize local metagraph state with chain"""
         try:
-            self.substrate = interface.get_substrate(
-                subtensor_address=self.substrate.url
-            )
+            self.sync_substrate()
             self.metagraph.sync_nodes()
 
-            metagraph_node_hotkeys = list(dict(self.metagraph.nodes).keys())
-            registered_node_hotkeys = list(self.connected_nodes.keys())
-
-            for hotkey in registered_node_hotkeys:
-                if hotkey not in metagraph_node_hotkeys:
+            for hotkey, _ in self.connected_nodes.items():
+                if hotkey not in self.metagraph.nodes:
                     logger.info(
-                        f"Removing node {
-                            hotkey} from registered nodes"
+                        f"Hotkey: {hotkey} has been deregistered from the metagraph"
                     )
+                    agent = self.registered_agents.get(hotkey)
                     del self.connected_nodes[hotkey]
-
-                    node = self.metagraph.nodes[hotkey]
-                    uid = node.node_id
-                    # hotkey = node.hotkey
-                    await self.deregister_agent(hotkey, uid)
-
-                    # TODO reset local data / posts for uid to be fair to scoring
+                    await self.deregister_agent(agent)
 
             logger.info("Metagraph synced successfully")
         except Exception as e:
             logger.error(f"Failed to sync metagraph: {str(e)}")
 
-    async def deregister_agent(self, hotkey: str, uid: str) -> None:
+    async def deregister_agent(self, agent: RegisteredAgentResponse) -> None:
         """Deregister agent with the API"""
         logger.info("Deregistering agent...")
-        agent = self.registered_agents.get(hotkey, {})
-
         try:
             verification_tweet = VerifiedTweet(
                 tweet_id=agent.VerificationTweetID,
@@ -744,10 +733,10 @@ class AgentValidator:
                 full_text=agent.VerificationTweetText,
             )
             deregistration_data = RegisteredAgentRequest(
-                hotkey=hotkey,
-                uid=str(uid),
+                hotkey=agent.HotKey,
+                uid=str(agent.UID),
                 subnet_id=int(self.netuid),
-                version=str(4),  # TODO implement versioning...
+                version=str(4),
                 isActive=False,
                 verification_tweet=verification_tweet,
                 profile={
@@ -761,7 +750,7 @@ class AgentValidator:
                 json.dumps(deregistration_data, default=lambda o: o.__dict__)
             )
             endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-            headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
+            headers = {"Authorization": f"Bearer {self.api_key}"}
             response = await self.httpx_client.post(
                 endpoint, json=deregistration_data, headers=headers
             )
