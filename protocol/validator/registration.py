@@ -119,6 +119,7 @@ class ValidatorRegistration:
                 version=str(agent.Version),
                 isActive=False,
                 verification_tweet=verification_tweet,
+                emissions=0,
                 profile={
                     "data": Profile(
                         UserID=agent.UserID,
