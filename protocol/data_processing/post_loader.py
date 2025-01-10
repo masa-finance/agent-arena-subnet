@@ -75,11 +75,19 @@ class LoadPosts:
             return filtered_posts
 
         except FileNotFoundError:
-            raise FileNotFoundError(f"Posts file not found at: {self.data_path}")
-        except json.JSONDecodeError as e:
-            raise json.JSONDecodeError(
-                f"Error parsing posts.json: {str(e)}", e.doc, e.pos
+            print(
+                f"Posts file not found at: {self.data_path}. Creating a new empty posts.json file."
             )
+            with open(self.data_path, "w", encoding="utf-8") as file:
+                json.dump([], file)
+            return []
+        except json.JSONDecodeError as e:
+            print(
+                f"Error parsing posts.json: {str(e)}. Creating a new empty posts.json file."
+            )
+            with open(self.data_path, "w", encoding="utf-8") as file:
+                json.dump([], file)
+            return []
 
 
 # Example usage
