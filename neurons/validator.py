@@ -1,13 +1,11 @@
 from dotenv import load_dotenv
 
 import os
-import json
 import httpx
 import asyncio
 import uvicorn
 import threading
 from typing import Optional, Dict, Tuple, List, Any
-from datetime import datetime
 from neurons import version_numerical
 
 from fiber.chain import chain_utils, interface
@@ -19,7 +17,6 @@ from fiber.logging_utils import get_logger
 
 from fastapi import FastAPI
 from cryptography.fernet import Fernet
-from masa_ai.tools.validator import TweetValidator
 
 from protocol.data_processing.post_loader import LoadPosts
 from protocol.x.scheduler import XSearchScheduler
@@ -27,11 +24,8 @@ from protocol.x.queue import RequestQueue
 from protocol.scoring.miner_weights import MinerWeights
 
 from interfaces.types import (
-    VerifiedTweet,
-    RegisteredAgentRequest,
     RegisteredAgentResponse,
     ConnectedNode,
-    Profile,
 )
 
 from neurons.miner import DecryptedPayload
@@ -46,7 +40,8 @@ BLOCKS_PER_WEIGHT_SETTING = 100
 BLOCK_TIME_SECONDS = 12
 TIME_PER_WEIGHT_SETTING = BLOCKS_PER_WEIGHT_SETTING * BLOCK_TIME_SECONDS
 
-AGENT_REGISTRATION_CADENCE_SECONDS = 300  # 5 minutes
+# AGENT_REGISTRATION_CADENCE_SECONDS = 300  # 5 minutes
+AGENT_REGISTRATION_CADENCE_SECONDS = 20  # 20 seconds
 SYNC_LOOP_CADENCE_SECONDS = 60  # 1 minute
 SCORE_LOOP_CADENCE_SECONDS = (
     TIME_PER_WEIGHT_SETTING / 2
@@ -77,8 +72,6 @@ class AgentValidator:
 
         self.server: Optional[factory_app] = None
         self.app: Optional[FastAPI] = None
-        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
-        self.api_key = os.getenv("API_KEY", None)
 
         self.substrate = interface.get_substrate(
             subtensor_network=self.subtensor_network,
@@ -119,7 +112,7 @@ class AgentValidator:
         try:
             self.httpx_client = httpx.AsyncClient()
             self.app = factory_app(debug=False)
-            await self.registrar.fetch_registered_agents()
+
             self.register_routes()
 
             # Start background tasks
@@ -127,9 +120,9 @@ class AgentValidator:
             asyncio.create_task(
                 self.check_agents_registration_loop()
             )  # agent registration
-            asyncio.create_task(self.set_weights_loop())
             asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
             asyncio.create_task(self.score_loop())
+            asyncio.create_task(self.set_weights_loop())
 
             self.create_scheduler()
 
@@ -189,131 +182,6 @@ class AgentValidator:
 
         thread = threading.Thread(target=run_scheduler)
         thread.start()
-
-    async def verify_tweet(
-        self, id: str, hotkey: str
-    ) -> tuple[VerifiedTweet, str, str]:
-        """Fetch tweet from Twitter API"""
-        try:
-            logger.info(f"Verifying tweet: {id}")
-            result = TweetValidator().fetch_tweet(id)
-
-            if not result:
-                logger.error(
-                    f"Could not fetch tweet id {
-                        id} for node {hotkey}"
-                )
-                return False
-
-            tweet_data_result = (
-                result.get("data", {}).get("tweetResult", {}).get("result", {})
-            )
-            created_at = tweet_data_result.get("legacy", {}).get("created_at")
-            tweet_id = tweet_data_result.get("rest_id")
-            user = (
-                tweet_data_result.get("core", {})
-                .get("user_results", {})
-                .get("result", {})
-            )
-
-            screen_name = user.get("legacy", {}).get("screen_name")
-            name = user.get("legacy", {}).get("name")
-            user_id = user.get("rest_id")
-
-            full_text = tweet_data_result.get("legacy", {}).get("full_text")
-            avatar = user.get("legacy", {}).get("profile_image_url_https")
-
-            logger.info(
-                f"Got tweet result: {
-                    tweet_id} - {screen_name} **** {full_text} - {avatar}"
-            )
-
-            if not isinstance(screen_name, str) or not isinstance(full_text, str):
-                msg = "Invalid tweet data: screen_name or full_text is not a string"
-                logger.error(msg)
-                raise ValueError(msg)
-
-            # ensure hotkey is in the tweet text
-            if not hotkey in full_text:
-                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
-                logger.error(msg)
-                raise ValueError(msg)
-
-            verification_tweet = VerifiedTweet(
-                tweet_id=tweet_id,
-                url=f"https://twitter.com/{screen_name}/status/{tweet_id}",
-                timestamp=datetime.strptime(
-                    created_at, "%a %b %d %H:%M:%S %z %Y"
-                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                full_text=full_text,
-            )
-            return verification_tweet, user_id, screen_name, avatar, name
-        except Exception as e:
-            logger.error(f"Failed to register agent: {str(e)}")
-            return False
-
-    async def check_agents_registration_loop(self) -> None:
-        while True:
-            unregistered_nodes = []
-            try:
-                # Iterate over each registered node to check if it has a registered agent
-                for node_hotkey in self.connected_nodes:
-                    if node_hotkey not in self.registered_agents:
-                        unregistered_nodes.append(node_hotkey)
-
-                # Log the unregistered nodes
-                if unregistered_nodes:
-                    logger.info(
-                        "Unregistered nodes found: %s",
-                        ", ".join(node for node in unregistered_nodes),
-                    )
-                else:
-                    logger.info("All nodes have registered agents.")
-
-                for node_hotkey in unregistered_nodes:
-                    try:
-                        raw_nodes = self.metagraph.nodes
-                        full_node = raw_nodes[node_hotkey]
-                        if full_node:
-                            tweet_id = await self.get_agent_tweet_id(full_node)
-                            verified_tweet, user_id, screen_name, avatar, name = (
-                                await self.verify_tweet(tweet_id, full_node.hotkey)
-                            )
-                            if verified_tweet and user_id:
-                                await self.registrar.register_agent(
-                                    full_node,
-                                    verified_tweet,
-                                    user_id,
-                                    screen_name,
-                                    avatar,
-                                    name,
-                                )
-                                payload = {
-                                    "registered": str(screen_name),
-                                    "message": "Agent successfully registered!",
-                                }
-                                await self.node_registration_callback(
-                                    full_node, payload
-                                )
-                            else:
-                                payload = {
-                                    "registered": "Agent failed to register",
-                                    "message": f"Failed to register with tweet {tweet_id}",
-                                }
-                                await self.node_registration_callback(
-                                    full_node, payload
-                                )
-
-                    except Exception as e:
-                        logger.error(
-                            f"Failed to get registration info for node {
-                                node_hotkey}: {str(e)}"
-                        )
-
-                await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS)
-            except Exception as e:
-                logger.error("Error checking registered nodes: %s", str(e))
-                await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS / 2)
 
     # TODO refactor this into a "non streamed get" function that takes an endpoint, and returns a generic .json() payload
     async def get_agent_tweet_id(self, node: Node) -> Optional[str]:
@@ -499,11 +367,21 @@ class AgentValidator:
         if self.server:
             await self.server.stop()
 
+    async def check_agents_registration_loop(self) -> None:
+        """Background task to check agent registration"""
+        while True:
+            try:
+                await self.registrar.check_agents_registration()
+                await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS)
+            except Exception as e:
+                logger.error(f"Error checking registered agents: {str(e)}")
+                await asyncio.sleep(AGENT_REGISTRATION_CADENCE_SECONDS / 2)
+
     async def update_agents_profiles_and_emissions_loop(self) -> None:
         """Background task to update profiles"""
         while True:
             try:
-                await self.update_agents_profiles_and_emissions()
+                await self.registrar.update_agents_profiles_and_emissions()
                 await asyncio.sleep(UPDATE_PROFILE_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in updating profiles: {str(e)}")
@@ -537,96 +415,13 @@ class AgentValidator:
         )
         return response
 
-    async def update_agents_profiles_and_emissions(self) -> None:
-        _, emissions = self.get_emissions(None)
-        for hotkey, _ in self.metagraph.nodes.items():
-            agent = self.registered_agents.get(hotkey, None)
-            if agent:
-                x_profile = await self.fetch_x_profile(agent.Username)
-                if x_profile is None:
-                    # it is possible that the username has changed...
-                    # attempt to refetch the username using the tweet id
-                    try:
-                        logger.info(
-                            f"Trying to refetch username for agent: {
-                                    agent.Username}"
-                        )
-                        verified_tweet, user_id, username, avatar, name = (
-                            await self.verify_tweet(
-                                agent.VerificationTweetID, agent.HotKey
-                            )
-                        )
-                        x_profile = await self.fetch_x_profile(username)
-                        if x_profile is None:
-                            logger.error(
-                                f"Failed to fetch X profile on second attempt for {username}, continuing..."
-                            )
-                            continue
-                    except Exception as e:
-                        logger.error(
-                            f"Failed to fetch profile for {agent.Username}, continuing..."
-                        )
-                        # TODO handle this better?
-                        continue
-                try:
-                    logger.info(f"X Profile To Update: {x_profile}")
-                    agent_emissions = emissions[int(agent.UID)]
-                    logger.info(
-                        f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
-                    )
-                    verification_tweet = VerifiedTweet(
-                        tweet_id=agent.VerificationTweetID,
-                        url=agent.VerificationTweetURL,
-                        timestamp=agent.VerificationTweetTimestamp,
-                        full_text=agent.VerificationTweetText,
-                    )
-                    update_data = RegisteredAgentRequest(
-                        hotkey=hotkey,
-                        uid=str(agent.UID),
-                        subnet_id=int(self.netuid),
-                        version=str(4),
-                        isActive=True,
-                        emissions=agent_emissions,
-                        verification_tweet=verification_tweet,
-                        profile={
-                            "data": Profile(
-                                UserID=agent.UserID,
-                                Username=x_profile["data"]["Username"],
-                                Avatar=x_profile["data"]["Avatar"],
-                                Banner=x_profile["data"]["Banner"],
-                                Biography=x_profile["data"]["Biography"],
-                                FollowersCount=x_profile["data"]["FollowersCount"],
-                                FollowingCount=x_profile["data"]["FollowingCount"],
-                                LikesCount=x_profile["data"]["LikesCount"],
-                                Name=x_profile["data"]["Name"],
-                            )
-                        },
-                    )
-                    update_data = json.loads(
-                        json.dumps(update_data, default=lambda o: o.__dict__)
-                    )
-                    endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-                    headers = {"Authorization": f"Bearer {self.api_key}"}
-                    response = await self.httpx_client.post(
-                        endpoint, json=update_data, headers=headers
-                    )
-                    if response.status_code == 200:
-                        logger.info("Successfully updated agent!")
-                    else:
-                        logger.error(
-                            f"Failed to update agent, status code: {
-                                response.status_code}, message: {response.text}"
-                        )
-                except Exception as e:
-                    logger.error(f"Exception occurred during agent update: {str(e)}")
-
     async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
         while True:
             try:
-                await self.sync_metagraph()
-                await self.connect_new_nodes()
                 await self.registrar.fetch_registered_agents()
+                await self.connect_new_nodes()
+                await self.sync_metagraph()
                 self.scheduler.search_terms = self.generate_search_terms(
                     self.registered_agents
                 )
