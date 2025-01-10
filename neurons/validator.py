@@ -5,7 +5,6 @@ import json
 import httpx
 import asyncio
 import uvicorn
-import random
 import threading
 from typing import Optional, Dict, Tuple, List, Any
 from datetime import datetime
@@ -36,8 +35,10 @@ from interfaces.types import (
 )
 
 from neurons.miner import DecryptedPayload
+
 from protocol.validator.scoring import ValidatorScoring
 from protocol.validator.weight_setter import ValidatorWeightSetter
+from protocol.validator.registration import ValidatorRegistration
 
 logger = get_logger(__name__)
 
@@ -111,13 +112,18 @@ class AgentValidator:
             self.netuid, self.keypair, self.substrate, version_numerical
         )
 
+        self.httpx_client = httpx.AsyncClient(
+            base_url=self.api_url,
+            headers={"Authorization": f"Bearer {self.api_key}"},
+        )
+
+        self.registrar = ValidatorRegistration(validator=self)
+
     async def start(self) -> None:
         """Start the validator service"""
-
         try:
-            self.httpx_client = httpx.AsyncClient()
             self.app = factory_app(debug=False)
-            await self.fetch_registered_agents()
+            await self.registrar.fetch_registered_agents()
             self.register_routes()
 
             # Start background tasks
@@ -149,27 +155,6 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Failed to get node from metagraph: {e}")
             return None
-
-    async def fetch_registered_agents(self) -> None:
-        """Fetch active agents from the API and update registered_agents"""
-        try:
-            endpoint = f"{
-                self.api_url}/v1.0.0/subnet59/miners/active/{self.netuid}"
-            response = await self.httpx_client.get(endpoint)
-            if response.status_code == 200:
-                active_agents = response.json()
-                self.registered_agents = {
-                    agent["HotKey"]: RegisteredAgentResponse(**agent)
-                    for agent in active_agents
-                }
-                logger.info("Successfully fetched and updated active agents.")
-            else:
-                logger.error(
-                    f"Failed to fetch active agents, status code: {
-                        response.status_code}, message: {response.text}"
-                )
-        except Exception as e:
-            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
 
     def create_scheduler(self) -> None:
         """Initialize the X search scheduler and request queue.
@@ -299,7 +284,7 @@ class AgentValidator:
                                 await self.verify_tweet(tweet_id, full_node.hotkey)
                             )
                             if verified_tweet and user_id:
-                                await self.register_agent(
+                                await self.registrar.register_agent(
                                     full_node,
                                     verified_tweet,
                                     user_id,
@@ -432,52 +417,6 @@ class AgentValidator:
         ]
         node_emissions = emissions[int(node.node_id)] if node else 0
         return node_emissions, emissions
-
-    async def register_agent(
-        self,
-        node: Node,
-        verified_tweet: VerifiedTweet,
-        user_id: str,
-        screen_name: str,
-        avatar: str,
-        name: str,
-    ) -> None:
-        """Register an agent"""
-        node_emissions, _ = self.get_emissions(node)
-        registration_data = RegisteredAgentRequest(
-            hotkey=node.hotkey,
-            uid=str(node.node_id),
-            subnet_id=int(self.netuid),
-            version=str(node.protocol),  # TODO implement versioning...
-            isActive=True,
-            verification_tweet=verified_tweet,
-            emissions=node_emissions,
-            profile={
-                "data": Profile(
-                    UserID=user_id, Username=screen_name, Avatar=avatar, Name=name
-                )
-            },
-        )
-        # prep for json
-        registration_data = json.loads(
-            json.dumps(registration_data, default=lambda o: o.__dict__)
-        )
-        endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-        try:
-            headers = {"Authorization": f"Bearer {self.api_key}"}
-            response = await self.httpx_client.post(
-                endpoint, json=registration_data, headers=headers
-            )
-            if response.status_code == 200:
-                logger.info("Successfully registered agent!")
-                await self.fetch_registered_agents()
-            else:
-                logger.error(
-                    f"Failed to register agent, status code: {
-                        response.status_code}, message: {response.text}"
-                )
-        except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     async def connect_new_nodes(self) -> None:
         """Verify node registration"""
@@ -689,7 +628,7 @@ class AgentValidator:
             try:
                 await self.sync_metagraph()
                 await self.connect_new_nodes()
-                await self.fetch_registered_agents()
+                await self.registrar.fetch_registered_agents()
                 self.scheduler.search_terms = self.generate_search_terms(
                     self.registered_agents
                 )
@@ -716,54 +655,11 @@ class AgentValidator:
                     )
                     agent = self.registered_agents.get(hotkey)
                     del self.connected_nodes[hotkey]
-                    await self.deregister_agent(agent)
+                    await self.registrar.deregister_agent(agent)
 
             logger.info("Metagraph synced successfully")
         except Exception as e:
             logger.error(f"Failed to sync metagraph: {str(e)}")
-
-    async def deregister_agent(self, agent: RegisteredAgentResponse) -> None:
-        """Deregister agent with the API"""
-        logger.info("Deregistering agent...")
-        try:
-            verification_tweet = VerifiedTweet(
-                tweet_id=agent.VerificationTweetID,
-                url=agent.VerificationTweetURL,
-                timestamp=agent.VerificationTweetTimestamp,
-                full_text=agent.VerificationTweetText,
-            )
-            deregistration_data = RegisteredAgentRequest(
-                hotkey=agent.HotKey,
-                uid=str(agent.UID),
-                subnet_id=int(self.netuid),
-                version=str(4),
-                isActive=False,
-                verification_tweet=verification_tweet,
-                profile={
-                    "data": Profile(
-                        UserID=agent.UserID,
-                        Username=agent.Username,
-                    )
-                },
-            )
-            deregistration_data = json.loads(
-                json.dumps(deregistration_data, default=lambda o: o.__dict__)
-            )
-            endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-            headers = {"Authorization": f"Bearer {self.api_key}"}
-            response = await self.httpx_client.post(
-                endpoint, json=deregistration_data, headers=headers
-            )
-            if response.status_code == 200:
-                logger.info("Successfully deregistered agent!")
-                return response.json()
-            else:
-                logger.error(
-                    f"Failed to deregister agent, status code: {
-                        response.status_code}, message: {response.text}"
-                )
-        except Exception as e:
-            logger.error(f"Exception occurred during agent deregistration: {str(e)}")
 
     def healthcheck(self):
         try:

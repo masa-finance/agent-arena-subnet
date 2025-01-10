@@ -23,7 +23,7 @@ from fiber.networking.models import NodeWithFernet as Node
 from fiber.logging_utils import get_logger
 
 from functools import partial
-from typing import Optional, Any
+from typing import Optional
 from pydantic import BaseModel
 from fastapi import FastAPI, Depends
 
