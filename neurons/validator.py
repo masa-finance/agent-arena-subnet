@@ -112,16 +112,12 @@ class AgentValidator:
             self.netuid, self.keypair, self.substrate, version_numerical
         )
 
-        self.httpx_client = httpx.AsyncClient(
-            base_url=self.api_url,
-            headers={"Authorization": f"Bearer {self.api_key}"},
-        )
-
         self.registrar = ValidatorRegistration(validator=self)
 
     async def start(self) -> None:
         """Start the validator service"""
         try:
+            self.httpx_client = httpx.AsyncClient()
             self.app = factory_app(debug=False)
             await self.registrar.fetch_registered_agents()
             self.register_routes()

@@ -1,4 +1,5 @@
 import json
+import httpx
 from typing import Any
 from fiber.logging_utils import get_logger
 
@@ -22,13 +23,15 @@ class ValidatorRegistration:
         self.active_agents_endpoint = (
             f"/v1.0.0/subnet59/miners/active/{self.validator.netuid}"
         )
+        self.httpx_client = httpx.AsyncClient(
+            base_url=self.validator.api_url,
+            headers={"Authorization": f"Bearer {self.validator.api_key}"},
+        )
 
     async def fetch_registered_agents(self) -> None:
         """Fetch active agents from the API and update registered_agents"""
         try:
-            response = await self.validator.httpx_client.get(
-                self.active_agents_endpoint
-            )
+            response = await self.httpx_client.get(self.active_agents_endpoint)
             if response.status_code == 200:
                 active_agents = response.json()
                 self.validator.registered_agents = {
@@ -72,7 +75,7 @@ class ValidatorRegistration:
             json.dumps(registration_data, default=lambda o: o.__dict__)
         )
         try:
-            response = await self.validator.httpx_client.post(
+            response = await self.httpx_client.post(
                 self.registration_endpoint, json=registration_data
             )
             if response.status_code == 200:
@@ -112,7 +115,7 @@ class ValidatorRegistration:
             deregistration_data = json.loads(
                 json.dumps(deregistration_data, default=lambda o: o.__dict__)
             )
-            response = await self.validator.httpx_client.post(
+            response = await self.httpx_client.post(
                 self.registration_endpoint,
                 json=deregistration_data,
             )
