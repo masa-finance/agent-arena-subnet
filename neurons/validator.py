@@ -36,9 +36,6 @@ from interfaces.types import (
 )
 
 from neurons.miner import DecryptedPayload
-
-import math
-
 from protocol.validator.scoring import ValidatorScoring
 from protocol.validator.weight_setter import ValidatorWeightSetter
 
@@ -606,9 +603,7 @@ class AgentValidator:
 
     async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.get_emissions(None)
-        for hotkey, node in self.metagraph.nodes.items():
-            # for hotkey, _ in self.connected_nodes.items():
-            # for hotkey, agent in self.registered_agents.items():
+        for hotkey, _ in self.metagraph.nodes.items():
             agent = self.registered_agents.get(hotkey, None)
             if agent:
                 x_profile = await self.fetch_x_profile(agent.Username)
@@ -682,46 +677,6 @@ class AgentValidator:
                         )
                 except Exception as e:
                     logger.error(f"Exception occurred during agent update: {str(e)}")
-            else:
-                try:
-                    # note no agent found, update emissions etc
-                    uid = node.node_id
-                    agent_emissions = emissions[int(uid)]
-                    logger.info(
-                        f"Emissions Updater: UID {uid} has {agent_emissions} emissions"
-                    )
-                    update_data = RegisteredAgentRequest(
-                        hotkey=hotkey,
-                        uid=str(uid),
-                        subnet_id=int(self.netuid),
-                        version=str(4),
-                        isActive=False,
-                        emissions=agent_emissions,
-                        verification_tweet=None,
-                        profile={
-                            "data": Profile(
-                                UserID="".join(random.choices("0123456789", k=16))
-                            )
-                        },
-                    )
-                    update_data = json.loads(
-                        json.dumps(update_data, default=lambda o: o.__dict__)
-                    )
-                    logger.info(f"Update UID Data: {update_data}")
-                    endpoint = f"{self.api_url}/v1.0.0/subnet59/miners/register"
-                    headers = {"Authorization": f"Bearer {os.getenv('API_KEY')}"}
-                    response = await self.httpx_client.post(
-                        endpoint, json=update_data, headers=headers
-                    )
-                    if response.status_code == 200:
-                        logger.info("Successfully updated UID with emissions!")
-                    else:
-                        logger.error(
-                            f"Failed to update UID, status code: {
-                                response.status_code}, message: {response.text}"
-                        )
-                except Exception as e:
-                    logger.error(f"Exception occurred during UID update: {str(e)}")
 
     async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
