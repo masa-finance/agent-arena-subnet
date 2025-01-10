@@ -494,6 +494,8 @@ class AgentValidator:
         """
         if self.httpx_client:
             await self.httpx_client.close()
+        if self.registrar.httpx_client:
+            await self.registrar.httpx_client.close()
         if self.server:
             await self.server.stop()
 
