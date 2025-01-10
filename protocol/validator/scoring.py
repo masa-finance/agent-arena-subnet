@@ -15,7 +15,7 @@ class ValidatorScoring:
         posts = self.posts_loader.load_posts(
             subnet_id=self.netuid,
             timestamp_range=(
-                int(datetime.now(UTC).timestamp()) - 86400,
+                int(datetime.now(UTC).timestamp()) - 604800,
                 int(datetime.now(UTC).timestamp()),
             ),
         )
