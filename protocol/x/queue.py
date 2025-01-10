@@ -225,8 +225,11 @@ class RequestQueue:
                 if quick_return:
                     return response
 
-                # Handle successful response
-                if response["data"] is not None:
+                # Handle successful response (including empty data responses)
+                if response is not None:  # First check if response exists
+                    if response.get("data") is None:
+                        logger.info(f"No data found for {request_type} request")
+                        return response  # Return the empty response without retrying
                     logger.info(f"Successfully processed {request_type} request")
                     return response
 
