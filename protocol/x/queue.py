@@ -13,7 +13,7 @@ import json
 from protocol.x.profile import get_x_profile
 from protocol.x.search import search_x
 from protocol.data_processing.post_saver import PostSaver
-from protocol.x.errors import APIError
+from protocol.x.errors import APIError, NonRetryableError
 
 # Load environment variables
 load_dotenv()
@@ -33,7 +33,6 @@ MAX_RETRIES = 10
 RETRY_ERRORS = (
     APIError,
     requests.exceptions.RequestException,
-    requests.exceptions.HTTPError,
     requests.exceptions.ConnectionError,
     requests.exceptions.Timeout,
     json.JSONDecodeError,
@@ -226,25 +225,20 @@ class RequestQueue:
                 if quick_return:
                     return response
 
+                # Handle successful response
                 if response["data"] is not None:
-                    logger.info(f"Successfully processed {request_type} request after {retries} retries")
-                    
-                    metadata = {
-                        "uid": request_data["metadata"].UID,
-                        "user_id": request_data["metadata"].UserID,
-                        "subnet_id": request_data["metadata"].SubnetID,
-                        "query": request_data["query"],
-                        "count": len(response),
-                        "created_at": int(time.time()),
-                    }
+                    logger.info(f"Successfully processed {request_type} request")
+                    return response
 
-                    self.saver.save_post(response, metadata)
-                    return response, metadata
+            except NonRetryableError as e:
+                # Log and return immediately for non-retryable errors
+                logger.info(f"Non-retryable error encountered: {str(e)}")
+                return {"data": None, "recordCount": 0}
 
             except RETRY_ERRORS as e:
                 retries += 1
                 if retries >= MAX_RETRIES:
-                    logger.error(f"Final failure processing request after {retries} retries: {str(e)}")
+                    logger.error(f"Final failure after {retries} retries: {str(e)}")
                     break
                 
                 backoff_time = BACKOFF_BASE_SLEEP * (2 ** retries)
