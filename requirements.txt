@@ -72,6 +72,7 @@ isoduration==20.11.0
 jaraco.classes==3.4.0
 jedi==0.19.2
 Jinja2==3.1.4
+joblib==1.4.2
 json5==0.10.0
 jsonpointer==3.0.0
 jsonschema==4.23.0
@@ -167,6 +168,8 @@ rich==13.9.4
 rpds-py==0.22.3
 scalecodec==1.2.11
 schedule==1.2.2
+scikit-learn==1.6.0
+scipy==1.15.0
 Send2Trash==1.8.3
 setuptools==70.0.0
 sgmllib3k==1.0.0
@@ -191,6 +194,7 @@ substrate-interface==1.7.10
 tenacity==9.0.0
 termcolor==2.5.0
 terminado==0.18.1
+threadpoolctl==3.5.0
 tinycss2==1.4.0
 toml==0.10.0
 tomlkit==0.13.2
@@ -219,4 +223,3 @@ widgetsnbextension==4.0.13
 xattr==1.1.0
 xxhash==3.5.0
 yarl==1.18.3
-scikit-learn

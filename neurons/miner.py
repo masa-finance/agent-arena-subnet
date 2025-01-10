@@ -9,7 +9,6 @@ from fiber.chain import chain_utils, post_ip_to_chain, interface
 from fiber.chain.metagraph import Metagraph
 from fiber.miner.server import factory_app
 from fiber.encrypted.miner.dependencies import (
-    blacklist_low_stake,
     verify_request,
 )
 from fiber.encrypted.miner.security.encryption import (
@@ -25,16 +24,10 @@ from fiber.logging_utils import get_logger
 
 from functools import partial
 from typing import Optional
-from pydantic import BaseModel
 from fastapi import FastAPI, Depends
-
+from interfaces.types import RegistrationCallback
 
 logger = get_logger(__name__)
-
-
-class DecryptedPayload(BaseModel):
-    registered: str
-    message: Optional[str] = None
 
 
 class AgentMiner:
@@ -61,7 +54,6 @@ class AgentMiner:
 
         self.server: Optional[factory_app] = None
         self.app: Optional[FastAPI] = None
-        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
 
         self.substrate = interface.get_substrate(
             subtensor_network=self.subtensor_network,
@@ -102,6 +94,7 @@ class AgentMiner:
             return response.json()["ip"]
         except requests.RequestException as e:
             logger.error(f"Failed to get external IP: {e}")
+            return "0.0.0.0"
 
     def post_ip_to_chain(self) -> None:
         node = self.node()
@@ -131,7 +124,9 @@ class AgentMiner:
                     f"IP / Port already posted to chain: IP: {node.ip}, Port: {node.port}"
                 )
         else:
-            raise Exception("Hotkey not registered to metagraph")
+            raise Exception(
+                f"Hotkey not found in metagraph.  Ensure {self.keypair.ss58_address} is registered!"
+            )
 
     def node(self) -> Optional[Node]:
         try:
@@ -144,12 +139,8 @@ class AgentMiner:
 
     def get_verification_tweet_id(self) -> Optional[str]:
         """Get Verification Tweet ID For Agent Registration"""
-        try:
-            verification_tweet_id = os.getenv("TWEET_VERIFICATION_ID")
-            return verification_tweet_id
-        except Exception as e:
-            logger.error(f"Failed to get tweet: {str(e)}")
-            return None
+        verification_tweet_id = os.getenv("TWEET_VERIFICATION_ID", None)
+        return verification_tweet_id
 
     async def stop(self) -> None:
         """Cleanup and shutdown"""
@@ -158,21 +149,18 @@ class AgentMiner:
 
     async def registration_callback(
         self,
-        decrypted_payload: DecryptedPayload = Depends(
-            partial(decrypt_general_payload, DecryptedPayload),
+        payload: RegistrationCallback = Depends(
+            partial(decrypt_general_payload, RegistrationCallback),
         ),
-    ) -> None:
+    ) -> dict:
         """Registration Callback"""
         try:
-            logger.info(f"Decrypted Payload: {decrypted_payload}")
+            logger.info(f"Message From Validator: {payload}")
             logger.info(f"Registration Success!")
             return {"status": "Callback received"}
         except Exception as e:
             logger.error(f"Error in registration callback: {str(e)}")
             return {"status": "Error in registration callback"}
-
-    def get_self(self) -> None:
-        return self
 
     def healthcheck(self):
         try:
@@ -187,7 +175,7 @@ class AgentMiner:
             }
             return info
         except Exception as e:
-            logger.error(f"Failed to get validator info: {str(e)}")
+            logger.error(f"Failed to get miner info: {str(e)}")
             return None
 
     def register_routes(self) -> None:
@@ -197,7 +185,6 @@ class AgentMiner:
             self.healthcheck,
             methods=["GET"],
             tags=["healthcheck"],
-            dependencies=[Depends(self.get_self)],
         )
 
         self.app.add_api_route(
@@ -219,11 +206,6 @@ class AgentMiner:
             self.get_verification_tweet_id,
             methods=["GET"],
             tags=["registration"],
-            dependencies=[
-                Depends(self.get_self),
-                Depends(blacklist_low_stake),
-                # TODO is there a verify_request for get requests?
-            ],
         )
 
         self.app.add_api_route(
@@ -232,8 +214,6 @@ class AgentMiner:
             methods=["POST"],
             tags=["registration"],
             dependencies=[
-                Depends(self.get_self),
-                Depends(blacklist_low_stake),
                 Depends(verify_request),
             ],
         )
