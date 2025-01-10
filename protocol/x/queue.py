@@ -6,6 +6,8 @@ import os
 from typing import Any, Dict, Callable, Optional
 from dotenv import load_dotenv
 import itertools
+import requests
+import json
 
 # Import the functions from their respective modules
 from protocol.x.profile import get_x_profile
@@ -26,6 +28,15 @@ logger = logging.getLogger(__name__)
 DEFAULT_MAX_CONCURRENT_REQUESTS = 5  # Maximum parallel requests
 DEFAULT_API_REQUESTS_PER_SECOND = 20  # Default to 20 RPS
 DEFAULT_RETRIES = 10  # Number of retry attempts
+MAX_RETRIES = 10
+RETRY_ERRORS = (
+    requests.exceptions.RequestException,
+    requests.exceptions.HTTPError,
+    requests.exceptions.ConnectionError,
+    requests.exceptions.Timeout,
+    json.JSONDecodeError,
+    Exception
+)
 
 # Base priority level (higher = lower priority)
 DEFAULT_PRIORITY = 100
@@ -193,91 +204,75 @@ class RequestQueue:
     def _handle_request(
         self, request_type: str, request_data: Dict[str, Any], quick_return=False
     ):
-        """Process a single request with error handling, retry mechanism, and rate limiting.
-
-        Args:
-            request_type (str): Type of request being processed.
-            request_data (Dict[str, Any]): Request payload data.
-
-        Note:
-            This method enforces rate limiting before making the actual API request.
-        """
+        """Process a single request with error handling and retry mechanism."""
         with self.lock:
             self.active_requests += 1
             logger.debug(f"Active requests increased to {self.active_requests}")
 
-        try:
-            self._wait_for_rate_limit()  # Apply rate limiting before making request
-
-            if request_type == "profile":
-                response = get_x_profile(username=request_data["username"])
-            elif request_type == "search":
-                response = search_x(query=request_data["query"])
-            else:
-                raise ValueError(f"Unknown request type: {request_type}")
-
-            if quick_return:
-                return response
-
-            if response["data"] is not None:
-                logger.info(f"Processed {request_type} request: {response}")
-
-                metadata = {
-                    "uid": request_data["metadata"].UID,
-                    "user_id": request_data["metadata"].UserID,
-                    "subnet_id": request_data["metadata"].SubnetID,
-                    "query": request_data["query"],
-                    "count": len(response),
-                    "created_at": int(time.time()),
-                }
-
-                self.saver.save_post(response, metadata)
-                return response, metadata
-
-        except Exception as e:
-            logger.error(f"Error processing request: {e}")
-            self._retry_request(request_type, request_data)
-        finally:
-            with self.lock:
-                self.active_requests -= 1
-                logger.debug(
-                    f"Active requests decreased to {
-                             self.active_requests}"
-                )
-
-    def _retry_request(
-        self,
-        request_type: str,
-        request_data: Dict[str, Any],
-        retries: int = DEFAULT_RETRIES,
-    ):
-        """Retry failed requests with exponential backoff.
-
-        Args:
-            request_type (str): Type of request to retry.
-            request_data (Dict[str, Any]): Request payload data.
-            retries (int, optional): Maximum number of retry attempts.
-                Defaults to DEFAULT_RETRIES.
-
-        Note:
-            Uses BACKOFF_BASE_SLEEP for the exponential backoff calculation.
-            Delay = BACKOFF_BASE_SLEEP * (2 ^ attempt)
-        """
-        for attempt in range(retries):
+        retries = 0
+        while retries < MAX_RETRIES:
             try:
+                self._wait_for_rate_limit()
+
+                if request_type == "profile":
+                    response = get_x_profile(username=request_data["username"])
+                elif request_type == "search":
+                    response = search_x(query=request_data["query"])
+                else:
+                    raise ValueError(f"Unknown request type: {request_type}")
+
+                if quick_return:
+                    return response
+
+                if response["data"] is not None:
+                    logger.info(f"Successfully processed {request_type} request after {retries} retries")
+                    
+                    metadata = {
+                        "uid": request_data["metadata"].UID,
+                        "user_id": request_data["metadata"].UserID,
+                        "subnet_id": request_data["metadata"].SubnetID,
+                        "query": request_data["query"],
+                        "count": len(response),
+                        "created_at": int(time.time()),
+                    }
+
+                    self.saver.save_post(response, metadata)
+                    return response, metadata
+
+            except RETRY_ERRORS as e:
+                retries += 1
+                if retries >= MAX_RETRIES:
+                    logger.error(f"Final failure processing request after {retries} retries: {str(e)}")
+                    break
+                
+                backoff_time = BACKOFF_BASE_SLEEP * (2 ** retries)
                 logger.warning(
-                    f"Retrying {request_type} request: {
-                               request_data}, attempt {attempt + 1}"
+                    f"Attempt {retries}/{MAX_RETRIES} failed for {request_type} request: {str(e)}. "
+                    f"Retrying in {backoff_time} seconds..."
                 )
-                # Exponential backoff
-                time.sleep(BACKOFF_BASE_SLEEP * (2**attempt))
-                return
-            except Exception as e:
-                logger.error(f"Retry failed: {e}")
+                time.sleep(backoff_time)
+                
+            finally:
+                if retries >= MAX_RETRIES or quick_return:
+                    with self.lock:
+                        self.active_requests -= 1
+                        logger.debug(f"Active requests decreased to {self.active_requests}")
+
+        # If we get here, all retries failed
+        if not quick_return:
+            self._handle_final_failure(request_type, request_data)
+
+    def _handle_final_failure(self, request_type: str, request_data: Dict[str, Any]):
+        """Handle a request that has failed all retry attempts."""
         logger.error(
-            f"Request failed after {
-                     retries} attempts: {request_data}"
+            f"Request failed permanently after {MAX_RETRIES} retries: "
+            f"Type={request_type}, Data={request_data}"
         )
+        # Here you could implement additional failure handling:
+        # - Store failed requests for later retry
+        # - Send notifications
+        # - Update metrics
+        # - etc.
 
     def start(self):
         """Start the request processing thread as a daemon thread.
