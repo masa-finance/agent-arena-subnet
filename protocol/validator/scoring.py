@@ -5,6 +5,7 @@ from protocol.data_processing.post_loader import LoadPosts
 
 logger = get_logger(__name__)
 
+
 class ValidatorScoring:
     def __init__(self, netuid: int):
         self.netuid = netuid
@@ -15,10 +16,10 @@ class ValidatorScoring:
         posts = self.posts_loader.load_posts(
             subnet_id=self.netuid,
             timestamp_range=(
-                int(datetime.now(UTC).timestamp()) - 86400,
+                int(datetime.now(UTC).timestamp()) - 604800,  # 7 days
                 int(datetime.now(UTC).timestamp()),
             ),
         )
         logger.info(f"Loaded {len(posts)} posts")
         self.scored_posts = posts
-        return self.scored_posts 
+        return self.scored_posts

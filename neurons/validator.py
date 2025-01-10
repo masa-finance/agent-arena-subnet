@@ -33,7 +33,6 @@ from protocol.validator.scoring import ValidatorScoring
 from protocol.validator.weight_setter import ValidatorWeightSetter
 from protocol.validator.registration import ValidatorRegistration
 
-from interfaces.types import RegistrationCallback
 
 logger = get_logger(__name__)
 
@@ -411,12 +410,22 @@ class AgentValidator:
         """Background task to sync metagraph"""
         while True:
             try:
+                previous_agents = (
+                    self.registered_agents.copy() if self.registered_agents else {}
+                )
                 await self.registrar.fetch_registered_agents()
+
+                # If agents changed, update and process immediately
+                if self.registered_agents != previous_agents:
+                    logger.info("New agents detected, updating scheduler...")
+                    self.scheduler.search_terms = self.generate_search_terms(
+                        self.registered_agents
+                    )
+                    # Trigger immediate processing of new terms
+                    self.scheduler.process_search_terms()
+
                 await self.connect_new_nodes()
                 await self.sync_metagraph()
-                self.scheduler.search_terms = self.generate_search_terms(
-                    self.registered_agents
-                )
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in sync metagraph: {str(e)}")
