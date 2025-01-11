@@ -450,14 +450,18 @@ class AgentValidator:
             self.sync_substrate()
             self.metagraph.sync_nodes()
 
+            keys_to_delete = []
             for hotkey, _ in self.connected_nodes.items():
                 if hotkey not in self.metagraph.nodes:
                     logger.info(
                         f"Hotkey: {hotkey} has been deregistered from the metagraph"
                     )
                     agent = self.registered_agents.get(hotkey)
-                    del self.connected_nodes[hotkey]
+                    keys_to_delete.append(hotkey)
                     await self.registrar.deregister_agent(agent)
+
+            for hotkey in keys_to_delete:
+                del self.connected_nodes[hotkey]
 
             logger.info("Metagraph synced successfully")
         except Exception as e:
