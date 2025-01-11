@@ -26,7 +26,7 @@ VALIDATOR_DB_PATH = f"{VALIDATOR_DB_BASE}/twitter/tweets/recent"
 
 # Default constants for scheduler configuration
 DEFAULT_INTERVAL_MINUTES = 60
-DEFAULT_BATCH_SIZE = 100
+DEFAULT_BATCH_SIZE = 1000
 DEFAULT_PRIORITY = 100
 DEFAULT_SEARCH_COUNT = 450
 
@@ -158,20 +158,26 @@ class XSearchScheduler:
         """
         try:
             current_time = datetime.now(UTC)
+            
+            if not self.search_terms:
+                logger.warning("No search terms to process")
+                return
+                
+            total_terms = len(self.search_terms)
+            unique_agents = len(set(term['metadata'].Username for term in self.search_terms))
+            logger.info(f"Processing {total_terms} search terms for {unique_agents} agents")
 
-            logger.info(f"Processing {len(self.search_terms)} search terms")
             for term in self.search_terms:
-
                 search_query = self._prepare_search_query(term)
-
-                logger.info(f"Queueing search request: {search_query}")
-
+                logger.info(f"Queueing search request for {term['metadata'].Username}: {search_query['query']}")
+                
                 self.request_queue.add_request(
                     request_type="search",
                     request_data=search_query,
                     priority=self.priority,
                 )
 
+            logger.info(f"Completed processing {total_terms} search terms")
             self.last_run_time = current_time
 
         except Exception as e:

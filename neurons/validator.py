@@ -252,13 +252,21 @@ class AgentValidator:
             List[Dict[str, Any]]: A list of search terms ready for queueing.
         """
         search_terms = []
+        total_agents = len(agents)
+        logger.info(f"Generating search terms for {total_agents} agents")
+
         for agent in agents.values():
-            logger.info(f"Adding request to the queue for id {agent.UID}")
+            if not agent.Username:
+                logger.warning(f"Skipping agent {agent.UID}: Missing username")
+                continue
+
+            logger.info(f"Adding request to the queue for id {agent.UID} (@{agent.Username})")
 
             search_terms.append({"query": f"to:{agent.Username}", "metadata": agent})
             search_terms.append({"query": f"from:{agent.Username}", "metadata": agent})
             search_terms.append({"query": f"@{agent.Username}", "metadata": agent})
 
+        logger.info(f"Generated {len(search_terms)} search terms for {total_agents} agents")
         return search_terms
 
     def get_emissions(self, node: Optional[Node]) -> Tuple[float, List[float]]:
