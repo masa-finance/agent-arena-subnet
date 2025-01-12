@@ -1,12 +1,32 @@
 import json
+import fcntl
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+from fiber.logging_utils import get_logger
 
+logger = get_logger(__name__)
 
 class LoadPosts:
     def __init__(self):
         self.root_dir = Path(__file__).parent.parent.parent
         self.data_path = self.root_dir / "data" / "posts.json"
+        self.backup_path = self.data_path.with_suffix('.json.backup')
+
+    def _safe_load_json(self) -> List[Dict]:
+        """Safely load JSON with fallback to backup file."""
+        with open(self.data_path, "r") as file:
+            # Acquire shared lock for reading
+            fcntl.flock(file.fileno(), fcntl.LOCK_SH)
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                logger.error("Corrupted JSON detected, attempting to restore from backup")
+                if self.backup_path.exists():
+                    with open(self.backup_path, "r") as backup_file:
+                        return json.load(backup_file)
+                return []
+            finally:
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
 
     def load_posts(
         self,
@@ -35,8 +55,7 @@ class LoadPosts:
             json.JSONDecodeError: If JSON is malformed
         """
         try:
-            with open(self.data_path, "r", encoding="utf-8") as file:
-                posts = json.load(file)
+            posts = self._safe_load_json()
 
             filtered_posts = []
             for post in posts:
@@ -75,18 +94,10 @@ class LoadPosts:
             return filtered_posts
 
         except FileNotFoundError:
-            print(
-                f"Posts file not found at: {self.data_path}. Creating a new empty posts.json file."
-            )
-            with open(self.data_path, "w", encoding="utf-8") as file:
-                json.dump([], file)
+            logger.error(f"Posts file not found at: {self.data_path}")
             return []
-        except json.JSONDecodeError as e:
-            print(
-                f"Error parsing posts.json: {str(e)}. Creating a new empty posts.json file."
-            )
-            with open(self.data_path, "w", encoding="utf-8") as file:
-                json.dump([], file)
+        except Exception as e:
+            logger.error(f"Error loading posts: {str(e)}")
             return []
 
 
