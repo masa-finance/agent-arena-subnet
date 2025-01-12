@@ -38,6 +38,7 @@ class ValidatorWeightSetter:
             await asyncio.sleep(wait_seconds)
 
         uids, scores = self.get_scores(scored_posts)
+        logger.info(f"Setting weights for {len(uids)} miners")
 
         for attempt in range(3):
             try:
