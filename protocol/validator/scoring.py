@@ -20,6 +20,9 @@ class ValidatorScoring:
                 int(datetime.now(UTC).timestamp()),
             ),
         )
-        logger.info(f"Loaded {len(posts)} posts")
+        
+        total_tweets = sum(len(post["tweets"]) for post in posts)
+        logger.info(f"Loaded tweet data for {len(posts)} agents, containing {total_tweets} total tweets")
+        
         self.scored_posts = posts
         return self.scored_posts
