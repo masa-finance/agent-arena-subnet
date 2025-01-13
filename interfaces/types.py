@@ -114,7 +114,7 @@ class RegistrationCallback(BaseModel, JSONSerializable):
 
 
 @dataclass
-class Tweet(BaseModel.JSONSerializable):
+class Tweet(BaseModel, JSONSerializable):
     ConversationID: Optional[str]
     GIFs: Optional[List[str]]
     Hashtags: Optional[List[str]]
