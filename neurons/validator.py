@@ -4,7 +4,6 @@ import os
 import httpx
 import asyncio
 import uvicorn
-import threading
 from typing import Optional, Dict, Tuple, List, Any
 from neurons import version_numerical
 
@@ -107,9 +106,11 @@ class AgentValidator:
             # Start background tasks
             asyncio.create_task(self.sync_loop())
             asyncio.create_task(self.check_agents_registration_loop())
-            asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
             asyncio.create_task(self.score_loop())
             asyncio.create_task(self.set_weights_loop())
+
+            if os.getenv("API_KEY", None):
+                asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
 
             config = uvicorn.Config(
                 self.app, host="0.0.0.0", port=self.port, lifespan="on"
