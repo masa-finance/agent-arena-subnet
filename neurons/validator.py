@@ -18,7 +18,6 @@ from fastapi import FastAPI
 from cryptography.fernet import Fernet
 
 from protocol.x.queue import RequestQueue
-from protocol.scoring.miner_weights import MinerWeights
 
 from interfaces.types import (
     RegisteredAgentResponse,
@@ -85,7 +84,6 @@ class AgentValidator:
         self.scored_posts = []
 
         self.posts_getter = PostsGetter(self.netuid)
-        self.miner_weights = MinerWeights(validator=self)
         self.weight_setter = ValidatorWeightSetter(
             self.netuid, self.keypair, self.substrate, version_numerical, validator=self
         )

@@ -3,14 +3,12 @@ import threading
 import time
 import logging
 import os
-from typing import Any, Dict, Callable, Optional
+from typing import Any, Dict
 from dotenv import load_dotenv
 import itertools
 
 # Import the functions from their respective modules
 from protocol.x.profile import get_x_profile
-from protocol.x.search import search_x
-from protocol.data_processing.post_saver import PostSaver
 
 # Load environment variables
 load_dotenv()
@@ -27,13 +25,8 @@ DEFAULT_MAX_CONCURRENT_REQUESTS = 5  # Maximum parallel requests
 DEFAULT_API_REQUESTS_PER_SECOND = 20  # Default to 20 RPS
 DEFAULT_RETRIES = 10  # Number of retry attempts
 
-# Base priority level (higher = lower priority)
-DEFAULT_PRIORITY = 100
-# Base delay (seconds) for exponential backoff
 BACKOFF_BASE_SLEEP = 1
 THREAD_DAEMON = True  # Run worker threads as daemons
-
-POSTS_STORAGE_PATH = os.getenv("POSTS_STORAGE_PATH", "data/posts.json")
 
 
 class RequestQueue:
@@ -79,10 +72,6 @@ class RequestQueue:
             max_concurrent_requests (int, optional): Maximum number of concurrent requests.
                 Defaults to DEFAULT_MAX_CONCURRENT_REQUESTS.
         """
-        self.queues = {
-            "search": queue.PriorityQueue(),
-            "profile": queue.PriorityQueue(),
-        }
         self.max_concurrent_requests = max_concurrent_requests
         self.lock = threading.Lock()
         self.active_requests = 0
@@ -93,52 +82,10 @@ class RequestQueue:
         self.last_request_time = time.time()
         self.rate_limit_lock = threading.Lock()
 
-        # Posts saver
-        self.saver = PostSaver(storage_path=POSTS_STORAGE_PATH)
-
         logger.debug(
             f"Initialized RequestQueue with max_concurrent_requests={max_concurrent_requests}, "
             f"rate_limit={self.requests_per_second} RPS"
         )
-
-    def add_request(
-        self,
-        request_type: str,
-        request_data: Dict[str, Any],
-        priority: int = DEFAULT_PRIORITY,
-    ):
-        """Add a new request to the specified queue with given priority.
-
-        Args:
-            request_type (str): Type of request ('search' or 'profile').
-            request_data (Dict[str, Any]): Request payload data.
-                For search: {'query': 'search_term'}
-                For profile: {'username': 'twitter_username'}
-            priority (int, optional): Priority level (lower number = higher priority).
-                Defaults to DEFAULT_PRIORITY (100).
-
-        Example:
-            >>> # Search request example
-            >>> rq.add_request(
-            ...     request_type='search',
-            ...     request_data={'query': '#AI AND #ML'},
-            ...     priority=1
-            ... )
-            >>>
-            >>> # Profile request example
-            >>> rq.add_request(
-            ...     request_type='profile',
-            ...     request_data={'username': 'naval'},
-            ...     priority=2
-            ... )
-        """
-        if request_type in self.queues:
-            count = next(self.counter)
-            self.queues[request_type].put((priority, count, request_data))
-            logger.info(
-                f"Request added to {
-                        request_type} queue with priority {priority}"
-            )
 
     async def excecute_request(self, request_type: str, request_data: Dict[str, Any]):
         response = self._handle_request(request_type, request_data, True)
@@ -165,31 +112,6 @@ class RequestQueue:
 
             self.last_request_time = time.time()
 
-    def process_requests(self):
-        """Continuously process requests from all queues in a separate thread.
-
-        This method runs in an infinite loop, checking each queue for pending requests
-        and processing them if the concurrent request limit hasn't been reached.
-        Requests are processed in priority order and are rate-limited according to
-        the requests_per_second setting.
-        """
-        logger.debug("Starting to process requests")
-        while True:
-            for request_type, q in self.queues.items():
-                if (
-                    not q.empty()
-                    and self.active_requests < self.max_concurrent_requests
-                ):
-                    priority, count, request_data = q.get()
-                    logger.debug(
-                        f"Processing {request_type} request with priority {priority}"
-                    )
-                    threading.Thread(
-                        target=self._handle_request,
-                        args=(request_type, request_data),
-                        daemon=THREAD_DAEMON,
-                    ).start()
-
     def _handle_request(
         self, request_type: str, request_data: Dict[str, Any], quick_return=False
     ):
@@ -211,8 +133,6 @@ class RequestQueue:
 
             if request_type == "profile":
                 response = get_x_profile(username=request_data["username"])
-            elif request_type == "search":
-                response = search_x(query=request_data["query"])
             else:
                 raise ValueError(f"Unknown request type: {request_type}")
 
@@ -279,58 +199,8 @@ class RequestQueue:
                      retries} attempts: {request_data}"
         )
 
-    def start(self):
-        """Start the request processing thread as a daemon thread.
-
-        Note:
-            Thread daemon status is controlled by THREAD_DAEMON constant.
-            The processing thread will handle requests according to their priority
-            and respect both concurrency limits and rate limiting settings.
-
-        Example:
-            >>> rq = RequestQueue(max_concurrent_requests=5)
-            >>> rq.start()  # Starts processing thread
-            >>>
-            >>> # Add requests after starting the queue
-            >>> rq.add_request('search', {'query': '#Bitcoin'}, priority=1)
-            >>> rq.add_request('profile', {'username': 'vitalikbuterin'}, priority=2)
-        """
-        logger.debug("Starting request processing thread")
-        self.thread = threading.Thread(
-            target=self.process_requests, daemon=THREAD_DAEMON
-        )
-        self.thread.start()
-
-    def stop(self):
-        """Stop the request processing thread.
-
-        This method will signal the processing thread to stop and wait for it to finish.
-        It ensures that all active requests are completed before the thread is terminated.
-        """
-        logger.debug("Stopping request processing thread")
-        self.active_requests = 0  # Reset active requests counter
-        self.thread.join()  # Wait for the thread to finish
-
-    def clean(self):
-        """Clean up the request queue and reset its state.
-
-        This method is responsible for cleaning up the request queue by stopping
-        the processing thread and resetting the queues to their initial state.
-        It ensures that all resources are properly released and the queue is
-        ready for a fresh start if needed.
-
-        Note:
-            This method should be called when the queue is no longer needed or
-            before reinitializing it to prevent resource leaks.
-        """
-        self.stop()
-        self.queues = None
-
 
 if __name__ == "__main__":
 
     rq = RequestQueue()
-    rq.start()
-    rq.add_request("search", {"query": "#Bitcoin"}, priority=1)
-    rq.add_request("profile", {"username": "elonmusk"}, priority=2)
     time.sleep(10)  # Keep the main thread alive to allow processing

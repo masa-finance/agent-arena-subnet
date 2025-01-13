@@ -2,8 +2,10 @@ from typing import List, Tuple, Any
 import asyncio
 from fiber.chain import weights, interface
 from fiber.logging_utils import get_logger
-from protocol.scoring.miner_weights import MinerWeights
+
 from neurons import version_numerical
+from interfaces.types import Tweet
+from protocol.validator.posts_scorer import PostsScorer
 
 logger = get_logger(__name__)
 
@@ -14,12 +16,17 @@ class ValidatorWeightSetter:
         validator: Any,
     ):
         self.validator = validator
-        self.miner_weights = MinerWeights(validator=self.validator)
+        self.posts_scorer = PostsScorer(validator=validator)
 
-    def get_scores(self, scored_posts: List[Any]) -> Tuple[List[int], List[float]]:
-        return self.miner_weights.calculate_weights(scored_posts)
+    def calculate_weights(
+        self, scored_posts: List[Tweet]
+    ) -> Tuple[List[int], List[float]]:
+        agent_scores = self.posts_scorer.calculate_agent_scores(scored_posts)
+        uids = sorted(agent_scores.keys())
+        weights = [agent_scores[uid] for uid in uids]
+        return uids, weights
 
-    async def set_weights(self, scored_posts: List[Any]) -> None:
+    async def set_weights(self, scored_posts: List[Tweet]) -> None:
         self.validator.substrate = interface.get_substrate(
             subtensor_address=self.validator.substrate.url
         )
@@ -45,7 +52,7 @@ class ValidatorWeightSetter:
             logger.info(f"Waiting {wait_seconds} seconds...")
             await asyncio.sleep(wait_seconds)
 
-        uids, scores = self.get_scores(scored_posts)
+        uids, scores = self.calculate_weights(scored_posts)
 
         for attempt in range(3):
             try:
