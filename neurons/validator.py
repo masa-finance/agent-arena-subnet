@@ -84,9 +84,7 @@ class AgentValidator:
         self.scored_posts = []
 
         self.posts_getter = PostsGetter(self.netuid)
-        self.weight_setter = ValidatorWeightSetter(
-            self.netuid, self.keypair, self.substrate, version_numerical, validator=self
-        )
+        self.weight_setter = ValidatorWeightSetter(validator=self)
 
         self.registrar = ValidatorRegistration(validator=self)
 
