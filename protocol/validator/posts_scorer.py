@@ -1,11 +1,11 @@
 from typing import Dict, List, Any
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, UTC
 from interfaces.types import Tweet
 
 
-class AgentScorer:
+class PostsScorer:
     def __init__(self, validator: Any):
         self.engagement_weights = {
             "likes": 2.0,
