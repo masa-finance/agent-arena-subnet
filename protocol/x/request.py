@@ -1,4 +1,3 @@
-import queue
 import threading
 import time
 import logging
@@ -29,7 +28,7 @@ BACKOFF_BASE_SLEEP = 1
 THREAD_DAEMON = True  # Run worker threads as daemons
 
 
-class RequestQueue:
+class Request:
     """A thread-safe priority queue system for handling different types of API requests.
 
     This class implements a multi-queue system that can handle different types of requests
@@ -47,26 +46,24 @@ class RequestQueue:
         rate_limit_lock (threading.Lock): Thread lock for rate limiting.
 
     Example:
-        >>> rq = RequestQueue(max_concurrent_requests=5)
+        >>> rq = Request(max_concurrent_requests=5)
         >>> rq.start()
         >>>
         >>> # Add a search request
         >>> rq.add_request(
-        ...     request_type='search',
-        ...     request_data={'query': '#Bitcoin'},
+        ...     data={'query': '#Bitcoin'},
         ...     priority=1
         ... )
         >>>
         >>> # Add a profile request
         >>> rq.add_request(
-        ...     request_type='profile',
-        ...     request_data={'username': 'elonmusk'},
+        ...     data={'username': 'elonmusk'},
         ...     priority=2
         ... )
     """
 
     def __init__(self, max_concurrent_requests: int = DEFAULT_MAX_CONCURRENT_REQUESTS):
-        """Initialize the RequestQueue with specified concurrency and rate limits.
+        """Initialize the Request with specified concurrency and rate limits.
 
         Args:
             max_concurrent_requests (int, optional): Maximum number of concurrent requests.
@@ -83,12 +80,12 @@ class RequestQueue:
         self.rate_limit_lock = threading.Lock()
 
         logger.debug(
-            f"Initialized RequestQueue with max_concurrent_requests={max_concurrent_requests}, "
+            f"Initialized Request with max_concurrent_requests={max_concurrent_requests}, "
             f"rate_limit={self.requests_per_second} RPS"
         )
 
-    async def excecute_request(self, request_type: str, request_data: Dict[str, Any]):
-        response = self._handle_request(request_type, request_data, True)
+    async def execute(self, data: Dict[str, Any]):
+        response = self._handle_request(data, True)
         return response
 
     def _wait_for_rate_limit(self):
@@ -112,14 +109,11 @@ class RequestQueue:
 
             self.last_request_time = time.time()
 
-    def _handle_request(
-        self, request_type: str, request_data: Dict[str, Any], quick_return=False
-    ):
+    def _handle_request(self, data: Dict[str, Any], quick_return=False):
         """Process a single request with error handling, retry mechanism, and rate limiting.
 
         Args:
-            request_type (str): Type of request being processed.
-            request_data (Dict[str, Any]): Request payload data.
+            data (Dict[str, Any]): Request payload data.
 
         Note:
             This method enforces rate limiting before making the actual API request.
@@ -131,22 +125,19 @@ class RequestQueue:
         try:
             self._wait_for_rate_limit()  # Apply rate limiting before making request
 
-            if request_type == "profile":
-                response = get_x_profile(username=request_data["username"])
-            else:
-                raise ValueError(f"Unknown request type: {request_type}")
+            response = get_x_profile(username=data["username"])
 
             if quick_return:
                 return response
 
             if response["data"] is not None:
-                logger.info(f"Processed {request_type} request: {response}")
+                logger.info(f"Processed request: {response}")
 
                 metadata = {
-                    "uid": request_data["metadata"].UID,
-                    "user_id": request_data["metadata"].UserID,
-                    "subnet_id": request_data["metadata"].SubnetID,
-                    "query": request_data["query"],
+                    "uid": data["metadata"].UID,
+                    "user_id": data["metadata"].UserID,
+                    "subnet_id": data["metadata"].SubnetID,
+                    "query": data["query"],
                     "count": len(response),
                     "created_at": int(time.time()),
                 }
@@ -156,7 +147,7 @@ class RequestQueue:
 
         except Exception as e:
             logger.error(f"Error processing request: {e}")
-            self._retry_request(request_type, request_data)
+            self._retry_request(data)
         finally:
             with self.lock:
                 self.active_requests -= 1
@@ -167,15 +158,13 @@ class RequestQueue:
 
     def _retry_request(
         self,
-        request_type: str,
-        request_data: Dict[str, Any],
+        data: Dict[str, Any],
         retries: int = DEFAULT_RETRIES,
     ):
         """Retry failed requests with exponential backoff.
 
         Args:
-            request_type (str): Type of request to retry.
-            request_data (Dict[str, Any]): Request payload data.
+            data (Dict[str, Any]): Request payload data.
             retries (int, optional): Maximum number of retry attempts.
                 Defaults to DEFAULT_RETRIES.
 
@@ -186,8 +175,8 @@ class RequestQueue:
         for attempt in range(retries):
             try:
                 logger.warning(
-                    f"Retrying {request_type} request: {
-                               request_data}, attempt {attempt + 1}"
+                    f"Retrying request: {
+                               data}, attempt {attempt + 1}"
                 )
                 # Exponential backoff
                 time.sleep(BACKOFF_BASE_SLEEP * (2**attempt))
@@ -196,11 +185,11 @@ class RequestQueue:
                 logger.error(f"Retry failed: {e}")
         logger.error(
             f"Request failed after {
-                     retries} attempts: {request_data}"
+                     retries} attempts: {data}"
         )
 
 
 if __name__ == "__main__":
 
-    rq = RequestQueue()
+    rq = Request()
     time.sleep(10)  # Keep the main thread alive to allow processing

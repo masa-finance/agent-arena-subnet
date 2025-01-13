@@ -17,7 +17,7 @@ from fiber.logging_utils import get_logger
 from fastapi import FastAPI
 from cryptography.fernet import Fernet
 
-from protocol.x.queue import RequestQueue
+from protocol.x.request import Request
 
 from interfaces.types import (
     RegisteredAgentResponse,
@@ -318,10 +318,8 @@ class AgentValidator:
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS / 2)
 
     async def fetch_x_profile(self, username: str) -> Dict[str, Any]:
-        queue = RequestQueue()
-        response = await queue.excecute_request(
-            request_type="profile", request_data={"username": username}
-        )
+        request = Request()
+        response = await request.execute(data={"username": username})
         return response
 
     async def sync_loop(self) -> None:
