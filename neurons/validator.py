@@ -26,7 +26,7 @@ from interfaces.types import (
 )
 
 
-from protocol.validator.agents_posts import AgentsPosts
+from protocol.validator.posts_getter import PostsGetter
 from protocol.validator.weight_setter import ValidatorWeightSetter
 from protocol.validator.registration import ValidatorRegistration
 
@@ -84,13 +84,10 @@ class AgentValidator:
 
         self.scored_posts = []
 
-        self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
-
-        self.miner_weights = MinerWeights()
-
-        self.agents_posts = AgentsPosts(self.netuid)
+        self.posts_getter = PostsGetter(self.netuid)
+        self.miner_weights = MinerWeights(validator=self)
         self.weight_setter = ValidatorWeightSetter(
-            self.netuid, self.keypair, self.substrate, version_numerical
+            self.netuid, self.keypair, self.substrate, version_numerical, validator=self
         )
 
         self.registrar = ValidatorRegistration(validator=self)
@@ -316,7 +313,7 @@ class AgentValidator:
         """Background task to score agents"""
         while True:
             try:
-                self.scored_posts = await self.agents_posts.get()
+                self.scored_posts = await self.posts_getter.get()
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in scoring: {str(e)}")

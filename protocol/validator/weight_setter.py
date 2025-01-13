@@ -3,30 +3,38 @@ import asyncio
 from fiber.chain import weights, interface
 from fiber.logging_utils import get_logger
 from protocol.scoring.miner_weights import MinerWeights
+from neurons import version_numerical
 
 logger = get_logger(__name__)
 
+
 class ValidatorWeightSetter:
-    def __init__(self, netuid: int, keypair: Any, substrate: Any, version_numerical: int):
-        self.netuid = netuid
-        self.keypair = keypair
-        self.substrate = substrate
-        self.version_numerical = version_numerical
-        self.miner_weights = MinerWeights()
+    def __init__(
+        self,
+        validator: Any,
+    ):
+        self.validator = validator
+        self.miner_weights = MinerWeights(validator=self.validator)
 
     def get_scores(self, scored_posts: List[Any]) -> Tuple[List[int], List[float]]:
         return self.miner_weights.calculate_weights(scored_posts)
 
     async def set_weights(self, scored_posts: List[Any]) -> None:
-        self.substrate = interface.get_substrate(subtensor_address=self.substrate.url)
-        validator_node_id = self.substrate.query(
-            "SubtensorModule", "Uids", [self.netuid, self.keypair.ss58_address]
+        self.validator.substrate = interface.get_substrate(
+            subtensor_address=self.validator.substrate.url
+        )
+        validator_node_id = self.validator.substrate.query(
+            "SubtensorModule",
+            "Uids",
+            [self.validator.netuid, self.validator.keypair.ss58_address],
         ).value
 
         blocks_since_update = weights._blocks_since_last_update(
-            self.substrate, self.netuid, validator_node_id
+            self.validator.substrate, self.validator.netuid, validator_node_id
         )
-        min_interval = weights._min_interval_to_set_weights(self.substrate, self.netuid)
+        min_interval = weights._min_interval_to_set_weights(
+            self.validator.substrate, self.validator.netuid
+        )
 
         logger.info(f"Blocks since last update: {blocks_since_update}")
         logger.info(f"Minimum interval required: {min_interval}")
@@ -42,13 +50,13 @@ class ValidatorWeightSetter:
         for attempt in range(3):
             try:
                 success = weights.set_node_weights(
-                    substrate=self.substrate,
-                    keypair=self.keypair,
+                    substrate=self.validator.substrate,
+                    keypair=self.validator.keypair,
                     node_ids=uids,
                     node_weights=scores,
-                    netuid=self.netuid,
+                    netuid=self.validator.netuid,
                     validator_node_id=validator_node_id,
-                    version_key=self.version_numerical,
+                    version_key=version_numerical,
                     wait_for_inclusion=False,
                     wait_for_finalization=False,
                 )
@@ -64,4 +72,4 @@ class ValidatorWeightSetter:
                 logger.error(f"Error on attempt {attempt + 1}: {str(e)}")
                 await asyncio.sleep(10)
 
-        logger.error("Failed to set weights after all attempts") 
+        logger.error("Failed to set weights after all attempts")

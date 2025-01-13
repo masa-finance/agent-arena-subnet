@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from cryptography.fernet import Fernet
 from dataclasses import dataclass, asdict
 from pydantic import BaseModel
@@ -68,6 +68,16 @@ class RegisteredAgentResponse(JSONSerializable):
     IsActive: bool
     CreatedAt: str
     UpdatedAt: str
+    Emissions: float
+    VerificationTweetID: str
+    VerificationTweetURL: str
+    VerificationTweetTimestamp: str
+    VerificationTweetText: str
+    Nominations: Optional[int]
+    IsNominated: Optional[bool]
+    Marketcap: Optional[int]
+
+    # Profile attributes
     Avatar: Optional[str]
     Banner: Optional[str]
     Biography: Optional[str]
@@ -84,17 +94,9 @@ class RegisteredAgentResponse(JSONSerializable):
     Name: Optional[str]
     PinnedTweetIDs: list[str]
     TweetsCount: int
-    Emissions: float
     URL: Optional[str]
     Username: Optional[str]
     Website: Optional[str]
-    VerificationTweetID: str
-    VerificationTweetURL: str
-    VerificationTweetTimestamp: str
-    VerificationTweetText: str
-    Nominations: Optional[int]
-    IsNominated: Optional[bool]
-    Marketcap: Optional[int]
 
 
 @dataclass
@@ -105,6 +107,45 @@ class ConnectedNode(JSONSerializable):
     fernet: Fernet
 
 
-class RegistrationCallback(BaseModel):
+@dataclass
+class RegistrationCallback(BaseModel, JSONSerializable):
     registered: str
     message: Optional[str] = None
+
+
+@dataclass
+class Tweet(BaseModel.JSONSerializable):
+    ConversationID: Optional[str]
+    GIFs: Optional[List[str]]
+    Hashtags: Optional[List[str]]
+    HTML: Optional[str]
+    ID: Optional[str]
+    InReplyToStatus: Optional[str]
+    InReplyToStatusID: Optional[str]
+    IsQuoted: Optional[bool]
+    IsPin: Optional[bool]
+    IsReply: Optional[bool]
+    IsRetweet: Optional[bool]
+    IsSelfThread: Optional[bool]
+    Likes: Optional[int]
+    Name: Optional[str]
+    Mentions: Optional[List[Dict[str, Any]]]
+    PermanentURL: Optional[str]
+    Photos: Optional[List[str]]
+    Place: Optional[Dict[str, Any]]
+    QuotedStatus: Optional[str]
+    QuotedStatusID: Optional[str]
+    Replies: Optional[int]
+    Retweets: Optional[int]
+    RetweetedStatus: Optional[str]
+    RetweetedStatusID: Optional[str]
+    Text: Optional[str]
+    Thread: Optional[str]
+    TimeParsed: Optional[str]
+    Timestamp: Optional[int]
+    URLs: Optional[List[str]]
+    UserID: Optional[str]
+    Username: Optional[str]
+    Videos: Optional[List[str]]
+    Views: Optional[int]
+    SensitiveContent: Optional[bool]

@@ -7,7 +7,7 @@ import os
 logger = get_logger(__name__)
 
 
-class AgentsPosts:
+class PostsGetter:
     def __init__(self, netuid: int):
         self.netuid = netuid
         self.posts = []

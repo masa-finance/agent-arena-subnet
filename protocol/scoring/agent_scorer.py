@@ -2,86 +2,91 @@ from typing import Dict, List, Any
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime, timedelta, UTC
+from interfaces.types import Tweet
+
 
 class AgentScorer:
-    def __init__(self):
+    def __init__(self, validator: Any):
         self.engagement_weights = {
-            'likes': 2.0,
-            'retweets': 1.5,
-            'replies': 1.0,
-            'views': 0.1
+            "likes": 2.0,
+            "retweets": 1.5,
+            "replies": 1.0,
+            "views": 0.1,
         }
         self.length_weight = 0.5
         self.scaler = MinMaxScaler(feature_range=(0, 1))
+        self.validator = validator
 
-    def _calculate_post_score(self, post: Dict[str, Any]) -> float:
+    def _calculate_post_score(self, post: Tweet) -> float:
         base_score = 0
-        
+
         # Extract tweet data from nested structure
-        tweet_data = post.get('Tweet', {})
-        
+        tweet_data = post
+
         # Calculate text length score
-        text = tweet_data.get('Text', '')
+        text = tweet_data.get("Text", "")
         text_length = len(str(text))
         base_score += text_length * self.length_weight
-        
+
         # Map the field names to our scoring metrics
         metric_mapping = {
-            'likes': 'Likes',
-            'retweets': 'Retweets', 
-            'replies': 'Replies',
-            'views': 'Views'
+            "likes": "Likes",
+            "retweets": "Retweets",
+            "replies": "Replies",
+            "views": "Views",
         }
-        
+
         # Calculate engagement score
         for metric, weight in self.engagement_weights.items():
             field_name = metric_mapping[metric]
             value = tweet_data.get(field_name, 0)
             base_score += value * weight
-                
+
         return np.log1p(base_score)
 
-    def calculate_agent_scores(self, posts: List[Dict[str, Any]], 
-                             time_window: int = 24) -> Dict[int, float]:
+    def calculate_agent_scores(self, posts: List[Tweet]) -> Dict[int, float]:
         current_time = datetime.now(UTC)
-        cutoff_time = current_time - timedelta(hours=time_window)
-        
+
         agent_posts: Dict[int, List[float]] = {}
         skipped_posts = 0
         processed_posts = 0
-        
-        for post_group in posts:
+
+        # Create a temporary dictionary mapping UserId to UID
+        user_id_to_uid = {
+            agent.UserID: int(agent.UID)
+            for agent in self.validator.registered_agents.values()
+        }
+
+        for post in posts:
             try:
-                uid = int(post_group.get('uid', 0))
+                user_id = post.get("UserID", None)
+                if not user_id:
+                    skipped_posts += 1
+                    continue
+
+                uid = user_id_to_uid.get(user_id)
                 if not uid:
                     skipped_posts += 1
                     continue
-                    
-                tweets = post_group.get('tweets', [])
-                for tweet in tweets:
-                    try:
-                        tweet_data = tweet.get('Tweet', {})
-                        if not tweet_data:
-                            skipped_posts += 1
-                            continue
-                            
-                        timestamp = tweet_data.get('Timestamp')
-                        if timestamp:
-                            timestamp = datetime.fromtimestamp(timestamp, UTC)
-                        else:
-                            timestamp = current_time
-                        
-                        if timestamp >= cutoff_time:
-                            if uid not in agent_posts:
-                                agent_posts[uid] = []
-                            score = self._calculate_post_score(tweet)
-                            agent_posts[uid].append(score)
-                            processed_posts += 1
-                            
-                    except Exception as e:
-                        skipped_posts += 1
-                        continue
-                    
+
+                try:
+                    timestamp = post.get("Timestamp")
+                    if timestamp:
+                        timestamp = datetime.fromtimestamp(timestamp, UTC)
+                    else:
+                        timestamp = current_time
+
+                    if uid not in agent_posts:
+                        agent_posts[uid] = []
+
+                    score = self._calculate_post_score(post)
+                    agent_posts[uid].append(score)
+                    processed_posts += 1
+
+                except Exception as e:
+                    skipped_posts += 1
+                    continue
+
             except Exception as e:
                 skipped_posts += 1
                 continue
@@ -100,7 +105,8 @@ class AgentScorer:
         if final_scores:
             scores_array = np.array(list(final_scores.values())).reshape(-1, 1)
             normalized_scores = self.scaler.fit_transform(scores_array).flatten()
-            final_scores = {uid: score for uid, score in 
-                          zip(final_scores.keys(), normalized_scores)}
+            final_scores = {
+                uid: score for uid, score in zip(final_scores.keys(), normalized_scores)
+            }
 
-        return final_scores 
+        return final_scores
