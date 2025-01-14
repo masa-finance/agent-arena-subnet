@@ -4,7 +4,6 @@ import os
 import httpx
 import asyncio
 import uvicorn
-import threading
 from typing import Optional, Dict, Tuple, List, Any
 from neurons import version_numerical
 
@@ -18,10 +17,7 @@ from fiber.logging_utils import get_logger
 from fastapi import FastAPI
 from cryptography.fernet import Fernet
 
-from protocol.data_processing.post_loader import LoadPosts
-from protocol.x.scheduler import XSearchScheduler
-from protocol.x.queue import RequestQueue
-from protocol.scoring.miner_weights import MinerWeights
+from protocol.x.request import Request
 
 from interfaces.types import (
     RegisteredAgentResponse,
@@ -29,7 +25,7 @@ from interfaces.types import (
 )
 
 
-from protocol.validator.scoring import ValidatorScoring
+from protocol.validator.posts_getter import PostsGetter
 from protocol.validator.weight_setter import ValidatorWeightSetter
 from protocol.validator.registration import ValidatorRegistration
 
@@ -85,25 +81,10 @@ class AgentValidator:
         self.connected_nodes: Dict[str, ConnectedNode] = {}
         self.registered_agents: Dict[str, RegisteredAgentResponse] = {}
 
-        self.queue = None
-        self.scheduler = None
-        self.search_terms = None
         self.scored_posts = []
 
-        self.search_count = int(os.getenv("SCHEDULER_SEARCH_COUNT", "450"))
-        self.scheduler_interval_minutes = int(
-            os.getenv("SCHEDULER_INTERVAL_MINUTES", "60")
-        )
-        self.scheduler_batch_size = int(os.getenv("SCHEDULER_BATCH_SIZE", "100"))
-        self.scheduler_priority = int(os.getenv("SCHEDULER_PRIORITY", "100"))
-
-        self.posts_loader = LoadPosts()
-        self.miner_weights = MinerWeights()
-
-        self.scorer = ValidatorScoring(self.netuid)
-        self.weight_setter = ValidatorWeightSetter(
-            self.netuid, self.keypair, self.substrate, version_numerical
-        )
+        self.posts_getter = PostsGetter(self.netuid)
+        self.weight_setter = ValidatorWeightSetter(validator=self)
 
         self.registrar = ValidatorRegistration(validator=self)
 
@@ -118,11 +99,11 @@ class AgentValidator:
             # Start background tasks
             asyncio.create_task(self.sync_loop())
             asyncio.create_task(self.check_agents_registration_loop())
-            asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
             asyncio.create_task(self.score_loop())
             asyncio.create_task(self.set_weights_loop())
 
-            self.create_scheduler()
+            if os.getenv("API_KEY", None):
+                asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
 
             config = uvicorn.Config(
                 self.app, host="0.0.0.0", port=self.port, lifespan="on"
@@ -142,44 +123,6 @@ class AgentValidator:
         except Exception as e:
             logger.error(f"Failed to get node from metagraph: {e}")
             return None
-
-    def create_scheduler(self) -> None:
-        """Initialize the X search scheduler and request queue.
-
-        Creates a new queue based on registered agents and starts
-        the scheduler with configured parameters.
-        """
-
-        if self.search_terms is not None and len(self.search_terms):
-            logger.info("Stopping scheduler...")
-
-            self.search_terms = None
-            if self.scheduler is not None:
-                self.scheduler.search_terms = None
-                self.scheduler = None
-
-        logger.info("Generating queue...")
-
-        self.queue = RequestQueue()
-        self.queue.start()
-        self.search_terms = self.generate_search_terms(self.registered_agents)
-        logger.info("Queue generated.")
-
-        self.scheduler = XSearchScheduler(
-            request_queue=self.queue,
-            interval_minutes=self.scheduler_interval_minutes,
-            batch_size=self.scheduler_batch_size,
-            priority=self.scheduler_priority,
-            search_count=self.search_count,
-        )
-
-        self.scheduler.search_terms = self.search_terms
-
-        def run_scheduler():
-            self.scheduler.start()
-
-        thread = threading.Thread(target=run_scheduler)
-        thread.start()
 
     async def make_non_streamed_get(self, node: Node, endpoint: str) -> Optional[Any]:
         registered_node = self.connected_nodes.get(node.hotkey)
@@ -233,41 +176,6 @@ class AgentValidator:
                     response.status_code}"
             )
             return None
-
-    def generate_search_terms(
-        self, agents: Dict[str, RegisteredAgentResponse]
-    ) -> List[Dict[str, Any]]:
-        """Generate search terms for request queues.
-
-        This function creates search terms for a RequestQueue instance using
-        the provided agents. It prepares search queries for each agent to be
-        added to the queue, ensuring that the queue is populated with the
-        necessary search requests for processing.
-
-        Args:
-            agents (Dict[str, RegisteredAgentResponse]): Dictionary of agents
-                containing their registration details.
-
-        Returns:
-            List[Dict[str, Any]]: A list of search terms ready for queueing.
-        """
-        search_terms = []
-        total_agents = len(agents)
-        logger.info(f"Generating search terms for {total_agents} agents")
-
-        for agent in agents.values():
-            if not agent.Username:
-                logger.warning(f"Skipping agent {agent.UID}: Missing username")
-                continue
-
-            logger.info(f"Adding request to the queue for id {agent.UID} (@{agent.Username})")
-
-            search_terms.append({"query": f"to:{agent.Username}", "metadata": agent})
-            search_terms.append({"query": f"from:{agent.Username}", "metadata": agent})
-            search_terms.append({"query": f"@{agent.Username}", "metadata": agent})
-
-        logger.info(f"Generated {len(search_terms)} search terms for {total_agents} agents")
-        return search_terms
 
     def get_emissions(self, node: Optional[Node]) -> Tuple[float, List[float]]:
         self.sync_substrate()
@@ -401,36 +309,22 @@ class AgentValidator:
         """Background task to score agents"""
         while True:
             try:
-                self.scored_posts = self.scorer.score_posts()
+                self.scored_posts = await self.posts_getter.get()
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS)
             except Exception as e:
                 logger.error(f"Error in scoring: {str(e)}")
                 await asyncio.sleep(SCORE_LOOP_CADENCE_SECONDS / 2)
 
     async def fetch_x_profile(self, username: str) -> Dict[str, Any]:
-        queue = RequestQueue()
-        response = await queue.excecute_request(
-            request_type="profile", request_data={"username": username}
-        )
+        request = Request()
+        response = await request.execute(data={"username": username})
         return response
 
     async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
         while True:
             try:
-                previous_agents = (
-                    self.registered_agents.copy() if self.registered_agents else {}
-                )
                 await self.registrar.fetch_registered_agents()
-
-                # If agents changed, update and process immediately
-                if self.registered_agents != previous_agents:
-                    logger.info("New agents detected, updating scheduler...")
-                    self.scheduler.search_terms = self.generate_search_terms(
-                        self.registered_agents
-                    )
-                    # Trigger immediate processing of new terms
-                    self.scheduler.process_search_terms()
 
                 await self.connect_new_nodes()
                 await self.sync_metagraph()
