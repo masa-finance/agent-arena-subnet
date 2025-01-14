@@ -96,11 +96,11 @@ class AgentValidator:
 
             # Start background tasks
             asyncio.create_task(self.sync_loop())
-            asyncio.create_task(self.check_agents_registration_loop())
-            asyncio.create_task(self.score_loop())
             asyncio.create_task(self.set_weights_loop())
+            asyncio.create_task(self.score_loop())
 
             if os.getenv("API_KEY", None):
+                asyncio.create_task(self.check_agents_registration_loop())
                 asyncio.create_task(self.update_agents_profiles_and_emissions_loop())
 
             config = uvicorn.Config(
@@ -323,7 +323,6 @@ class AgentValidator:
         while True:
             try:
                 await self.registrar.fetch_registered_agents()
-
                 await self.connect_new_nodes()
                 await self.sync_metagraph()
                 await asyncio.sleep(SYNC_LOOP_CADENCE_SECONDS)

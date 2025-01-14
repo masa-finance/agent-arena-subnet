@@ -99,10 +99,7 @@ class PostsScorer:
 
         if final_scores:
             scores_array = np.array(list(final_scores.values())).reshape(-1, 1)
-            if scores_array.shape[0] == 1:
-                normalized_scores = np.array([1.0])
-            else:
-                normalized_scores = self.scaler.fit_transform(scores_array).flatten()
+            normalized_scores = self.scaler.fit_transform(scores_array).flatten()
             final_scores = {
                 uid: score for uid, score in zip(final_scores.keys(), normalized_scores)
             }
