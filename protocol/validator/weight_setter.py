@@ -54,8 +54,7 @@ class ValidatorWeightSetter:
 
         uids, scores = self.calculate_weights(scored_posts)
 
-        logger.info(f"Uids: {uids}")
-        logger.info(f"Scores: {scores}")
+        logger.info(f"Uids: {uids} Scores: {scores}")
 
         for attempt in range(3):
             try:

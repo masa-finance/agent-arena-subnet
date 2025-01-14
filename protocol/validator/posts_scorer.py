@@ -3,6 +3,9 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime, UTC
 from interfaces.types import Tweet
+from fiber.logging_utils import get_logger
+
+logger = get_logger(__name__)
 
 
 class PostsScorer:
@@ -50,13 +53,12 @@ class PostsScorer:
             try:
                 user_id = post.get("UserID", None)
                 if not user_id:
-                    print(f"Post does not have a UserID...")
+                    logger.info(f"Post does not have a UserID...")
                     skipped_posts += 1
                     continue
 
                 uid = user_id_to_uid.get(user_id, None)
                 if not uid:
-                    print(f"No UID associated with userId: {user_id}")
                     skipped_posts += 1
                     continue
 
@@ -82,8 +84,8 @@ class PostsScorer:
                 skipped_posts += 1
                 continue
 
-        print(f"Processed {processed_posts} posts, skipped {skipped_posts}")
-        print(f"Found posts for {len(agent_posts)} unique agents")
+        logger.info(f"Processed {processed_posts} posts, skipped {skipped_posts}")
+        logger.info(f"Found posts for {len(agent_posts)} unique agents")
 
         final_scores = {}
         for uid, scores in agent_posts.items():
@@ -93,11 +95,17 @@ class PostsScorer:
                 final_score = mean_score * np.log1p(post_count)
                 final_scores[uid] = final_score
 
+        # logger.info(f"Final Scores Before Normalization: {final_scores}")
+
         if final_scores:
             scores_array = np.array(list(final_scores.values())).reshape(-1, 1)
-            normalized_scores = self.scaler.fit_transform(scores_array).flatten()
+            if scores_array.shape[0] == 1:
+                normalized_scores = np.array([1.0])
+            else:
+                normalized_scores = self.scaler.fit_transform(scores_array).flatten()
             final_scores = {
                 uid: score for uid, score in zip(final_scores.keys(), normalized_scores)
             }
 
+        # logger.info(f"Final Scores After Normalization: {final_scores}")
         return final_scores
