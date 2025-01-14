@@ -52,7 +52,7 @@ class ValidatorRegistration:
                     agent["HotKey"]: RegisteredAgentResponse(**agent)
                     for agent in active_agents
                 }
-                logger.info("Successfully fetched and updated active agents.")
+                logger.info("Successfully fetched active agents.")
             else:
                 logger.error(
                     f"Failed to fetch active agents, status code: {response.status_code}, message: {response.text}"
