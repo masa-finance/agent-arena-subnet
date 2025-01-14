@@ -10,10 +10,8 @@ logger = get_logger(__name__)
 class PostsGetter:
     def __init__(self, netuid: int):
         self.netuid = netuid
-        self.since = int(datetime.now(UTC).timestamp()) - 604800
-
-        # TODO remove this when golive
-        self.since = 1724625390
+        a_week_ago_in_seconds = 7 * 24 * 60 * 60
+        self.since = int(datetime.now(UTC).timestamp()) - a_week_ago_in_seconds
 
         self.api_key = os.getenv("API_KEY", None)
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")

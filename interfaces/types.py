@@ -108,7 +108,7 @@ class ConnectedNode(JSONSerializable):
 
 
 @dataclass
-class RegistrationCallback(BaseModel, JSONSerializable):
+class RegistrationCallback(BaseModel):
     registered: str
     message: Optional[str] = None
 
