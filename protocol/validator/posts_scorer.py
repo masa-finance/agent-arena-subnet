@@ -8,38 +8,27 @@ from interfaces.types import Tweet
 class PostsScorer:
     def __init__(self, validator: Any):
         self.engagement_weights = {
-            "likes": 2.0,
-            "retweets": 1.5,
-            "replies": 1.0,
-            "views": 0.1,
+            "Likes": 2.0,
+            "Retweets": 1.5,
+            "Replies": 1.0,
+            "Views": 0.1,
         }
         self.length_weight = 0.5
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.validator = validator
 
     def _calculate_post_score(self, post: Tweet) -> float:
+        tweet_data = dict(post)
         base_score = 0
-
-        # Extract tweet data from nested structure
-        tweet_data = post
 
         # Calculate text length score
         text = tweet_data.get("Text", "")
         text_length = len(str(text))
         base_score += text_length * self.length_weight
 
-        # Map the field names to our scoring metrics
-        metric_mapping = {
-            "likes": "Likes",
-            "retweets": "Retweets",
-            "replies": "Replies",
-            "views": "Views",
-        }
-
         # Calculate engagement score
         for metric, weight in self.engagement_weights.items():
-            field_name = metric_mapping[metric]
-            value = tweet_data.get(field_name, 0)
+            value = tweet_data.get(metric, 0)
             base_score += value * weight
 
         return np.log1p(base_score)
@@ -61,11 +50,13 @@ class PostsScorer:
             try:
                 user_id = post.get("UserID", None)
                 if not user_id:
+                    print(f"Post does not have a UserID...")
                     skipped_posts += 1
                     continue
 
-                uid = user_id_to_uid.get(user_id)
+                uid = user_id_to_uid.get(user_id, None)
                 if not uid:
+                    print(f"No UID associated with userId: {user_id}")
                     skipped_posts += 1
                     continue
 
