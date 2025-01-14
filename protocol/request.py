@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import itertools
 
 # Import the functions from their respective modules
-from protocol.x.profile import get_x_profile
+from protocol.profile import get_x_profile
 
 # Load environment variables
 load_dotenv()

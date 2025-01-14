@@ -1,5 +1,5 @@
-miner:
+run-miner:
 	python scripts/run_miner.py
 
-validator:
+run-validator:
 	python scripts/run_validator.py
