@@ -10,9 +10,10 @@ logger = get_logger(__name__)
 class PostsGetter:
     def __init__(self, netuid: int):
         self.netuid = netuid
-        self.posts = []
-
         self.since = int(datetime.now(UTC).timestamp()) - 604800
+
+        # TODO remove this when golive
+        self.since = 1724625390
 
         self.api_key = os.getenv("API_KEY", None)
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
@@ -24,8 +25,7 @@ class PostsGetter:
 
         posts = await self.fetch_posts_from_api(self.since)
         logger.info(f"Loaded {len(posts)} posts")
-        self.posts = posts
-        return self.posts
+        return posts
 
     async def fetch_posts_from_api(self, since) -> None:
         """Fetch posts from the API and update self.posts"""
@@ -35,11 +35,13 @@ class PostsGetter:
             )
             if response.status_code == 200:
                 posts_data = response.json()
-                self.posts = posts_data.get("posts", [])
-                logger.info("Successfully fetched and updated posts from API.")
+                posts = posts_data.get("posts", [])
+                logger.info(f"Successfully fetched {len(posts)} posts from API")
+                return posts
             else:
                 logger.error(
                     f"Failed to fetch posts, status code: {response.status_code}, message: {response.text}"
                 )
+                return []
         except Exception as e:
             logger.error(f"Exception occurred while fetching posts: {str(e)}")
