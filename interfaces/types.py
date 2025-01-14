@@ -108,12 +108,6 @@ class ConnectedNode(JSONSerializable):
 
 
 @dataclass
-class RegistrationCallback(BaseModel):
-    registered: str
-    message: Optional[str] = None
-
-
-@dataclass
 class Tweet(BaseModel, JSONSerializable):
     ConversationID: Optional[str]
     GIFs: Optional[List[str]]
@@ -149,3 +143,8 @@ class Tweet(BaseModel, JSONSerializable):
     Videos: Optional[List[str]]
     Views: Optional[int]
     SensitiveContent: Optional[bool]
+
+
+class RegistrationCallback(BaseModel):
+    registered: str
+    message: Optional[str] = None
