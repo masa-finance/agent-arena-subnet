@@ -5,7 +5,6 @@ import httpx
 import asyncio
 import uvicorn
 from typing import Optional, Dict, Tuple, List, Any
-from neurons import version_numerical
 
 from fiber.chain import chain_utils, interface
 from fiber.chain.metagraph import Metagraph
@@ -17,17 +16,16 @@ from fiber.logging_utils import get_logger
 from fastapi import FastAPI
 from cryptography.fernet import Fernet
 
-from protocol.x.request import Request
+from protocol.request import Request
 
 from interfaces.types import (
     RegisteredAgentResponse,
     ConnectedNode,
 )
 
-
-from protocol.validator.posts_getter import PostsGetter
-from protocol.validator.weight_setter import ValidatorWeightSetter
-from protocol.validator.registration import ValidatorRegistration
+from validator.posts_getter import PostsGetter
+from validator.weight_setter import ValidatorWeightSetter
+from validator.registration import ValidatorRegistration
 
 
 logger = get_logger(__name__)
