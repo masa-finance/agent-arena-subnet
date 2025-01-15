@@ -166,10 +166,16 @@ class ValidatorRegistration:
                             f"Trying to refetch username for agent: {
                                     agent.Username}"
                         )
-                        verified_tweet, user_id, username, avatar, name, is_verified = (
-                            await self.verify_tweet(
-                                agent.VerificationTweetID, agent.HotKey
-                            )
+                        (
+                            verified_tweet,
+                            user_id,
+                            username,
+                            avatar,
+                            name,
+                            is_verified,
+                            created_at,
+                        ) = await self.verify_tweet(
+                            agent.VerificationTweetID, agent.HotKey
                         )
                         x_profile = await self.validator.fetch_x_profile(username)
                         if x_profile is None:
@@ -185,9 +191,15 @@ class ValidatorRegistration:
                 try:
                     logger.info(f"X Profile To Update: {x_profile}")
 
-                    verified_tweet, user_id, username, avatar, name, is_verified = (
-                        await self.verify_tweet(agent.VerificationTweetID, agent.HotKey)
-                    )
+                    (
+                        verified_tweet,
+                        user_id,
+                        username,
+                        avatar,
+                        name,
+                        is_verified,
+                        created_at,
+                    ) = await self.verify_tweet(agent.VerificationTweetID, agent.HotKey)
 
                     agent_emissions = emissions[int(agent.UID)]
                     logger.info(
@@ -219,6 +231,7 @@ class ValidatorRegistration:
                                 LikesCount=x_profile["data"]["LikesCount"],
                                 Name=x_profile["data"]["Name"],
                                 IsVerified=is_verified,
+                                Joined=x_profile["data"]["Joined"],
                             )
                         },
                     )
@@ -363,7 +376,15 @@ class ValidatorRegistration:
                 ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 full_text=full_text,
             )
-            return verification_tweet, user_id, screen_name, avatar, name, is_verified
+            return (
+                verification_tweet,
+                user_id,
+                screen_name,
+                avatar,
+                name,
+                is_verified,
+                created_at,
+            )
         except Exception as e:
             # TODO let the miner know what the issue is
             logger.error(f"Failed to register agent: {str(e)}")
