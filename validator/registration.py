@@ -53,6 +53,8 @@ class ValidatorRegistration:
                     for agent in active_agents
                 }
                 logger.info("Successfully fetched and updated active agents.")
+                await self.update_agents_profiles_and_emissions()
+
             else:
                 logger.error(
                     f"Failed to fetch active agents, status code: {response.status_code}, message: {response.text}"
