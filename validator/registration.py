@@ -32,6 +32,7 @@ class ValidatorRegistration:
 
         # endpoints for requests to the API
         self.registration_endpoint = "/v1.0.0/subnet59/miners/register"
+        self.deregistration_endpoint = "/v1.0.0/subnet59/miners/deregister"
         self.active_agents_endpoint = (
             f"/v1.0.0/subnet59/miners/active/{self.validator.netuid}"
         )
@@ -43,22 +44,25 @@ class ValidatorRegistration:
         )
 
     async def fetch_registered_agents(self) -> None:
-        """Fetch active agents from the API and update registered_agents"""
+        """Fetch registered agents from the API"""
         try:
             response = await self.httpx_client.get(self.active_agents_endpoint)
-            if response.status_code == 200:
-                active_agents = response.json()
-                self.validator.registered_agents = {
-                    agent["HotKey"]: RegisteredAgentResponse(**agent)
-                    for agent in active_agents
-                }
-                logger.info("Successfully fetched and updated active agents.")
-            else:
-                logger.error(
-                    f"Failed to fetch active agents, status code: {response.status_code}, message: {response.text}"
-                )
+            response.raise_for_status()
+            agents = response.json() or []
+
+            # Safely access the data
+            self.validator.registered_agents = {
+                agent["HotKey"]: RegisteredAgentResponse(**agent) for agent in agents
+            }
+
+            logger.info(
+                f"Successfully fetched {len(agents)} agents for subnet {self.validator.netuid}"
+            )
+
+        except httpx.RequestError as e:
+            logger.error(f"HTTP request failed: {e}")
         except Exception as e:
-            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
+            logger.error(f"Exception occurred while fetching active agents: {e}")
 
     # TODO add followers count
     async def register_agent(
@@ -73,14 +77,15 @@ class ValidatorRegistration:
         """Register an agent"""
         node_emissions, _ = self.validator.get_emissions(node)
         registration_data = RegisteredAgentRequest(
-            hotkey=node.hotkey,
-            uid=str(node.node_id),
-            subnet_id=int(self.validator.netuid),
-            version=str(node.protocol),
-            isActive=True,
-            verification_tweet=verified_tweet,
-            emissions=node_emissions,
-            profile={
+            ID=node.node_id,
+            HotKey=node.hotkey,
+            UID=str(node.node_id),
+            SubnetID=int(self.validator.netuid),
+            Version=str(node.protocol),
+            IsActive=True,
+            VerificationTweet=verified_tweet,
+            Emissions=node_emissions,
+            Profile={
                 "data": Profile(
                     UserID=user_id, Username=screen_name, Avatar=avatar, Name=name
                 )
@@ -103,47 +108,36 @@ class ValidatorRegistration:
         except Exception as e:
             logger.error(f"Exception occurred during agent registration: {str(e)}")
 
-    async def deregister_agent(self, agent: RegisteredAgentResponse) -> None:
-        """Deregister agent with the API"""
-        logger.info("Deregistering agent...")
+    async def deregister_agent(self, agent: RegisteredAgentResponse) -> bool:
+        """Deregister agent with the API
+
+        Args:
+            agent: The agent to deregister
+
+        Returns:
+            bool: True if deregistration was successful, False otherwise
+        """
+        logger.info(f"Deregistering agent {agent.Username} (UID: {agent.UID})...")
         try:
-            verification_tweet = VerifiedTweet(
-                tweet_id=agent.VerificationTweetID,
-                url=agent.VerificationTweetURL,
-                timestamp=agent.VerificationTweetTimestamp,
-                full_text=agent.VerificationTweetText,
+            response = await self.httpx_client.delete(
+                f"{self.deregistration_endpoint}/{self.validator.netuid}/{agent.UID}"
             )
-            deregistration_data = RegisteredAgentRequest(
-                hotkey=agent.HotKey,
-                uid=str(agent.UID),
-                subnet_id=int(self.validator.netuid),
-                version=str(agent.Version),
-                isActive=False,
-                verification_tweet=verification_tweet,
-                emissions=0,
-                profile={
-                    "data": Profile(
-                        UserID=agent.UserID,
-                        Username=agent.Username,
-                    )
-                },
+            response.raise_for_status()
+            logger.info(f"Successfully deregistered agent {agent.Username}!")
+            await self.fetch_registered_agents()
+            return True
+
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"HTTP error during agent deregistration: Status {e.response.status_code} - {e.response.text}"
             )
-            deregistration_data = json.loads(
-                json.dumps(deregistration_data, default=lambda o: o.__dict__)
-            )
-            response = await self.httpx_client.post(
-                self.registration_endpoint,
-                json=deregistration_data,
-            )
-            if response.status_code == 200:
-                logger.info("Successfully deregistered agent!")
-                await self.fetch_registered_agents()
-            else:
-                logger.error(
-                    f"Failed to deregister agent, status code: {response.status_code}, message: {response.text}"
-                )
+            return False
+        except httpx.RequestError as e:
+            logger.error(f"Network error during agent deregistration: {str(e)}")
+            return False
         except Exception as e:
-            logger.error(f"Exception occurred during agent deregistration: {str(e)}")
+            logger.error(f"Unexpected error during agent deregistration: {str(e)}")
+            return False
 
     async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.validator.get_emissions(None)
@@ -182,20 +176,20 @@ class ValidatorRegistration:
                         f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
                     )
                     verification_tweet = VerifiedTweet(
-                        tweet_id=agent.VerificationTweetID,
-                        url=agent.VerificationTweetURL,
-                        timestamp=agent.VerificationTweetTimestamp,
-                        full_text=agent.VerificationTweetText,
+                        TweetID=agent.VerificationTweetID,
+                        URL=agent.VerificationTweetURL,
+                        Timestamp=agent.VerificationTweetTimestamp,
+                        FullText=agent.VerificationTweetText,
                     )
                     update_data = RegisteredAgentRequest(
-                        hotkey=hotkey,
-                        uid=str(agent.UID),
-                        subnet_id=int(self.validator.netuid),
-                        version=str(4),
-                        isActive=True,
-                        emissions=agent_emissions,
-                        verification_tweet=verification_tweet,
-                        profile={
+                        HotKey=hotkey,
+                        UID=str(agent.UID),
+                        SubnetID=int(self.validator.netuid),
+                        Version=str(4),
+                        IsActive=True,
+                        Emissions=agent_emissions,
+                        VerificationTweet=verification_tweet,
+                        Profile={
                             "data": Profile(
                                 UserID=agent.UserID,
                                 Username=x_profile["data"]["Username"],
@@ -336,12 +330,12 @@ class ValidatorRegistration:
                 raise ValueError(msg)
 
             verification_tweet = VerifiedTweet(
-                tweet_id=tweet_id,
-                url=f"https://twitter.com/{screen_name}/status/{tweet_id}",
-                timestamp=datetime.strptime(
+                TweetID=tweet_id,
+                URL=f"https://twitter.com/{screen_name}/status/{tweet_id}",
+                Timestamp=datetime.strptime(
                     created_at, "%a %b %d %H:%M:%S %z %Y"
                 ).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                full_text=full_text,
+                FullText=full_text,
             )
             return verification_tweet, user_id, screen_name, avatar, name
         except Exception as e:
