@@ -64,7 +64,6 @@ class ValidatorRegistration:
         except Exception as e:
             logger.error(f"Exception occurred while fetching active agents: {e}")
 
-    # TODO add followers count
     async def register_agent(
         self,
         node: Any,
@@ -73,6 +72,8 @@ class ValidatorRegistration:
         screen_name: str,
         avatar: str,
         name: str,
+        is_verified: bool,
+        followers_count: int,
     ) -> None:
         """Register an agent"""
         node_emissions, _ = self.validator.get_emissions(node)
@@ -87,7 +88,12 @@ class ValidatorRegistration:
             Emissions=node_emissions,
             Profile={
                 "data": Profile(
-                    UserID=user_id, Username=screen_name, Avatar=avatar, Name=name
+                    UserID=user_id,
+                    Username=screen_name,
+                    Avatar=avatar,
+                    Name=name,
+                    IsVerified=is_verified,
+                    FollowersCount=followers_count,
                 )
             },
         )
@@ -153,10 +159,16 @@ class ValidatorRegistration:
                             f"Trying to refetch username for agent: {
                                     agent.Username}"
                         )
-                        verified_tweet, user_id, username, avatar, name = (
-                            await self.verify_tweet(
-                                agent.VerificationTweetID, agent.HotKey
-                            )
+                        (
+                            verified_tweet,
+                            user_id,
+                            username,
+                            avatar,
+                            name,
+                            is_verified,
+                            followers_count,
+                        ) = await self.verify_tweet(
+                            agent.VerificationTweetID, agent.HotKey
                         )
                         x_profile = await self.validator.fetch_x_profile(username)
                         if x_profile is None:
@@ -200,6 +212,14 @@ class ValidatorRegistration:
                                 FollowingCount=x_profile["data"]["FollowingCount"],
                                 LikesCount=x_profile["data"]["LikesCount"],
                                 Name=x_profile["data"]["Name"],
+                                IsVerified=x_profile["data"]["IsVerified"],
+                                Joined=x_profile["data"]["Joined"],
+                                ListedCount=x_profile["data"]["ListedCount"],
+                                Location=x_profile["data"]["Location"],
+                                PinnedTweetIDs=x_profile["data"]["PinnedTweetIDs"],
+                                TweetsCount=x_profile["data"]["TweetsCount"],
+                                URL=x_profile["data"]["URL"],
+                                Website=x_profile["data"]["Website"],
                             )
                         },
                     )
@@ -243,9 +263,15 @@ class ValidatorRegistration:
                     if node:
                         # note, could refactor to this module but will keep vali <> miner calls in vali for now
                         tweet_id = await self.get_verification_tweet_id(node)
-                        verified_tweet, user_id, screen_name, avatar, name = (
-                            await self.verify_tweet(tweet_id, node.hotkey)
-                        )
+                        (
+                            verified_tweet,
+                            user_id,
+                            screen_name,
+                            avatar,
+                            name,
+                            is_verified,
+                            followers_count,
+                        ) = await self.verify_tweet(tweet_id, node.hotkey)
                         if verified_tweet and user_id:
                             await self.register_agent(
                                 node,
@@ -254,6 +280,8 @@ class ValidatorRegistration:
                                 screen_name,
                                 avatar,
                                 name,
+                                is_verified,
+                                followers_count,
                             )
                             payload = {
                                 "registered": str(screen_name),
@@ -282,7 +310,7 @@ class ValidatorRegistration:
 
     async def verify_tweet(
         self, id: str, hotkey: str
-    ) -> tuple[VerifiedTweet, str, str]:
+    ) -> tuple[VerifiedTweet, str, str, str, str, bool, int]:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
@@ -309,8 +337,9 @@ class ValidatorRegistration:
             screen_name = user.get("legacy", {}).get("screen_name")
             name = user.get("legacy", {}).get("name")
             user_id = user.get("rest_id")
-
+            is_verified = user.get("is_blue_verified")
             full_text = tweet_data_result.get("legacy", {}).get("full_text")
+            followers_count = user.get("legacy", {}).get("followers_count")
             avatar = user.get("legacy", {}).get("profile_image_url_https")
 
             logger.info(
@@ -337,7 +366,15 @@ class ValidatorRegistration:
                 ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 FullText=full_text,
             )
-            return verification_tweet, user_id, screen_name, avatar, name
+            return (
+                verification_tweet,
+                user_id,
+                screen_name,
+                avatar,
+                name,
+                is_verified,
+                followers_count,
+            )
         except Exception as e:
             # TODO let the miner know what the issue is
             logger.error(f"Failed to register agent: {str(e)}")
