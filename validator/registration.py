@@ -166,6 +166,7 @@ class ValidatorRegistration:
                             name,
                             is_verified,
                             followers_count,
+                            error,
                         ) = await self.verify_tweet(
                             agent.VerificationTweetID, agent.HotKey
                         )
@@ -269,8 +270,15 @@ class ValidatorRegistration:
                             name,
                             is_verified,
                             followers_count,
+                            error,
                         ) = await self.verify_tweet(tweet_id, node.hotkey)
-                        if verified_tweet and user_id:
+                        if error:
+                            payload = {
+                                "registered": "Agent failed to register",
+                                "message": error,
+                            }
+                            response = await self.registration_callback(node, payload)
+                        elif verified_tweet and user_id:
                             await self.register_agent(
                                 node,
                                 verified_tweet,
@@ -289,7 +297,7 @@ class ValidatorRegistration:
                         else:
                             payload = {
                                 "registered": "Agent failed to register",
-                                "message": f"Failed to register with tweet {tweet_id}",
+                                "message": f"Unknown error",
                             }
                             response = await self.registration_callback(node, payload)
 
@@ -313,7 +321,7 @@ class ValidatorRegistration:
         try:
             logger.info(f"Verifying tweet: {id}")
             result = TweetValidator().fetch_tweet(id)
-
+            error = None
             if not result:
                 logger.error(
                     f"Could not fetch tweet id {
@@ -348,13 +356,13 @@ class ValidatorRegistration:
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
                 msg = "Invalid tweet data: screen_name or full_text is not a string"
                 logger.error(msg)
-                raise ValueError(msg)
+                error = msg
 
             # ensure hotkey is in the tweet text
             if not hotkey in full_text:
                 msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
                 logger.error(msg)
-                raise ValueError(msg)
+                error = msg
 
             verification_tweet = VerifiedTweet(
                 TweetID=tweet_id,
@@ -372,11 +380,11 @@ class ValidatorRegistration:
                 name,
                 is_verified,
                 followers_count,
+                error,
             )
         except Exception as e:
-            # TODO let the miner know what the issue is
             logger.error(f"Failed to register agent: {str(e)}")
-            return False
+            return None, None, None, None, None, None, None, str(e)
 
     async def get_verification_tweet_id(self, node: Node) -> Optional[str]:
         endpoint = "/get_verification_tweet_id"
