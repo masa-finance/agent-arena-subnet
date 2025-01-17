@@ -34,7 +34,11 @@ class AgentScorer:
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.semantic_scorer = SemanticScorer(self.scoring_config)
         self.engagement_scorer = EngagementScorer(self.weights)
-        self.feature_calculator = FeatureImportanceCalculator(self.shap_config, self.weights)
+        self.feature_calculator = FeatureImportanceCalculator(
+            config=self.shap_config,
+            weights=self.weights,
+            semantic_scorer=self.semantic_scorer
+        )
         
         self._log_initialization()
 
@@ -90,20 +94,12 @@ class AgentScorer:
                 # Step 4: Calculate feature importance with ShapProgressConfig
                 shap_config = ShapProgressConfig(total_samples=self.shap_config.shap_background_samples)
                 with shap_config.create_progress_bar() as shap_pbar:
-                    try:
-                        feature_importance = self.feature_calculator.calculate(
-                            filtered_posts, 
-                            progress_bar=shap_pbar
-                        )
-                    except KeyboardInterrupt:
-                        logger.info("SHAP calculation interrupted")
-                        return agent_scores, {}
-
-                return agent_scores, feature_importance
-                
-        except KeyboardInterrupt:
-            logger.info("Calculation interrupted")
-            return {}, {}
+                    feature_importance = self.feature_calculator.calculate(
+                        filtered_posts, 
+                        progress_bar=shap_pbar
+                    )
+                    return agent_scores, feature_importance
+            
         except Exception as e:
             logger.error(f"Error in calculate_scores: {str(e)}")
             raise
