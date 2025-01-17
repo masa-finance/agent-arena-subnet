@@ -18,11 +18,11 @@ Usage Example:
     from datetime import datetime, UTC
     
     # Initialize with default 7-day lookback
-    getter = PostsGetter(netuid=1)
+    getter = PostsGetter(netuid=59)
     
     # Or specify custom date range
     getter = PostsGetter(
-        netuid=1,
+        netuid=59,
         start_date=datetime(2024, 1, 1, tzinfo=UTC),
         end_date=datetime(2024, 1, 7, tzinfo=UTC)
     )
