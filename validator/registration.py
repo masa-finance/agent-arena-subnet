@@ -316,7 +316,7 @@ class ValidatorRegistration:
 
     async def verify_tweet(
         self, id: str, hotkey: str
-    ) -> tuple[VerifiedTweet, str, str, str, str, bool, int]:
+    ) -> tuple[VerifiedTweet, str, str, str, str, bool, int, str]:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
@@ -354,15 +354,13 @@ class ValidatorRegistration:
             )
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
-                msg = "Invalid tweet data: screen_name or full_text is not a string"
-                logger.error(msg)
-                error = msg
+                error = "Invalid tweet data: screen_name or full_text is not a string"
+                logger.error(error)
 
             # ensure hotkey is in the tweet text
-            if not hotkey in full_text:
-                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
-                logger.error(msg)
-                error = msg
+            if full_text and not hotkey in full_text:
+                error = f"Hotkey {hotkey} is not in the tweet text {full_text}"
+                logger.error(error)
 
             verification_tweet = VerifiedTweet(
                 TweetID=tweet_id,
