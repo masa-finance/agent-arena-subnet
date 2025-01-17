@@ -157,18 +157,12 @@ class ValidatorRegistration:
                             f"Trying to refetch username for agent: {
                                     agent.Username}"
                         )
-                        (
-                            _,
-                            _,
-                            username,
-                            _,
-                            _,
-                            _,
-                            _,
-                            error,
-                        ) = await self.verify_tweet(
+                        verification_result = await self.verify_tweet(
                             agent.VerificationTweetID, agent.HotKey
                         )
+                        username = verification_result.screen_name
+                        error = verification_result.error
+
                         if not error:
                             x_profile = await self.validator.fetch_x_profile(username)
                             if x_profile is None:
@@ -265,39 +259,37 @@ class ValidatorRegistration:
                     if node:
                         # note, could refactor to this module but will keep vali <> miner calls in vali for now
                         tweet_id = await self.get_verification_tweet_id(node)
-                        (
-                            verified_tweet,
-                            user_id,
-                            screen_name,
-                            avatar,
-                            name,
-                            is_verified,
-                            followers_count,
-                            error,
-                        ) = await self.verify_tweet(tweet_id, node.hotkey)
+                        verification_result: TweetVerificationResult = (
+                            await self.verify_tweet(tweet_id, node.hotkey)
+                        )
                         payload = {}
-                        payload["agent"] = str(screen_name)
+                        payload["agent"] = str(verification_result.screen_name)
 
-                        if error:
-                            payload["message"] = f"Failed to verify tweet: {str(error)}"
-                        elif verified_tweet and user_id:
+                        if verification_result.error:
+                            payload["message"] = (
+                                f"Failed to verify tweet: {str(verification_result.error)}"
+                            )
+                        elif (
+                            verification_result.verification_tweet
+                            and verification_result.user_id
+                        ):
                             try:
                                 await self.register_agent(
                                     node,
-                                    verified_tweet,
-                                    user_id,
-                                    screen_name,
-                                    avatar,
-                                    name,
-                                    is_verified,
-                                    followers_count,
+                                    verification_result.verification_tweet,
+                                    verification_result.user_id,
+                                    verification_result.screen_name,
+                                    verification_result.avatar,
+                                    verification_result.name,
+                                    verification_result.is_verified,
+                                    verification_result.followers_count,
                                 )
                                 payload["message"] = "Successfully registered!"
                             except Exception as e:
                                 payload["message"] = str(e)
-                        elif not user_id:
+                        elif not verification_result.user_id:
                             payload["message"] = "UserId not found"
-                        elif not verified_tweet:
+                        elif not verification_result.verification_tweet:
                             payload["message"] = "Verified Tweet not found"
                         else:
                             payload["message"] = (
