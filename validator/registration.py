@@ -274,35 +274,41 @@ class ValidatorRegistration:
                         ) = await self.verify_tweet(tweet_id, node.hotkey)
                         if error:
                             payload = {
-                                "registered": "Agent failed to register",
-                                "message": error,
+                                "agent": f"{str(screen_name)}",
+                                "message": f"Failed to verify tweet: {error}",
                             }
                             response = await self.registration_callback(node, payload)
                         elif verified_tweet and user_id:
-                            await self.register_agent(
-                                node,
-                                verified_tweet,
-                                user_id,
-                                screen_name,
-                                avatar,
-                                name,
-                                is_verified,
-                                followers_count,
-                            )
-                            payload = {
-                                "registered": str(screen_name),
-                                "message": "Agent successfully registered!",
-                            }
-                            response = await self.registration_callback(node, payload)
+                            try:
+                                await self.register_agent(
+                                    node,
+                                    verified_tweet,
+                                    user_id,
+                                    screen_name,
+                                    avatar,
+                                    name,
+                                    is_verified,
+                                    followers_count,
+                                )
+                                payload = {
+                                    "agent": f"{str(screen_name)}",
+                                    "message": f"Successfully registered!",
+                                }
+                            except Exception as e:
+                                payload = {
+                                    "agent": f"{str(screen_name)}",
+                                    "message": str(e),
+                                }
+
                         else:
                             payload = {
-                                "registered": "Agent failed to register",
-                                "message": f"Unknown error",
+                                "agent": str(screen_name),
+                                "message": "Unknown error occured in agent registration",
                             }
-                            response = await self.registration_callback(node, payload)
 
+                        response = await self.registration_callback(node, payload)
                         logger.info(
-                            f"Miner Response From Registration Callback: {response}"
+                            f"Miner Response from Registration Callback: {response}"
                         )
 
                 except Exception as e:
