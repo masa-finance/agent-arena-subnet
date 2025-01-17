@@ -179,7 +179,6 @@ class ValidatorRegistration:
                         )
                         continue
                 try:
-                    logger.info(f"X Profile To Update: {x_profile}")
                     agent_emissions = emissions[int(agent.UID)]
                     logger.info(
                         f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
@@ -190,6 +189,7 @@ class ValidatorRegistration:
                         Timestamp=agent.VerificationTweetTimestamp,
                         FullText=agent.VerificationTweetText,
                     )
+                    profile = dict(x_profile.get("data", {}))
                     update_data = RegisteredAgentRequest(
                         HotKey=hotkey,
                         UID=str(agent.UID),
@@ -200,22 +200,22 @@ class ValidatorRegistration:
                         Profile={
                             "data": Profile(
                                 UserID=agent.UserID,
-                                Username=x_profile["data"]["Username"],
-                                Avatar=x_profile["data"]["Avatar"],
-                                Banner=x_profile["data"]["Banner"],
-                                Biography=x_profile["data"]["Biography"],
-                                FollowersCount=x_profile["data"]["FollowersCount"],
-                                FollowingCount=x_profile["data"]["FollowingCount"],
-                                LikesCount=x_profile["data"]["LikesCount"],
-                                Name=x_profile["data"]["Name"],
-                                IsVerified=x_profile["data"]["IsVerified"],
-                                Joined=x_profile["data"]["Joined"],
-                                ListedCount=x_profile["data"]["ListedCount"],
-                                Location=x_profile["data"]["Location"],
-                                PinnedTweetIDs=x_profile["data"]["PinnedTweetIDs"],
-                                TweetsCount=x_profile["data"]["TweetsCount"],
-                                URL=x_profile["data"]["URL"],
-                                Website=x_profile["data"]["Website"],
+                                Username=profile.get("Username"),
+                                Avatar=profile.get("Avatar"),
+                                Banner=profile.get("Banner"),
+                                Biography=profile.get("Biography"),
+                                FollowersCount=profile.get("FollowersCount"),
+                                FollowingCount=profile.get("FollowingCount"),
+                                LikesCount=profile.get("LikesCount"),
+                                Name=profile.get("Name"),
+                                IsVerified=profile.get("IsVerified"),
+                                Joined=profile.get("Joined"),
+                                ListedCount=profile.get("ListedCount"),
+                                Location=profile.get("Location"),
+                                PinnedTweetIDs=profile.get("PinnedTweetIDs"),
+                                TweetsCount=profile.get("TweetsCount"),
+                                URL=profile.get("URL"),
+                                Website=profile.get("Website"),
                             )
                         },
                     )
@@ -351,9 +351,10 @@ class ValidatorRegistration:
                     None, None, None, None, None, None, None, str(error)
                 )
 
-            followers_count = x_profile["data"]["FollowersCount"]
-            avatar = x_profile["data"]["Avatar"]
-            is_verified = x_profile["data"]["IsVerified"]
+            profile = dict(x_profile.get("data", {}))
+            followers_count = profile.get["FollowersCount"]
+            avatar = profile.get["Avatar"]
+            is_verified = profile.get["IsVerified"]
 
             logger.info(
                 f"Got tweet result: {tweet_id} - {screen_name} **** {full_text}"
