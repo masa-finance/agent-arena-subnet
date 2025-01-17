@@ -98,7 +98,6 @@ Levenshtein==0.26.1
 loguru==0.7.3
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
-masa-ai==0.2.7
 matplotlib==3.10.0
 matplotlib-inline==0.1.7
 mdit-py-plugins==0.4.2
