@@ -6,6 +6,7 @@ import torch
 import logging
 from typing import Optional
 from dataclasses import dataclass
+from tqdm import tqdm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -77,7 +78,7 @@ class SemanticScorer:
         
         return originality_scores, uniqueness_scores
 
-    def calculate_scores(self, texts: List[str], batch_size: int = 32) -> List[float]:
+    def calculate_scores(self, texts: List[str], batch_size: int = 32, progress_bar: Optional[tqdm] = None) -> List[float]:
         if not texts:
             return []
 
@@ -85,26 +86,25 @@ class SemanticScorer:
         if not valid_texts:
             return [0.0] * len(texts)
 
-        # Pre-allocate arrays for better memory efficiency
+        if progress_bar:
+            progress_bar.set_postfix({"stage": "Semantic Scoring", "texts": len(valid_texts)})
+
         final_scores = np.zeros(len(texts), dtype=np.float32)
         
-        # Process in smaller batches with memory cleanup
         for i in range(0, len(valid_texts), batch_size):
             batch = valid_texts[i:i + batch_size]
             
             try:
-                # Encode with hardware acceleration and memory optimization
                 with torch.no_grad():
                     embeddings = self.model.encode(
                         batch,
                         show_progress_bar=False,
-                        batch_size=min(batch_size, 128),  # Limit sub-batch size
+                        batch_size=min(batch_size, 128),
                         convert_to_tensor=True,
                         device=self.device,
                         normalize_embeddings=True
                     )
                     
-                    # Move to CPU immediately after computation to free GPU memory
                     orig_scores, uniq_scores = self._calculate_component_scores(embeddings)
                     batch_scores = (
                         self.weights['originality'] * orig_scores +
@@ -113,26 +113,27 @@ class SemanticScorer:
                     
                     final_scores[i:i + len(batch)] = np.clip(batch_scores, 0, 1)
                     
-                    # Explicit cleanup
                     del embeddings, orig_scores, uniq_scores, batch_scores
                     torch.cuda.empty_cache() if torch.cuda.is_available() else None
                     
+                    if progress_bar:
+                        progress_bar.set_postfix({
+                            "stage": "Semantic Scoring",
+                            "processed": f"{min(i + batch_size, len(valid_texts))}/{len(valid_texts)}"
+                        })
+                    
             except RuntimeError as e:
                 if "out of memory" in str(e) or "buffer size" in str(e):
-                    # If we hit memory issues, try with an even smaller batch
-                    logger.warning(f"Memory error with batch size {batch_size}, reducing batch size")
                     half_batch = len(batch) // 2
                     if half_batch < 1:
                         raise e
                     
-                    # Process the smaller batches
                     scores1 = self.calculate_scores(batch[:half_batch], batch_size=half_batch)
                     scores2 = self.calculate_scores(batch[half_batch:], batch_size=half_batch)
                     final_scores[i:i + len(batch)] = scores1 + scores2
                 else:
                     raise e
 
-        # Handle filtered texts efficiently
         if len(valid_texts) != len(texts):
             result = np.zeros(len(texts), dtype=np.float32)
             valid_idx = 0
