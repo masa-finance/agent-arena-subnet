@@ -20,26 +20,35 @@ class AgentScorer:
     New implementation of the scoring system with improved modularity.
     This will gradually replace PostsScorer.
     """
-    def __init__(self, validator: Any, hardware_config: Optional[HardwareConfig] = None):
+    def __init__(self, 
+                 validator: Any, 
+                 scoring_hardware_config: Optional[HardwareConfig] = None,
+                 shap_hardware_config: Optional[HardwareConfig] = None):
         # Initialize configurations
-        self.config = hardware_config or PerformanceConfig.get_config()
+        self.scoring_config = scoring_hardware_config or PerformanceConfig.get_config()
+        self.shap_config = shap_hardware_config or self.scoring_config
         self.weights = ScoringWeights()
         
         # Initialize components
         self.validator = validator
         self.scaler = MinMaxScaler(feature_range=(0, 1))
-        self.semantic_scorer = SemanticScorer(self.config)
+        self.semantic_scorer = SemanticScorer(self.scoring_config)
         self.engagement_scorer = EngagementScorer(self.weights)
-        self.feature_calculator = FeatureImportanceCalculator(self.config, self.weights)
+        self.feature_calculator = FeatureImportanceCalculator(self.shap_config, self.weights)
         
         self._log_initialization()
 
     def _log_initialization(self) -> None:
         """Log initialization details"""
-        logger.info(f"Initialized AgentScorer with hardware config: {self.config}")
-        logger.info(f"Using device type: {self.config.device_type}")
-        if self.config.gpu_memory:
-            logger.info(f"GPU Memory: {self.config.gpu_memory}GB")
+        logger.info(f"Initialized AgentScorer with scoring hardware config: {self.scoring_config}")
+        logger.info(f"Using scoring device type: {self.scoring_config.device_type}")
+        if self.scoring_config.gpu_memory:
+            logger.info(f"Scoring GPU Memory: {self.scoring_config.gpu_memory}GB")
+            
+        logger.info(f"Using SHAP hardware config: {self.shap_config}")
+        logger.info(f"Using SHAP device type: {self.shap_config.device_type}")
+        if self.shap_config.gpu_memory:
+            logger.info(f"SHAP GPU Memory: {self.shap_config.gpu_memory}GB")
 
     def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
         """Calculate individual post score"""
@@ -62,28 +71,42 @@ class AgentScorer:
             logger.warning("No posts provided for scoring")
             return {}, {}
             
-        # Step 1: Filter posts
-        filtered_posts = self._filter_recent_posts(posts)
-        stats = self._calculate_post_stats(filtered_posts)
-        
-        # Step 2: Process posts by agent
-        posts_by_uid = self._group_posts_by_agent(filtered_posts)
-        
-        # Use ScoringProgressConfig instead of base ProgressBarConfig
-        progress_config = ScoringProgressConfig(total_agents=len(posts_by_uid))
-        
-        with progress_config.create_progress_bar() as main_pbar:
-            main_pbar.set_postfix(**stats)
+        try:
+            # Step 1: Filter posts
+            filtered_posts = self._filter_recent_posts(posts)
+            stats = self._calculate_post_stats(filtered_posts)
             
-            # Step 3: Calculate scores
-            agent_scores = self._calculate_agent_scores(posts_by_uid, main_pbar)
+            # Step 2: Process posts by agent
+            posts_by_uid = self._group_posts_by_agent(filtered_posts)
             
-            # Step 4: Calculate feature importance with ShapProgressConfig
-            shap_config = ShapProgressConfig(total_samples=self.config.shap_background_samples)
-            with shap_config.create_progress_bar() as shap_pbar:
-                feature_importance = self.feature_calculator.calculate(filtered_posts, shap_pbar)
+            progress_config = ScoringProgressConfig(total_agents=len(posts_by_uid))
+            
+            with progress_config.create_progress_bar() as main_pbar:
+                main_pbar.set_postfix(**stats)
+                
+                # Step 3: Calculate scores
+                agent_scores = self._calculate_agent_scores(posts_by_uid, main_pbar)
+                
+                # Step 4: Calculate feature importance with ShapProgressConfig
+                shap_config = ShapProgressConfig(total_samples=self.shap_config.shap_background_samples)
+                with shap_config.create_progress_bar() as shap_pbar:
+                    try:
+                        feature_importance = self.feature_calculator.calculate(
+                            filtered_posts, 
+                            progress_bar=shap_pbar
+                        )
+                    except KeyboardInterrupt:
+                        logger.info("SHAP calculation interrupted")
+                        return agent_scores, {}
 
-            return agent_scores, feature_importance
+                return agent_scores, feature_importance
+                
+        except KeyboardInterrupt:
+            logger.info("Calculation interrupted")
+            return {}, {}
+        except Exception as e:
+            logger.error(f"Error in calculate_scores: {str(e)}")
+            raise
 
     def _filter_recent_posts(self, posts: List[Tweet]) -> List[Tweet]:
         """Filter posts from the last 7 days"""

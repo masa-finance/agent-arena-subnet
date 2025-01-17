@@ -29,23 +29,23 @@ class PerformanceConfig:
     M_SERIES = {
         32: HardwareConfig(
             batch_size=1024,
-            max_samples=4000,
-            shap_background_samples=400,
-            shap_nsamples=200,
+            max_samples=2000,
+            shap_background_samples=100,
+            shap_nsamples=50,
             device_type='mps'
         ),
         64: HardwareConfig(
             batch_size=2048,
-            max_samples=8000,
-            shap_background_samples=500,
-            shap_nsamples=250,
+            max_samples=4000,
+            shap_background_samples=200,
+            shap_nsamples=100,
             device_type='mps'
         ),
         96: HardwareConfig(
             batch_size=4096,
-            max_samples=12000,
-            shap_background_samples=1000,
-            shap_nsamples=500,
+            max_samples=8000,
+            shap_background_samples=400,
+            shap_nsamples=200,
             device_type='mps'
         )
     }
@@ -54,33 +54,33 @@ class PerformanceConfig:
     NVIDIA_GPU = {
         8: HardwareConfig(
             batch_size=2048,
-            max_samples=5000,
-            shap_background_samples=500,
-            shap_nsamples=250,
+            max_samples=4000,
+            shap_background_samples=200,
+            shap_nsamples=100,
             device_type='cuda',
             gpu_memory=8
         ),
         12: HardwareConfig(
             batch_size=4096,
-            max_samples=10000,
-            shap_background_samples=1000,
-            shap_nsamples=500,
+            max_samples=8000,
+            shap_background_samples=400,
+            shap_nsamples=200,
             device_type='cuda',
             gpu_memory=12
         ),
         24: HardwareConfig(
             batch_size=8192,
-            max_samples=20000,
-            shap_background_samples=2000,
-            shap_nsamples=1000,
+            max_samples=16000,
+            shap_background_samples=800,
+            shap_nsamples=400,
             device_type='cuda',
             gpu_memory=24
         ),
         48: HardwareConfig(
             batch_size=16384,
-            max_samples=40000,
-            shap_background_samples=4000,
-            shap_nsamples=2000,
+            max_samples=32000,
+            shap_background_samples=1600,
+            shap_nsamples=800,
             device_type='cuda',
             gpu_memory=48
         )

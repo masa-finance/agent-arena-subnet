@@ -1,8 +1,10 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 import torch
 import shap
+from tqdm import tqdm
+from time import time
 from interfaces.types import Tweet
 from ..config.hardware_config import HardwareConfig
 from ..config.scoring_config import ScoringWeights
@@ -37,8 +39,11 @@ class FeatureImportanceCalculator:
             row['views'] * self.weights.engagement_weights['Views']
         ) for _, row in pd.DataFrame(X, columns=['text_length', 'likes', 'retweets', 'replies', 'views']).iterrows()])
 
-    def calculate(self, posts: List[Tweet]) -> Dict[str, float]:
+    def calculate(self, posts: List[Tweet], progress_bar: Optional[tqdm] = None) -> Dict[str, float]:
         """Calculate feature importance using SHAP values"""
+        start_time = time()
+        processed_samples = 0
+        
         if len(posts) > self.config.max_samples:
             posts = np.random.choice(posts, self.config.max_samples, replace=False)
 
@@ -56,6 +61,17 @@ class FeatureImportanceCalculator:
             df.astype(np.float32),
             nsamples=self.config.shap_nsamples
         )
+        
+        if progress_bar:
+            processed_samples = self.config.shap_background_samples
+            elapsed_time = time() - start_time
+            rate = processed_samples / elapsed_time if elapsed_time > 0 else 0
+            
+            progress_bar.update(processed_samples)
+            progress_bar.set_postfix({
+                "samples": f"{processed_samples}/{self.config.shap_background_samples}",
+                "rate": f"{rate:.2f} samples/s"
+            })
 
         return {
             feature: float(np.abs(shap_values[:, i]).mean())
