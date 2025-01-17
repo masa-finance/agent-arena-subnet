@@ -318,6 +318,11 @@ class AgentValidator:
         response = await request.execute(data={"username": username})
         return response
 
+    async def fetch_x_tweet_by_id(self, id: str) -> Dict[str, Any]:
+        request = Request()
+        response = await request.execute(data={"tweet_id": id}, type="tweet")
+        return response
+
     async def sync_loop(self) -> None:
         """Background task to sync metagraph"""
         while True:

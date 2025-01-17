@@ -8,6 +8,7 @@ import itertools
 
 # Import the functions from their respective modules
 from protocol.profile import get_x_profile
+from protocol.tweet import get_x_tweet_by_id
 
 # Load environment variables
 load_dotenv()
@@ -84,8 +85,8 @@ class Request:
             f"rate_limit={self.requests_per_second} RPS"
         )
 
-    async def execute(self, data: Dict[str, Any]):
-        response = self._handle_request(data, True)
+    async def execute(self, data: Dict[str, Any], type: str = "profile"):
+        response = self._handle_request(data, True, type)
         return response
 
     def _wait_for_rate_limit(self):
@@ -109,15 +110,21 @@ class Request:
 
             self.last_request_time = time.time()
 
-    def _handle_request(self, data: Dict[str, Any], quick_return=False):
+    def _handle_request(
+        self, data: Dict[str, Any], quick_return=False, type: str = "profile"
+    ):
         """Process a single request with error handling, retry mechanism, and rate limiting.
 
         Args:
             data (Dict[str, Any]): Request payload data.
+            type (str): The type of request, either 'profile' or 'tweet'.
 
         Note:
             This method enforces rate limiting before making the actual API request.
         """
+        if type not in ["profile", "tweet"]:
+            raise ValueError("Invalid type specified. Must be 'profile' or 'tweet'.")
+
         with self.lock:
             self.active_requests += 1
             logger.debug(f"Active requests increased to {self.active_requests}")
@@ -125,7 +132,10 @@ class Request:
         try:
             self._wait_for_rate_limit()  # Apply rate limiting before making request
 
-            response = get_x_profile(username=data["username"])
+            if type == "profile":
+                response = get_x_profile(username=data["username"])
+            elif type == "tweet":
+                response = get_x_tweet_by_id(tweet_id=data["tweet_id"])
 
             if quick_return:
                 return response
@@ -151,10 +161,7 @@ class Request:
         finally:
             with self.lock:
                 self.active_requests -= 1
-                logger.debug(
-                    f"Active requests decreased to {
-                             self.active_requests}"
-                )
+                logger.debug(f"Active requests decreased to {self.active_requests}")
 
     def _retry_request(
         self,
