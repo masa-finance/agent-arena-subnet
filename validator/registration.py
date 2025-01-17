@@ -376,7 +376,7 @@ class ValidatorRegistration:
                 None,
             )
         except Exception as e:
-            logger.error(f"Failed to register agent: {str(e)}")
+            logger.error(f"Unknown error, failed to register agent: {str(e)}")
             return TweetVerificationResult(
                 None, None, None, None, None, None, None, str(e)
             )
