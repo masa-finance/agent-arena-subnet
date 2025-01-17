@@ -43,10 +43,10 @@ class FeatureImportanceCalculator:
         """Score function for SHAP explainer - apply weights here"""
         df = pd.DataFrame(X, columns=['text_length', 'semantic_score', 'engagement_score'])
         return np.array([np.log1p(
-            row['text_length'] * self.weights.length_weight +
-            row['semantic_score'] * self.weights.semantic_weight +
-            row['engagement_score']  # engagement weights already applied
-        ) for _, row in df.iterrows()])
+            (row['text_length'] / 280) * (self.weights.length_weight * 0.1 * 0.05) +
+            np.power(row['semantic_score'], 0.75) * (self.weights.semantic_weight * 2.0 * 0.8) +
+            row['engagement_score'] * 0.15
+        ) * (1.0 + (row['semantic_score'] * 0.5)) for _, row in df.iterrows()])
 
     def calculate(self, posts: List[Tweet], progress_bar: Optional[tqdm] = None) -> Dict[str, float]:
         """Calculate feature importance using SHAP values"""

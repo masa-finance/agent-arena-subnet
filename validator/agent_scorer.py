@@ -55,15 +55,30 @@ class AgentScorer:
             logger.info(f"SHAP GPU Memory: {self.shap_config.gpu_memory}GB")
 
     def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
-        """Calculate individual post score"""
+        """Calculate individual post score with semantic quality as the primary factor"""
         text = post.get("Text", "")
-        text_length = len(str(text)) * self.weights.length_weight
-        engagement_score = self.engagement_scorer.calculate_score(post)
         
-        base_score = text_length + engagement_score
-        base_score += semantic_score * self.weights.semantic_weight
-
-        return np.log1p(base_score)
+        # Significantly reduce text length importance
+        text_length = min(len(str(text)), 280) / 280  # Normalize to max tweet length
+        length_score = text_length * (self.weights.length_weight * 0.1)  # Further reduce length weight
+        
+        # Calculate engagement score but cap its impact
+        engagement_score = min(self.engagement_scorer.calculate_score(post), 1.0)
+        
+        # Amplify semantic score importance
+        weighted_semantic = semantic_score * (self.weights.semantic_weight * 2.0)  # Double semantic weight
+        
+        # Combine scores with heavily weighted semantic component
+        base_score = (
+            weighted_semantic * 0.8 +    # 80% semantic
+            engagement_score * 0.15 +    # 15% engagement
+            length_score * 0.05          # 5% length
+        )
+        
+        # Apply additional semantic quality multiplier
+        quality_multiplier = 1.0 + (semantic_score * 0.5)  # Up to 50% boost for high semantic quality
+        
+        return np.log1p(base_score * quality_multiplier)
 
     def calculate_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Dict[str, float]]:
         """

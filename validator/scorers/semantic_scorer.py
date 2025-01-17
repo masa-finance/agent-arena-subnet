@@ -4,6 +4,7 @@ import torch
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 from fiber.logging_utils import get_logger
+from interfaces.types import Tweet
 from .base_scorer import BaseScorer
 from ..config.hardware_config import HardwareConfig, PerformanceConfig
 from ..config.progress_config import ProgressStages
@@ -13,10 +14,10 @@ logger = get_logger(__name__)
 class SemanticConfig:
     """Configuration for semantic scoring parameters"""
     DEFAULT_MODEL = 'all-MiniLM-L6-v2'
-    SIMILARITY_THRESHOLD = 0.8
+    SIMILARITY_THRESHOLD = 0.85
     WEIGHTS = {
-        'originality': 0.6,
-        'uniqueness': 0.4
+        'originality': 0.7,
+        'uniqueness': 0.3
     }
 
 class SemanticScorer(BaseScorer):
@@ -31,7 +32,6 @@ class SemanticScorer(BaseScorer):
         self._init_model(model_name)
         self._log_initialization()
         
-        # Scoring parameters
         self.similarity_threshold = SemanticConfig.SIMILARITY_THRESHOLD
         self.weights = SemanticConfig.WEIGHTS
 
@@ -59,61 +59,24 @@ class SemanticScorer(BaseScorer):
         return similarity_matrix
 
     def _calculate_component_scores(self, embeddings: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """Calculate originality and uniqueness scores."""
+        """Calculate originality and uniqueness scores with increased sensitivity"""
         similarity_matrix = self._get_similarity_matrix(embeddings)
         
-        # Calculate originality scores (inverse of average similarity)
-        originality_scores = 1 - similarity_matrix.mean(dim=1)
+        # Calculate originality scores with exponential penalty for similarity
+        originality_scores = torch.exp(-similarity_matrix.mean(dim=1) * 2)
         
-        # Calculate uniqueness scores (inverse of similar post count)
+        # Calculate uniqueness scores with stronger penalties for similar content
         similar_posts = (similarity_matrix > self.similarity_threshold).sum(dim=1).float()
-        uniqueness_scores = 1.0 / (1.0 + similar_posts)
+        uniqueness_scores = torch.exp(-similar_posts * 0.5)
+        
+        # Apply non-linear scaling to amplify differences
+        originality_scores = torch.pow(originality_scores, 1.5)
+        uniqueness_scores = torch.pow(uniqueness_scores, 1.5)
         
         return (
             torch.clamp(originality_scores, 0, 1),
             torch.clamp(uniqueness_scores, 0, 1)
         )
-
-    def _process_batch(self, batch: List[str]) -> np.ndarray:
-        """Process a single batch of texts"""
-        try:
-            with torch.no_grad():
-                embeddings = self.model.encode(
-                    batch,
-                    show_progress_bar=False,
-                    batch_size=min(self.config.batch_size, 128),
-                    convert_to_tensor=True,
-                    device=self.device,
-                    normalize_embeddings=True
-                )
-                
-                orig_scores, uniq_scores = self._calculate_component_scores(embeddings)
-                batch_scores = (
-                    self.weights['originality'] * orig_scores +
-                    self.weights['uniqueness'] * uniq_scores
-                ).cpu().numpy()
-                
-                # Clean up GPU memory
-                del embeddings, orig_scores, uniq_scores
-                if self.config.device_type == "cuda":
-                    torch.cuda.empty_cache()
-                
-                return np.clip(batch_scores, 0, 1)
-                
-        except RuntimeError as e:
-            if "out of memory" in str(e) or "buffer size" in str(e):
-                return self._handle_oom_error(batch, e)
-            raise e
-
-    def _handle_oom_error(self, batch: List[str], error: RuntimeError) -> np.ndarray:
-        """Handle out-of-memory errors by splitting the batch"""
-        half_batch = len(batch) // 2
-        if half_batch < 1:
-            raise error
-        
-        scores1 = self.calculate_scores(batch[:half_batch])
-        scores2 = self.calculate_scores(batch[half_batch:])
-        return np.concatenate([scores1, scores2])
 
     def calculate_score(self, text: str) -> float:
         """Calculate score for a single text"""
@@ -124,46 +87,43 @@ class SemanticScorer(BaseScorer):
     def calculate_scores(self, 
                         texts: List[str], 
                         progress_bar: Optional[tqdm] = None) -> List[float]:
-        """Calculate semantic scores for a list of texts"""
+        """Calculate semantic scores with increased weight for quality content"""
         if not texts:
             return []
-
-        valid_texts = [text for text in texts if text and text.strip()]
-        if not valid_texts:
-            return [0.0] * len(texts)
-
-        if progress_bar:
-            progress_bar.set_postfix(
-                ProgressStages.get_scoring_status(
-                    ProgressStages.SEMANTIC,
-                    texts=len(valid_texts)
-                )
-            )
-
-        final_scores = np.zeros(len(texts), dtype=np.float32)
-        
-        # Process in batches
-        for i in range(0, len(valid_texts), self.config.batch_size):
-            batch = valid_texts[i:i + self.config.batch_size]
-            batch_scores = self._process_batch(batch)
-            final_scores[i:i + len(batch)] = batch_scores
             
-            if progress_bar:
-                progress_bar.set_postfix(
-                    ProgressStages.get_semantic_status(
-                        min(i + self.config.batch_size, len(valid_texts)),
-                        len(valid_texts)
-                    )
+        try:
+            with torch.no_grad():
+                embeddings = self.model.encode(
+                    texts,
+                    show_progress_bar=False,
+                    batch_size=min(self.config.batch_size, 128),
+                    convert_to_tensor=True,
+                    device=self.device,
+                    normalize_embeddings=True
                 )
-
-        # Handle invalid texts by mapping scores back to original indices
-        if len(valid_texts) != len(texts):
-            result = np.zeros(len(texts), dtype=np.float32)
-            valid_idx = 0
-            for i, text in enumerate(texts):
-                if text and text.strip():
-                    result[i] = final_scores[valid_idx]
-                    valid_idx += 1
-            return result.tolist()
-            
-        return final_scores.tolist() 
+                
+                orig_scores, uniq_scores = self._calculate_component_scores(embeddings)
+                
+                # Combine scores with weighted components
+                combined_scores = (
+                    self.weights['originality'] * orig_scores +
+                    self.weights['uniqueness'] * uniq_scores
+                ).cpu().numpy()
+                
+                # Apply non-linear scaling to amplify high-quality content
+                scores = [np.power(score, 0.75) for score in combined_scores]
+                
+                # Clean up GPU memory
+                del embeddings, orig_scores, uniq_scores
+                if self.config.device_type == "cuda":
+                    torch.cuda.empty_cache()
+                
+                return scores
+                
+        except RuntimeError as e:
+            if "out of memory" in str(e):
+                logger.warning("GPU OOM error, falling back to CPU")
+                self.device = torch.device("cpu")
+                self.model.to(self.device)
+                return self.calculate_scores(texts, progress_bar)
+            raise e 
