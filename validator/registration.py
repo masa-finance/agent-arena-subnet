@@ -356,9 +356,7 @@ class ValidatorRegistration:
             avatar = profile.get["Avatar"]
             is_verified = profile.get["IsVerified"]
 
-            logger.info(
-                f"Got tweet result: {tweet_id} - {screen_name} **** {full_text}"
-            )
+            logger.info(f"Verified Tweet: {tweet_id}: {screen_name}: {full_text}")
 
             verification_tweet = VerifiedTweet(
                 TweetID=tweet_id,
