@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, UTC, timedelta
 from validator.get_agent_posts import GetAgentPosts
-from validator.posts_scorer import PerformanceConfig, HardwareConfig
+from validator.agent_scorer import PerformanceConfig, HardwareConfig
 import json
 import torch
 import logging

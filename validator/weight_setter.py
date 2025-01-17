@@ -5,7 +5,7 @@ from fiber.logging_utils import get_logger
 
 from neurons import version_numerical
 from interfaces.types import Tweet
-from validator.posts_scorer import PostsScorer
+from validator.agent_scorer import PostsScorer
 
 logger = get_logger(__name__)
 
