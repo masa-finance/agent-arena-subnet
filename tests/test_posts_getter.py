@@ -1,16 +1,16 @@
 import pytest
 from datetime import datetime, UTC, timedelta
-from validator.get_agent_posts import PostsGetter
+from validator.get_agent_posts import GetAgentPosts
 import json
 
 @pytest.mark.asyncio
 async def test_get_posts_last_20_mins():
     # Setup time range for last 20 minutes
     end_date = datetime.now(UTC)
-    start_date = end_date - timedelta(minutes=20)
+    start_date = end_date - timedelta(minutes=120)
     
     # Initialize PostsGetter with the time range
-    posts_getter = PostsGetter(
+    posts_getter = GetAgentPosts(
         netuid=59,
         start_date=start_date,
         end_date=end_date
