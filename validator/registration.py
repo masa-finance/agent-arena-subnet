@@ -1,13 +1,12 @@
 import os
 import json
 import httpx
-from datetime import datetime
+
 from typing import Any, Optional
 
 from fiber.logging_utils import get_logger
 from fiber.networking.models import NodeWithFernet as Node
 
-from masa_ai.tools.validator import TweetValidator
 
 from interfaces.types import (
     VerifiedTweet,
@@ -314,37 +313,30 @@ class ValidatorRegistration:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
-            result = TweetValidator().fetch_tweet(id)
 
-            if not result:
-                logger.error(
-                    f"Could not fetch tweet id {
-                            id} for node {hotkey}"
-                )
+            result = await self.validator.fetch_x_tweet_by_id(id)
+
+            if not result or result.get("recordCount", 0) == 0:
+                logger.error(f"Could not fetch tweet id {id} for node {hotkey}")
                 return False
 
-            tweet_data_result = (
-                result.get("data", {}).get("tweetResult", {}).get("result", {})
-            )
-            created_at = tweet_data_result.get("legacy", {}).get("created_at")
-            tweet_id = tweet_data_result.get("rest_id")
-            user = (
-                tweet_data_result.get("core", {})
-                .get("user_results", {})
-                .get("result", {})
-            )
+            tweet_data_result = result.get("data", {})
+            tweet_id = tweet_data_result.get("ID")
+            created_at = tweet_data_result.get("TimeParsed")
+            screen_name = tweet_data_result.get("Username")
+            name = tweet_data_result.get("Name")
+            user_id = tweet_data_result.get("UserID")
+            full_text = tweet_data_result.get("Text")
 
-            screen_name = user.get("legacy", {}).get("screen_name")
-            name = user.get("legacy", {}).get("name")
-            user_id = user.get("rest_id")
-            is_verified = user.get("is_blue_verified")
-            full_text = tweet_data_result.get("legacy", {}).get("full_text")
-            followers_count = user.get("legacy", {}).get("followers_count")
-            avatar = user.get("legacy", {}).get("profile_image_url_https")
+            # Fetching profile to keep the response the same
+            x_profile = await self.validator.fetch_x_profile(screen_name)
+
+            followers_count = x_profile["data"]["FollowersCount"]
+            avatar = x_profile["data"]["Avatar"]
+            is_verified = x_profile["data"]["IsVerified"]
 
             logger.info(
-                f"Got tweet result: {
-                        tweet_id} - {screen_name} **** {full_text} - {avatar}"
+                f"Got tweet result: {tweet_id} - {screen_name} **** {full_text} - {avatar}"
             )
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
@@ -353,17 +345,15 @@ class ValidatorRegistration:
                 raise ValueError(msg)
 
             # ensure hotkey is in the tweet text
-            if not hotkey in full_text:
+            if hotkey not in full_text:
                 msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
                 logger.error(msg)
                 raise ValueError(msg)
 
             verification_tweet = VerifiedTweet(
                 TweetID=tweet_id,
-                URL=f"https://twitter.com/{screen_name}/status/{tweet_id}",
-                Timestamp=datetime.strptime(
-                    created_at, "%a %b %d %H:%M:%S %z %Y"
-                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                URL=tweet_data_result.get("PermanentURL"),
+                Timestamp=created_at,
                 FullText=full_text,
             )
             return (
