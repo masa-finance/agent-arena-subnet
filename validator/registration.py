@@ -171,7 +171,7 @@ class ValidatorRegistration:
                                 )
                                 continue
                         else:
-                            logger.error(str(error))
+                            logger.error(f"Failed to verify tweet: {str(error)}")
                             continue
                     except Exception as e:
                         logger.error(
