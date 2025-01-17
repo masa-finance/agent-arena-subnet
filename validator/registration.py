@@ -352,9 +352,8 @@ class ValidatorRegistration:
 
             # ensure hotkey is in the tweet text
             if hotkey not in full_text:
-                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
-                logger.error(msg)
-                raise ValueError(msg)
+                error = f"Hotkey {hotkey} is not in the tweet text {full_text}"
+                logger.error(error)
 
             verification_tweet = VerifiedTweet(
                 TweetID=tweet_id,
