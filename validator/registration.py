@@ -276,8 +276,7 @@ class ValidatorRegistration:
                         payload["agent"] = str(screen_name)
 
                         if error:
-                            payload["message"] = f"Failed to verify tweet: {error}"
-                            response = await self.registration_callback(node, payload)
+                            payload["message"] = f"Failed to verify tweet: {str(error)}"
                         elif verified_tweet and user_id:
                             try:
                                 await self.register_agent(
@@ -302,6 +301,7 @@ class ValidatorRegistration:
                                 "Unknown error occured in agent registration"
                             )
 
+                        logger.info(f"Sending payload to miner: {payload}")
                         response = await self.registration_callback(node, payload)
                         logger.info(
                             f"Miner Response from Registration Callback: {response}"
