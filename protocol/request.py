@@ -41,7 +41,6 @@ class Request:
         queues (Dict[str, PriorityQueue]): Dictionary of priority queues for different request types.
         lock (threading.Lock): Thread lock for managing concurrent access.
         active_requests (int): Counter for currently processing requests.
-        counter (itertools.count): Unique sequence counter for request ordering.
         requests_per_second (float): Maximum number of requests allowed per second.
         last_request_time (float): Timestamp of the last processed request.
         rate_limit_lock (threading.Lock): Thread lock for rate limiting.
@@ -73,7 +72,6 @@ class Request:
         self.max_concurrent_requests = max_concurrent_requests
         self.lock = threading.Lock()
         self.active_requests = 0
-        self.counter = itertools.count()  # Unique sequence count
 
         # Rate limiting attributes
         self.requests_per_second = DEFAULT_API_REQUESTS_PER_SECOND
@@ -86,7 +84,7 @@ class Request:
         )
 
     async def execute(self, data: Dict[str, Any]):
-        response = self._handle_request(data, True)
+        response = self._handle_request(data)
         return response
 
     def _wait_for_rate_limit(self):
@@ -110,7 +108,7 @@ class Request:
 
             self.last_request_time = time.time()
 
-    def _handle_request(self, data: Dict[str, Any], quick_return=False):
+    def _handle_request(self, data: Dict[str, Any]):
         """Process a single request with error handling, retry mechanism, and rate limiting.
 
         Args:
@@ -135,23 +133,7 @@ class Request:
             else:
                 raise ValueError("Invalid request data")
 
-            if quick_return:
-                return response
-
-            if response["data"] is not None:
-                logger.info(f"Processed request: {response}")
-
-                metadata = {
-                    "uid": data["metadata"].UID,
-                    "user_id": data["metadata"].UserID,
-                    "subnet_id": data["metadata"].SubnetID,
-                    "query": data["query"],
-                    "count": len(response),
-                    "created_at": int(time.time()),
-                }
-
-                self.saver.save_post(response, metadata)
-                return response, metadata
+            return response
 
         except Exception as e:
             logger.error(f"Error processing request: {e}")
