@@ -352,9 +352,9 @@ class ValidatorRegistration:
                 )
 
             profile = dict(dict(x_profile).get("data", {}))
-            followers_count = profile.get["FollowersCount"]
-            avatar = profile.get["Avatar"]
-            is_verified = profile.get["IsVerified"]
+            followers_count = profile.get("FollowersCount")
+            avatar = profile.get("Avatar")
+            is_verified = profile.get("IsVerified")
 
             logger.info(f"Verified Tweet: {tweet_id}: {screen_name}: {full_text}")
 
