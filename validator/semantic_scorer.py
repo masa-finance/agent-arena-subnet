@@ -2,10 +2,14 @@ from typing import List, Tuple
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from fiber.logging_utils import get_logger
-from interfaces.types import Tweet
-from validator.get_agent_posts import GetAgentPosts
-from tqdm import tqdm
+import torch
+import logging
+from typing import Optional
+from dataclasses import dataclass
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Constants
 DEFAULT_MODEL = 'all-MiniLM-L6-v2'
@@ -15,83 +19,102 @@ WEIGHTS = {
     'uniqueness': 0.4
 }
 
-logger = get_logger(__name__)
-
 class SemanticScorer:
     """
     Analyzes semantic similarity between texts and calculates originality scores.
     """
-    def __init__(self, model_name: str = DEFAULT_MODEL, netuid: int = None, max_posts: int = 100):
-        """Initialize the scorer with model and configuration."""
+    def __init__(self, model_name: str = DEFAULT_MODEL, device_type: Optional[str] = None):
+        """Initialize the scorer with hardware-accelerated model."""
+        # Use provided device type or auto-detect
+        if device_type:
+            self.device = torch.device(device_type)
+        else:
+            if torch.backends.mps.is_available():
+                self.device = torch.device("mps")
+                logger.info("Using Apple Silicon MPS acceleration")
+            elif torch.cuda.is_available():
+                self.device = torch.device("cuda")
+                logger.info(f"Using CUDA GPU: {torch.cuda.get_device_name(0)}")
+            else:
+                self.device = torch.device("cpu")
+                logger.info("Using CPU - no hardware acceleration available")
+
+        # Initialize model on appropriate device
         self.model = SentenceTransformer(model_name)
+        self.model.to(self.device)
+        
         self.similarity_threshold = SIMILARITY_THRESHOLD
         self.weights = WEIGHTS
-        self.max_posts = max_posts
-        self.posts_getter = GetAgentPosts(netuid) if netuid is not None else None
 
-    # Core scoring methods
-    def _get_similarity_matrix(self, embeddings: np.ndarray) -> np.ndarray:
-        """Calculate pairwise similarity matrix for given embeddings."""
-        similarity_matrix = cosine_similarity(embeddings)
-        np.fill_diagonal(similarity_matrix, 0)
+    def _get_similarity_matrix(self, embeddings: torch.Tensor) -> torch.Tensor:
+        """Calculate pairwise similarity matrix using hardware acceleration."""
+        # Ensure embeddings are on the correct device and using float32
+        embeddings = embeddings.to(self.device, dtype=torch.float32)
+        
+        # Compute similarity matrix using torch operations
+        norm = torch.nn.functional.normalize(embeddings, p=2, dim=1)
+        similarity_matrix = torch.mm(norm, norm.t())
+        
+        # Zero out diagonal
+        similarity_matrix.fill_diagonal_(0)
+        
         return similarity_matrix
 
-    def _calculate_component_scores(self, embeddings: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Calculate both originality and uniqueness scores from embeddings."""
+    def _calculate_component_scores(self, embeddings: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Calculate scores using hardware-accelerated operations."""
         similarity_matrix = self._get_similarity_matrix(embeddings)
         
         # Calculate originality scores
-        originality_scores = 1 - similarity_matrix.mean(axis=1)
+        originality_scores = 1 - similarity_matrix.mean(dim=1)
         
-        # Calculate uniqueness scores (avoiding division by zero)
-        similar_posts = (similarity_matrix > self.similarity_threshold).sum(axis=1)
-        # Ensure we don't divide by zero by adding 1 to denominator
-        uniqueness_scores = np.where(
-            similar_posts == 0,
-            1.0,  # If no similar posts, maximum uniqueness
-            1 / (1 + similar_posts)  # Otherwise, calculate as before
-        )
+        # Calculate uniqueness scores
+        similar_posts = (similarity_matrix > self.similarity_threshold).sum(dim=1).float()
+        uniqueness_scores = 1.0 / (1.0 + similar_posts)
         
-        # Ensure all scores are finite
-        originality_scores = np.clip(originality_scores, 0, 1)
-        uniqueness_scores = np.clip(uniqueness_scores, 0, 1)
+        # Ensure all scores are finite and clipped
+        originality_scores = torch.clamp(originality_scores, 0, 1)
+        uniqueness_scores = torch.clamp(uniqueness_scores, 0, 1)
         
         return originality_scores, uniqueness_scores
 
-    # Public interface methods
-    def calculate_scores(self, texts: List[str]) -> List[float]:
-        """Calculate combined similarity scores for a list of texts."""
+    def calculate_scores(self, texts: List[str], batch_size: int = 32) -> List[float]:
+        """Calculate scores with batched hardware acceleration."""
         if not texts:
-            logger.debug("No texts provided for scoring")
             return []
 
-        # Filter out empty texts
         valid_texts = [text for text in texts if text and text.strip()]
         if not valid_texts:
-            logger.debug("No valid texts after filtering")
             return [0.0] * len(texts)
 
-        # Process in batches to reduce memory usage
-        BATCH_SIZE = 1000
         final_scores = []
         
-        for i in range(0, len(valid_texts), BATCH_SIZE):
-            batch = valid_texts[i:i + BATCH_SIZE]
-            logger.debug(f"Processing batch {i//BATCH_SIZE + 1}, size: {len(batch)}")
+        for i in range(0, len(valid_texts), batch_size):
+            batch = valid_texts[i:i + batch_size]
+            logger.debug(f"Processing batch {i//batch_size + 1}, size: {len(batch)}")
             
-            embeddings = self.model.encode(batch, 
-                                         show_progress_bar=False,
-                                         batch_size=32,  # Adjust based on GPU memory
-                                         convert_to_numpy=True)
-            
-            orig_scores, uniq_scores = self._calculate_component_scores(embeddings)
-            batch_scores = (
-                self.weights['originality'] * orig_scores +
-                self.weights['uniqueness'] * uniq_scores
-            )
-            final_scores.extend(np.clip(batch_scores, 0, 1))
+            # Encode with hardware acceleration
+            with torch.no_grad():
+                embeddings = self.model.encode(
+                    batch,
+                    show_progress_bar=False,
+                    batch_size=32,
+                    convert_to_tensor=True,
+                    device=self.device
+                )
+                
+                orig_scores, uniq_scores = self._calculate_component_scores(embeddings)
+                
+                # Combine scores
+                batch_scores = (
+                    self.weights['originality'] * orig_scores +
+                    self.weights['uniqueness'] * uniq_scores
+                )
+                
+                # Move to CPU and convert to list
+                batch_scores = batch_scores.cpu().numpy()
+                final_scores.extend(np.clip(batch_scores, 0, 1))
 
-        # If we filtered out any empty texts, reconstruct the full scores list
+        # Handle filtered texts
         if len(valid_texts) != len(texts):
             full_scores = []
             valid_idx = 0
@@ -104,19 +127,3 @@ class SemanticScorer:
             return full_scores
             
         return [float(score) for score in final_scores]
-
-    async def get_posts_with_scores(self, posts: List[Tweet]) -> List[float]:
-        """
-        Analyze posts for semantic similarity.
-        Returns: List of similarity scores where higher scores indicate more original content.
-        """
-        try:
-            post_texts = [post.get('Text', '') for post in posts]
-            scores = self.calculate_scores(post_texts)
-            
-            logger.infof("Analyzed %d posts for semantic similarity", len(scores))
-            return scores
-
-        except Exception as e:
-            logger.errorf("Error analyzing posts for similarity: %s", str(e))
-            return [0.0] * len(posts)  # Return neutral scores on error

@@ -229,6 +229,8 @@ toml==0.10.0
 tomlkit==0.13.2
 toolz==1.0.0
 torch==2.5.1
+torchaudio==2.5.1
+torchvision==0.20.1
 tornado==6.4.2
 tqdm==4.67.1
 traitlets==5.14.3

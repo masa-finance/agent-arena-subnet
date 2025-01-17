@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Optional
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime, UTC, timedelta
@@ -8,12 +8,151 @@ from .semantic_scorer import SemanticScorer
 from tqdm import tqdm
 import shap
 import pandas as pd
+import torch
+import psutil
+from dataclasses import dataclass
 
 logger = get_logger(__name__)
 
 
+@dataclass
+class HardwareConfig:
+    """Hardware configuration for performance tuning"""
+    batch_size: int
+    max_samples: int
+    shap_background_samples: int
+    shap_nsamples: int
+    device_type: str  # 'cpu', 'mps', 'cuda'
+    gpu_memory: Optional[int] = None  # GPU memory in GB, if applicable
+
+class PerformanceConfig:
+    """Performance configuration profiles for different hardware specs"""
+    
+    # Default CPU settings
+    DEFAULT_CPU = HardwareConfig(
+        batch_size=512,
+        max_samples=1000,
+        shap_background_samples=100,
+        shap_nsamples=100,
+        device_type='cpu'
+    )
+    
+    # Apple Silicon Configurations
+    M_SERIES = {
+        32: HardwareConfig(
+            batch_size=4096,
+            max_samples=8000,
+            shap_background_samples=800,
+            shap_nsamples=400,
+            device_type='mps'
+        ),
+        64: HardwareConfig(  # Optimized for M3 Max
+            batch_size=8192,
+            max_samples=20000,
+            shap_background_samples=2000,
+            shap_nsamples=1000,
+            device_type='mps'
+        ),
+        96: HardwareConfig(
+            batch_size=16384,
+            max_samples=30000,
+            shap_background_samples=3000,
+            shap_nsamples=1500,
+            device_type='mps'
+        )
+    }
+    
+    # NVIDIA GPU Configurations
+    NVIDIA_GPU = {
+        8: HardwareConfig(  # 8GB GPU
+            batch_size=2048,
+            max_samples=5000,
+            shap_background_samples=500,
+            shap_nsamples=250,
+            device_type='cuda',
+            gpu_memory=8
+        ),
+        12: HardwareConfig(  # 12GB GPU
+            batch_size=4096,
+            max_samples=10000,
+            shap_background_samples=1000,
+            shap_nsamples=500,
+            device_type='cuda',
+            gpu_memory=12
+        ),
+        24: HardwareConfig(  # 24GB GPU
+            batch_size=8192,
+            max_samples=20000,
+            shap_background_samples=2000,
+            shap_nsamples=1000,
+            device_type='cuda',
+            gpu_memory=24
+        ),
+        48: HardwareConfig(  # 48GB GPU
+            batch_size=16384,
+            max_samples=40000,
+            shap_background_samples=4000,
+            shap_nsamples=2000,
+            device_type='cuda',
+            gpu_memory=48
+        )
+    }
+    
+    @staticmethod
+    def get_gpu_memory_gb() -> Optional[int]:
+        """Get GPU memory in GB if CUDA is available"""
+        if torch.cuda.is_available():
+            try:
+                gpu_memory = torch.cuda.get_device_properties(0).total_memory
+                return int(gpu_memory / (1024**3))  # Convert bytes to GB
+            except:
+                return None
+        return None
+
+    @staticmethod
+    def get_config(ram_override: Optional[int] = None, 
+                  gpu_memory_override: Optional[int] = None) -> HardwareConfig:
+        """
+        Get the appropriate configuration based on system hardware
+        Args:
+            ram_override: Optional RAM amount in GB to override system detection
+            gpu_memory_override: Optional GPU memory in GB to override detection
+        Returns:
+            HardwareConfig with appropriate settings
+        """
+        # Detect hardware
+        if gpu_memory_override is not None:
+            gpu_memory = gpu_memory_override
+        else:
+            gpu_memory = PerformanceConfig.get_gpu_memory_gb()
+
+        total_ram = ram_override or (psutil.virtual_memory().total / (1024 ** 3))
+
+        # CUDA GPU available
+        if torch.cuda.is_available() and gpu_memory:
+            # Find the closest GPU configuration
+            gpu_configs = sorted(PerformanceConfig.NVIDIA_GPU.keys())
+            for gpu_size in gpu_configs:
+                if gpu_memory <= gpu_size:
+                    return PerformanceConfig.NVIDIA_GPU[gpu_size]
+            # If GPU is larger than our largest config, use the highest
+            return PerformanceConfig.NVIDIA_GPU[gpu_configs[-1]]
+
+        # Apple Silicon
+        elif torch.backends.mps.is_available():
+            ram_configs = sorted(PerformanceConfig.M_SERIES.keys())
+            for ram_size in ram_configs:
+                if total_ram <= ram_size:
+                    return PerformanceConfig.M_SERIES[ram_size]
+            # If RAM is larger than our largest config, use the highest
+            return PerformanceConfig.M_SERIES[ram_configs[-1]]
+
+        # CPU only
+        else:
+            return PerformanceConfig.DEFAULT_CPU
+
 class PostsScorer:
-    def __init__(self, validator: Any):
+    def __init__(self, validator: Any, hardware_config: Optional[HardwareConfig] = None):
         self.engagement_weights = {
             "Likes": 1.0,
             "Retweets": 0.75,
@@ -25,6 +164,13 @@ class PostsScorer:
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.validator = validator
         self.semantic_scorer = SemanticScorer()
+
+        # Initialize hardware configuration
+        self.config = hardware_config or PerformanceConfig.get_config()
+        logger.info(f"Initialized with hardware config: {self.config}")
+        logger.info(f"Using device type: {self.config.device_type}")
+        if self.config.gpu_memory:
+            logger.info(f"GPU Memory: {self.config.gpu_memory}GB")
 
     def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
         tweet_data = dict(post)
@@ -46,43 +192,50 @@ class PostsScorer:
         return np.log1p(base_score)
 
     def _calculate_feature_importance(self, posts: List[Tweet]) -> Dict[str, float]:
-        """Calculate SHAP values for scoring features using a sample of posts"""
-        # Sample posts to reduce computation time (e.g., 1000 posts)
-        MAX_SAMPLES = 1000
-        if len(posts) > MAX_SAMPLES:
-            posts = np.random.choice(posts, MAX_SAMPLES, replace=False)
+        """Calculate SHAP values with hardware acceleration"""
+        if len(posts) > self.config.max_samples:
+            posts = np.random.choice(posts, self.config.max_samples, replace=False)
+        
+        # Use configured device
+        device = torch.device(self.config.device_type)
         
         features = []
         scores = []
         
-        for post in posts:
-            feature_dict = {
+        # Batch process features
+        BATCH_SIZE = 100
+        for i in range(0, len(posts), BATCH_SIZE):
+            batch = posts[i:i + BATCH_SIZE]
+            batch_features = [{
                 'text_length': len(str(post.get('Text', ''))),
                 'likes': post.get('Likes', 0),
                 'retweets': post.get('Retweets', 0),
                 'replies': post.get('Replies', 0),
                 'views': post.get('Views', 0),
-            }
-            features.append(feature_dict)
+            } for post in batch]
+            features.extend(batch_features)
             
-            # Calculate raw score without semantic component
-            base_score = (
-                feature_dict['text_length'] * self.length_weight +
-                feature_dict['likes'] * self.engagement_weights['Likes'] +
-                feature_dict['retweets'] * self.engagement_weights['Retweets'] +
-                feature_dict['replies'] * self.engagement_weights['Replies'] +
-                feature_dict['views'] * self.engagement_weights['Views']
-            )
-            scores.append(np.log1p(base_score))
+            # Calculate scores in batches using float32
+            batch_scores = torch.tensor([
+                np.float32(np.log1p(
+                    f['text_length'] * self.length_weight +
+                    f['likes'] * self.engagement_weights['Likes'] +
+                    f['retweets'] * self.engagement_weights['Retweets'] +
+                    f['replies'] * self.engagement_weights['Replies'] +
+                    f['views'] * self.engagement_weights['Views']
+                )) for f in batch_features
+            ], device=device, dtype=torch.float32)
+            
+            scores.extend(batch_scores.cpu().numpy())
         
         if not features:
             return {}
             
-        # Convert to DataFrame for SHAP
         df = pd.DataFrame(features)
         
-        # Define scoring function
+        # Optimize SHAP calculations
         def score_func(X):
+            X_tensor = torch.tensor(X, device=device)
             return np.array([np.log1p(
                 row['text_length'] * self.length_weight +
                 row['likes'] * self.engagement_weights['Likes'] +
@@ -91,15 +244,12 @@ class PostsScorer:
                 row['views'] * self.engagement_weights['Views']
             ) for _, row in pd.DataFrame(X, columns=df.columns).iterrows()])
         
-        # Create explainer with smaller number of background samples
-        explainer = shap.KernelExplainer(score_func, shap.sample(df, 100))  # Reduce background samples
+        # Use fewer background samples for efficiency and ensure float32
+        explainer = shap.KernelExplainer(score_func, shap.sample(df, 100).astype(np.float32))
+        shap_values = explainer.shap_values(df.astype(np.float32), nsamples=100)
         
-        # Calculate SHAP values with reduced nsamples
-        shap_values = explainer.shap_values(df, nsamples=100)  # Reduce number of samples
-        
-        # Calculate mean absolute SHAP values for each feature
         feature_importance = {
-            feature: np.abs(shap_values[:, i]).mean()
+            feature: float(np.abs(shap_values[:, i]).mean())
             for i, feature in enumerate(df.columns)
         }
         
