@@ -5,6 +5,7 @@ from datetime import datetime, UTC, timedelta
 from interfaces.types import Tweet
 from fiber.logging_utils import get_logger
 from .semantic_scorer import SemanticScorer
+from tqdm import tqdm
 
 logger = get_logger(__name__)
 
@@ -47,6 +48,8 @@ class PostsScorer:
             logger.warning("No posts provided for scoring")
             return {}
             
+        logger.info("Starting scoring process...")
+        
         # Filter posts from the last 7 days
         current_time = datetime.now(UTC)
         scoring_window = timedelta(days=7)
@@ -67,61 +70,51 @@ class PostsScorer:
             agent.UserID: int(agent.UID)
             for agent in self.validator.registered_agents.values()
         }
-        logger.debug("Found %d registered agents", len(user_id_to_uid))
-
-        # Count how many unique users map to UIDs
-        unique_users = set(post.get("UserID") for post in filtered_posts)
-        mapped_users = sum(1 for user_id in unique_users if user_id in user_id_to_uid)
-        logger.info("- Users mapped to UIDs: %d/%d", mapped_users, len(unique_users))
-
+        
         # Initialize scores dict with zeros for all registered agents
         final_scores = {uid: 0.0 for uid in user_id_to_uid.values()}
 
         # Group posts by UID first
         posts_by_uid: Dict[int, List[Tweet]] = {}
-        for post in filtered_posts:  # Use filtered_posts instead of posts
+        for post in filtered_posts:
             user_id = post.get("UserID")
-            if not user_id:
+            if not user_id or user_id not in user_id_to_uid:
                 continue
-                
-            uid = user_id_to_uid.get(user_id)
-            if not uid:
-                continue
-                
+            uid = user_id_to_uid[user_id]
             if uid not in posts_by_uid:
                 posts_by_uid[uid] = []
             posts_by_uid[uid].append(post)
 
-        # Only process UIDs with posts
-        for uid, agent_posts in posts_by_uid.items():
-            if not agent_posts:
-                continue
-                
-            # Get semantic scores only for posts with text
-            post_texts = [post.get("Text", "") for post in agent_posts]
-            if not any(post_texts):
-                continue
-                
-            semantic_scores = self.semantic_scorer.calculate_scores(post_texts)
-            # Replace any inf values with a large finite number
-            semantic_scores = np.nan_to_num(semantic_scores, nan=0.0, posinf=100.0, neginf=0.0)
-            
-            scores = []
-            for idx, post in enumerate(agent_posts):
-                try:
-                    score = self._calculate_post_score(post, semantic_scores[idx])
-                    # Ensure score is finite
-                    if np.isfinite(score):
-                        scores.append(score)
-                except Exception as e:
-                    logger.warning(f"Error processing post for UID {uid}: {str(e)}")
+        # Single progress bar for all agents
+        with tqdm(total=len(posts_by_uid), desc="Scoring all agents", unit="agent") as pbar:
+            for uid, agent_posts in posts_by_uid.items():
+                if not agent_posts:
                     continue
-            
-            if scores:
-                mean_score = np.mean(scores)
-                post_count = len(scores)
-                final_scores[uid] = mean_score * np.log1p(post_count)
-
+                    
+                post_texts = [post.get("Text", "") for post in agent_posts]
+                if not any(post_texts):
+                    continue
+                    
+                semantic_scores = self.semantic_scorer.calculate_scores(post_texts)
+                semantic_scores = np.nan_to_num(semantic_scores, nan=0.0, posinf=100.0, neginf=0.0)
+                
+                scores = []
+                for idx, post in enumerate(agent_posts):
+                    try:
+                        score = self._calculate_post_score(post, semantic_scores[idx])
+                        if np.isfinite(score):
+                            scores.append(score)
+                    except Exception as e:
+                        logger.warning(f"Error processing post for UID {uid}: {str(e)}")
+                        continue
+                
+                if scores:
+                    mean_score = np.mean(scores)
+                    post_count = len(scores)
+                    final_scores[uid] = mean_score * np.log1p(post_count)
+                
+                pbar.update(1)
+        
         # Handle any remaining inf values before normalization
         scores_array = np.array(list(final_scores.values())).reshape(-1, 1)
         scores_array = np.nan_to_num(scores_array, nan=0.0, posinf=100.0, neginf=0.0)

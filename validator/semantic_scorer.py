@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from fiber.logging_utils import get_logger
 from interfaces.types import Tweet
 from validator.get_agent_posts import GetAgentPosts
+from tqdm import tqdm
 
 # Constants
 DEFAULT_MODEL = 'all-MiniLM-L6-v2'
@@ -71,7 +72,7 @@ class SemanticScorer:
             return [0.0] * len(texts)
 
         logger.debug("Encoding %d texts for semantic analysis", len(valid_texts))
-        embeddings = self.model.encode(valid_texts)
+        embeddings = self.model.encode(valid_texts, show_progress_bar=False)
         
         originality_scores, uniqueness_scores = self._calculate_component_scores(embeddings)
         

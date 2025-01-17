@@ -104,17 +104,22 @@ async def test_live_scoring_with_registered_agents():
         logger.info("\n=== Scoring Results ===")
         logger.info(f"Number of scored agents: {len(scores)}")
         
-        # Sort scores by value for better readability
+        # Sort and log detailed scores
         sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        
         logger.info("\nDetailed Scores (sorted by score):")
         for uid, score in sorted_scores:
-            agent_info = next(
-                (agent for agent in validator.registered_agents.values() if str(agent.UID) == str(uid)),
-                None
-            )
-            user_id = agent_info.UserID if agent_info else "Unknown"
-            logger.info(f"Agent UID {uid} (UserID: {user_id}): Score = {score:.4f}")
+            agent = next((a for a in validator.registered_agents.values() if int(a.UID) == uid), None)
+            if agent:
+                username = agent.Username if hasattr(agent, 'Username') else 'Unknown'
+                logger.info(
+                    f"Agent UID {uid} (UserID: {agent.UserID}, @{username}): Score = {score:.4f}"
+                )
+        
+        # Log statistics
+        logger.info("\n=== Score Statistics ===")
+        logger.info(f"Maximum score: {max(scores.values()):.4f}")
+        logger.info(f"Minimum score: {min(scores.values()):.4f}")
+        logger.info(f"Average score: {sum(scores.values()) / len(scores):.4f}")
         
         # Basic assertions
         assert isinstance(scores, dict), "Scores should be returned as a dictionary"
