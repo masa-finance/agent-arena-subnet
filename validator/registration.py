@@ -272,11 +272,11 @@ class ValidatorRegistration:
                             followers_count,
                             error,
                         ) = await self.verify_tweet(tweet_id, node.hotkey)
+                        payload = {}
+                        payload["agent"] = str(screen_name)
+
                         if error:
-                            payload = {
-                                "agent": f"{str(screen_name)}",
-                                "message": f"Failed to verify tweet: {error}",
-                            }
+                            payload["message"] = f"Failed to verify tweet: {error}"
                             response = await self.registration_callback(node, payload)
                         elif verified_tweet and user_id:
                             try:
@@ -290,21 +290,17 @@ class ValidatorRegistration:
                                     is_verified,
                                     followers_count,
                                 )
-                                payload = {
-                                    "agent": f"{str(screen_name)}",
-                                    "message": f"Successfully registered!",
-                                }
+                                payload["message"] = "Successfully registered!"
                             except Exception as e:
-                                payload = {
-                                    "agent": f"{str(screen_name)}",
-                                    "message": str(e),
-                                }
-
+                                payload["message"] = str(e)
+                        elif not user_id:
+                            payload["message"] = "UserId not found"
+                        elif not verified_tweet:
+                            payload["message"] = "Verified Tweet not found"
                         else:
-                            payload = {
-                                "agent": str(screen_name),
-                                "message": "Unknown error occured in agent registration",
-                            }
+                            payload["message"] = (
+                                "Unknown error occured in agent registration"
+                            )
 
                         response = await self.registration_callback(node, payload)
                         logger.info(
@@ -313,7 +309,7 @@ class ValidatorRegistration:
 
                 except Exception as e:
                     logger.error(
-                        f"Failed to get registration info for node {
+                        f"Unknown exception occured during agent registration loop for node {
                                 hotkey}: {str(e)}"
                     )
 

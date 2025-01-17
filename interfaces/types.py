@@ -141,5 +141,5 @@ class Tweet(BaseModel, JSONSerializable):
 
 
 class RegistrationCallback(BaseModel):
-    agent: str
+    agent: Optional[str] = None
     message: Optional[str] = None
