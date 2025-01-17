@@ -52,7 +52,6 @@ class RegisteredAgentRequest(JSONSerializable):
     UID: int
     SubnetID: int
     Version: str
-    IsActive: bool
     Emissions: float
     VerificationTweet: Optional[VerifiedTweet]
     Profile: Optional[dict[str, Profile]]
@@ -66,7 +65,6 @@ class RegisteredAgentResponse(JSONSerializable):
     UserID: str
     SubnetID: int
     Version: str
-    IsActive: bool
     CreatedAt: str
     UpdatedAt: str
     Avatar: Optional[str]

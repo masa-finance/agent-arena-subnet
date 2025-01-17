@@ -83,7 +83,6 @@ class ValidatorRegistration:
             UID=str(node.node_id),
             SubnetID=int(self.validator.netuid),
             Version=str(node.protocol),
-            IsActive=True,
             VerificationTweet=verified_tweet,
             Emissions=node_emissions,
             Profile={
@@ -198,7 +197,6 @@ class ValidatorRegistration:
                         UID=str(agent.UID),
                         SubnetID=int(self.validator.netuid),
                         Version=str(4),
-                        IsActive=True,
                         Emissions=agent_emissions,
                         VerificationTweet=verification_tweet,
                         Profile={
