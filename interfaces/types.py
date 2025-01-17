@@ -47,7 +47,6 @@ class Profile(JSONSerializable):
 
 @dataclass
 class RegisteredAgentRequest(JSONSerializable):
-    ID: int
     HotKey: str
     UID: int
     SubnetID: int

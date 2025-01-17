@@ -78,7 +78,6 @@ class ValidatorRegistration:
         """Register an agent"""
         node_emissions, _ = self.validator.get_emissions(node)
         registration_data = RegisteredAgentRequest(
-            ID=node.node_id,
             HotKey=node.hotkey,
             UID=str(node.node_id),
             SubnetID=int(self.validator.netuid),
