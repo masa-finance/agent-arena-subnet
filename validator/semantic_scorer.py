@@ -42,9 +42,18 @@ class SemanticScorer:
         # Calculate originality scores
         originality_scores = 1 - similarity_matrix.mean(axis=1)
         
-        # Calculate uniqueness scores
-        similar_posts = (similarity_matrix > self.similarity_threshold).sum(axis=1) - 1
-        uniqueness_scores = 1 / (1 + similar_posts)
+        # Calculate uniqueness scores (avoiding division by zero)
+        similar_posts = (similarity_matrix > self.similarity_threshold).sum(axis=1)
+        # Ensure we don't divide by zero by adding 1 to denominator
+        uniqueness_scores = np.where(
+            similar_posts == 0,
+            1.0,  # If no similar posts, maximum uniqueness
+            1 / (1 + similar_posts)  # Otherwise, calculate as before
+        )
+        
+        # Ensure all scores are finite
+        originality_scores = np.clip(originality_scores, 0, 1)
+        uniqueness_scores = np.clip(uniqueness_scores, 0, 1)
         
         return originality_scores, uniqueness_scores
 
@@ -55,8 +64,14 @@ class SemanticScorer:
             logger.debug("No texts provided for scoring")
             return []
 
-        logger.debug("Encoding %d texts for semantic analysis", len(texts))
-        embeddings = self.model.encode(texts)
+        # Filter out empty texts
+        valid_texts = [text for text in texts if text and text.strip()]
+        if not valid_texts:
+            logger.debug("No valid texts after filtering")
+            return [0.0] * len(texts)
+
+        logger.debug("Encoding %d texts for semantic analysis", len(valid_texts))
+        embeddings = self.model.encode(valid_texts)
         
         originality_scores, uniqueness_scores = self._calculate_component_scores(embeddings)
         
@@ -70,8 +85,24 @@ class SemanticScorer:
             self.weights['uniqueness'] * uniqueness_scores
         )
 
+        # Ensure final scores are finite and in [0,1] range
+        final_scores = np.clip(final_scores, 0, 1)
+
         logger.debug("Final semantic scores range: min=%.3f, max=%.3f", 
                      np.min(final_scores), np.max(final_scores))
+                     
+        # If we filtered out any empty texts, we need to reconstruct the full scores list
+        if len(valid_texts) != len(texts):
+            full_scores = []
+            valid_idx = 0
+            for text in texts:
+                if text and text.strip():
+                    full_scores.append(float(final_scores[valid_idx]))
+                    valid_idx += 1
+                else:
+                    full_scores.append(0.0)
+            return full_scores
+            
         return [float(score) for score in final_scores]
 
     async def get_posts_with_scores(self, posts: List[Tweet]) -> List[float]:

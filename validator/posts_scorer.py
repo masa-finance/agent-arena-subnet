@@ -43,19 +43,15 @@ class PostsScorer:
         return np.log1p(base_score)
 
     def calculate_agent_scores(self, posts: List[Tweet]) -> Dict[int, float]:
-        current_time = datetime.now(UTC)
+        if not posts:
+            logger.warning("No posts provided for scoring")
+            return {}
+            
+        logger.info("Input posts breakdown:")
+        logger.info("- Total posts: %d", len(posts))
+        logger.info("- Unique users: %d", len(set(post.get("UserID") for post in posts)))
+        logger.info("- Posts with text: %d", len([p for p in posts if p.get("Text")]))
         
-        logger.debug("Starting scoring for %d posts", len(posts))
-        
-        # Get semantic scores for all posts
-        post_texts = [post.get("Text", "") for post in posts]
-        semantic_scores = self.semantic_scorer.calculate_scores(post_texts)
-        logger.debug("Generated semantic scores: %d scores", len(semantic_scores))
-
-        agent_posts: Dict[int, List[float]] = {}
-        skipped_posts = 0
-        processed_posts = 0
-
         # Create a temporary dictionary mapping UserId to UID
         user_id_to_uid = {
             agent.UserID: int(agent.UID)
@@ -63,61 +59,75 @@ class PostsScorer:
         }
         logger.debug("Found %d registered agents", len(user_id_to_uid))
 
-        for idx, post in enumerate(posts):
-            try:
-                user_id = post.get("UserID", None)
-                if not user_id:
-                    logger.debug("Post %d: Missing UserID", idx)
-                    skipped_posts += 1
-                    continue
+        # Initialize scores dict with zeros for all registered agents
+        final_scores = {uid: 0.0 for uid in user_id_to_uid.values()}
 
-                uid = user_id_to_uid.get(user_id, None)
-                if not uid:
-                    logger.debug("Post %d: UserID %s not found in registered agents", idx, user_id)
-                    skipped_posts += 1
-                    continue
+        # Group posts by UID first
+        posts_by_uid: Dict[int, List[Tweet]] = {}
+        for post in posts:
+            user_id = post.get("UserID")
+            if not user_id:
+                continue
+                
+            uid = user_id_to_uid.get(user_id)
+            if not uid:
+                continue
+                
+            if uid not in posts_by_uid:
+                posts_by_uid[uid] = []
+            posts_by_uid[uid].append(post)
 
+        # Only process UIDs with posts
+        for uid, agent_posts in posts_by_uid.items():
+            if not agent_posts:
+                continue
+                
+            # Get semantic scores only for posts with text
+            post_texts = [post.get("Text", "") for post in agent_posts]
+            if not any(post_texts):
+                continue
+                
+            semantic_scores = self.semantic_scorer.calculate_scores(post_texts)
+            # Replace any inf values with a large finite number
+            semantic_scores = np.nan_to_num(semantic_scores, nan=0.0, posinf=100.0, neginf=0.0)
+            
+            scores = []
+            for idx, post in enumerate(agent_posts):
                 try:
                     score = self._calculate_post_score(post, semantic_scores[idx])
-                    logger.debug("Post %d: UID %d, semantic_score=%.3f, final_score=%.3f", 
-                                idx, uid, semantic_scores[idx], score)
-                    
-                    if uid not in agent_posts:
-                        agent_posts[uid] = []
-                    agent_posts[uid].append(score)
-                    processed_posts += 1
-
+                    # Ensure score is finite
+                    if np.isfinite(score):
+                        scores.append(score)
                 except Exception as e:
-                    logger.warning("Error processing post %d: %s", idx, str(e))
-                    skipped_posts += 1
+                    logger.warning(f"Error processing post for UID {uid}: {str(e)}")
                     continue
-
-            except Exception as e:
-                logger.warning("Error in post loop at index %d: %s", idx, str(e))
-                skipped_posts += 1
-                continue
-
-        logger.info("Processed %d posts, skipped %d", processed_posts, skipped_posts)
-        logger.info("Found posts for %d unique agents", len(agent_posts))
-
-        # Calculate final scores
-        final_scores = {}
-        for uid, scores in agent_posts.items():
+            
             if scores:
                 mean_score = np.mean(scores)
                 post_count = len(scores)
-                final_score = mean_score * np.log1p(post_count)
-                final_scores[uid] = final_score
-                logger.debug("Agent %d: posts=%d, mean_score=%.3f, final_score=%.3f", 
-                             uid, post_count, mean_score, final_score)
+                final_scores[uid] = mean_score * np.log1p(post_count)
 
-        if final_scores:
-            scores_array = np.array(list(final_scores.values())).reshape(-1, 1)
-            normalized_scores = self.scaler.fit_transform(scores_array).flatten()
-            final_scores = {
-                uid: score for uid, score in zip(final_scores.keys(), normalized_scores)
-            }
-            logger.debug("Normalized score ranges: min=%.3f, max=%.3f", 
-                         np.min(normalized_scores), np.max(normalized_scores))
-
+        # Handle any remaining inf values before normalization
+        scores_array = np.array(list(final_scores.values())).reshape(-1, 1)
+        scores_array = np.nan_to_num(scores_array, nan=0.0, posinf=100.0, neginf=0.0)
+        
+        # Only normalize if we have non-zero finite scores
+        non_zero_scores = [score for score in scores_array.flatten() if score > 0]
+        if len(non_zero_scores) > 1:
+            try:
+                normalized_scores = self.scaler.fit_transform(scores_array).flatten()
+                final_scores = {
+                    uid: score for uid, score in zip(final_scores.keys(), normalized_scores)
+                }
+            except Exception as e:
+                logger.error(f"Error during score normalization: {str(e)}")
+                # If normalization fails, return the non-normalized scores
+                final_scores = {
+                    uid: score for uid, score in zip(final_scores.keys(), scores_array.flatten())
+                }
+            
+        logger.info("Scoring complete:")
+        logger.info("- Total agents scored: %d", len(final_scores))
+        logger.info("- Agents with non-zero scores: %d", len(non_zero_scores))
+        
         return final_scores
