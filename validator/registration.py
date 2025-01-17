@@ -77,12 +77,10 @@ class ValidatorRegistration:
         """Register an agent"""
         node_emissions, _ = self.validator.get_emissions(node)
         registration_data = RegisteredAgentRequest(
-            ID=node.node_id,
             HotKey=node.hotkey,
             UID=str(node.node_id),
             SubnetID=int(self.validator.netuid),
             Version=str(node.protocol),
-            IsActive=True,
             VerificationTweet=verified_tweet,
             Emissions=node_emissions,
             Profile={
@@ -166,6 +164,7 @@ class ValidatorRegistration:
                             name,
                             is_verified,
                             followers_count,
+                            error,
                         ) = await self.verify_tweet(
                             agent.VerificationTweetID, agent.HotKey
                         )
@@ -197,7 +196,6 @@ class ValidatorRegistration:
                         UID=str(agent.UID),
                         SubnetID=int(self.validator.netuid),
                         Version=str(4),
-                        IsActive=True,
                         Emissions=agent_emissions,
                         VerificationTweet=verification_tweet,
                         Profile={
@@ -270,37 +268,46 @@ class ValidatorRegistration:
                             name,
                             is_verified,
                             followers_count,
+                            error,
                         ) = await self.verify_tweet(tweet_id, node.hotkey)
-                        if verified_tweet and user_id:
-                            await self.register_agent(
-                                node,
-                                verified_tweet,
-                                user_id,
-                                screen_name,
-                                avatar,
-                                name,
-                                is_verified,
-                                followers_count,
-                            )
-                            payload = {
-                                "registered": str(screen_name),
-                                "message": "Agent successfully registered!",
-                            }
-                            response = await self.registration_callback(node, payload)
-                        else:
-                            payload = {
-                                "registered": "Agent failed to register",
-                                "message": f"Failed to register with tweet {tweet_id}",
-                            }
-                            response = await self.registration_callback(node, payload)
+                        payload = {}
+                        payload["agent"] = str(screen_name)
 
+                        if error:
+                            payload["message"] = f"Failed to verify tweet: {str(error)}"
+                        elif verified_tweet and user_id:
+                            try:
+                                await self.register_agent(
+                                    node,
+                                    verified_tweet,
+                                    user_id,
+                                    screen_name,
+                                    avatar,
+                                    name,
+                                    is_verified,
+                                    followers_count,
+                                )
+                                payload["message"] = "Successfully registered!"
+                            except Exception as e:
+                                payload["message"] = str(e)
+                        elif not user_id:
+                            payload["message"] = "UserId not found"
+                        elif not verified_tweet:
+                            payload["message"] = "Verified Tweet not found"
+                        else:
+                            payload["message"] = (
+                                "Unknown error occured in agent registration"
+                            )
+
+                        logger.info(f"Sending payload to miner: {payload}")
+                        response = await self.registration_callback(node, payload)
                         logger.info(
-                            f"Miner Response From Registration Callback: {response}"
+                            f"Miner Response from Registration Callback: {response}"
                         )
 
                 except Exception as e:
                     logger.error(
-                        f"Failed to get registration info for node {
+                        f"Unknown exception occured during agent registration loop for node {
                                 hotkey}: {str(e)}"
                     )
 
@@ -309,7 +316,7 @@ class ValidatorRegistration:
 
     async def verify_tweet(
         self, id: str, hotkey: str
-    ) -> tuple[VerifiedTweet, str, str, str, str, bool, int]:
+    ) -> tuple[VerifiedTweet, str, str, str, str, bool, int, str]:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
@@ -340,9 +347,8 @@ class ValidatorRegistration:
             )
 
             if not isinstance(screen_name, str) or not isinstance(full_text, str):
-                msg = "Invalid tweet data: screen_name or full_text is not a string"
-                logger.error(msg)
-                raise ValueError(msg)
+                error = "Invalid tweet data: screen_name or full_text is not a string"
+                logger.error(error)
 
             # ensure hotkey is in the tweet text
             if hotkey not in full_text:
@@ -364,11 +370,11 @@ class ValidatorRegistration:
                 name,
                 is_verified,
                 followers_count,
+                error,
             )
         except Exception as e:
-            # TODO let the miner know what the issue is
             logger.error(f"Failed to register agent: {str(e)}")
-            return False
+            return None, None, None, None, None, None, None, str(e)
 
     async def get_verification_tweet_id(self, node: Node) -> Optional[str]:
         endpoint = "/get_verification_tweet_id"
