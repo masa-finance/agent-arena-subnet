@@ -320,12 +320,13 @@ class ValidatorRegistration:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
-
+            error = None
             result = await self.validator.fetch_x_tweet_by_id(id)
 
             if not result or result.get("recordCount", 0) == 0:
-                logger.error(f"Could not fetch tweet id {id} for node {hotkey}")
-                return False
+                error = f"Could not fetch tweet id {id} for node {hotkey}"
+                logger.error(error)
+                return None, None, None, None, None, None, None, str(error)
 
             tweet_data_result = result.get("data", {})
             tweet_id = tweet_data_result.get("ID")
