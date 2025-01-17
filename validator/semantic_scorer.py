@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from fiber.logging_utils import get_logger
 from interfaces.types import Tweet
-from .posts_getter import PostsGetter
+from validator.get_agent_posts import GetAgentPosts
 
 # Constants
 DEFAULT_MODEL = 'all-MiniLM-L6-v2'
@@ -26,7 +26,7 @@ class SemanticScorer:
         self.similarity_threshold = SIMILARITY_THRESHOLD
         self.weights = WEIGHTS
         self.max_posts = max_posts
-        self.posts_getter = PostsGetter(netuid) if netuid is not None else None
+        self.posts_getter = GetAgentPosts(netuid) if netuid is not None else None
 
     # Core scoring methods
     def _get_similarity_matrix(self, embeddings: np.ndarray) -> np.ndarray:
@@ -52,17 +52,17 @@ class SemanticScorer:
     def calculate_scores(self, texts: List[str]) -> List[float]:
         """Calculate combined similarity scores for a list of texts."""
         if not texts:
-            logger.debugf("No texts provided for scoring")
+            logger.debug("No texts provided for scoring")
             return []
 
-        logger.debugf("Encoding %d texts for semantic analysis", len(texts))
+        logger.debug("Encoding %d texts for semantic analysis", len(texts))
         embeddings = self.model.encode(texts)
         
         originality_scores, uniqueness_scores = self._calculate_component_scores(embeddings)
         
-        logger.debugf("Originality scores range: min=%.3f, max=%.3f", 
+        logger.debug("Originality scores range: min=%.3f, max=%.3f", 
                      np.min(originality_scores), np.max(originality_scores))
-        logger.debugf("Uniqueness scores range: min=%.3f, max=%.3f", 
+        logger.debug("Uniqueness scores range: min=%.3f, max=%.3f", 
                      np.min(uniqueness_scores), np.max(uniqueness_scores))
 
         final_scores = (
@@ -70,7 +70,7 @@ class SemanticScorer:
             self.weights['uniqueness'] * uniqueness_scores
         )
 
-        logger.debugf("Final semantic scores range: min=%.3f, max=%.3f", 
+        logger.debug("Final semantic scores range: min=%.3f, max=%.3f", 
                      np.min(final_scores), np.max(final_scores))
         return [float(score) for score in final_scores]
 

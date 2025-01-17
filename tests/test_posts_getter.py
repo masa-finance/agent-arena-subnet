@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, UTC, timedelta
-from validator.posts_getter import PostsGetter
+from validator.get_agent_posts import PostsGetter
 import json
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_get_posts_last_20_mins():
     assert isinstance(posts, list), "Posts should be returned as a list"
     
     # Import constants directly from the module
-    from validator.posts_getter import API_VERSION, SUBNET_API_PATH
+    from validator.get_agent_posts import API_VERSION, SUBNET_API_PATH
     
     # Log the full API response and endpoint details
     print("\n=== API Configuration ===")

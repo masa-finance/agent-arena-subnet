@@ -1,13 +1,13 @@
 """
-Protocol API Posts Getter Module
+Protocol API Get Agent Posts Module
 
-This module provides functionality to fetch posts from the Protocol API service within
+This module provides functionality to get agent posts from the Protocol API service within
 specified time ranges. It handles authentication, error handling, and proper API versioning
-for subnet post retrieval operations.
+for agent post retrieval operations.
 
 Key Components:
-    - PostsGetter: Main class for fetching posts with configurable date ranges
-    - PostsAPIError: Custom exception for handling API-specific errors
+    - GetAgentPosts: Main class for fetching agent posts with configurable date ranges
+    - GetAgentPostsAPIError: Custom exception for handling API-specific errors
 
 Environment Variables:
     - API_KEY: Authentication token for the Protocol API (optional)
@@ -18,10 +18,10 @@ Usage Example:
     from datetime import datetime, UTC
     
     # Initialize with default 7-day lookback
-    getter = PostsGetter(netuid=59)
+    getter = GetAgentPosts(netuid=59)
     
     # Or specify custom date range
-    getter = PostsGetter(
+    getter = GetAgentPosts(
         netuid=59,
         start_date=datetime(2024, 1, 1, tzinfo=UTC),
         end_date=datetime(2024, 1, 7, tzinfo=UTC)
@@ -52,7 +52,7 @@ API_VERSION = "v1.0.0"
 SUBNET_API_PATH = "subnet59"
 
 
-class PostsAPIError(Exception):
+class GetAgentPostsAPIError(Exception):
     """
     PostsAPIError represents errors that occur during Posts API operations.
     
@@ -70,9 +70,9 @@ class PostsAPIError(Exception):
 
 
 @dataclass
-class PostsGetter:
+class GetAgentPosts:
     """
-    PostsGetter handles fetching posts from the Protocol API within a specified date range.
+    GetAgentPosts handles fetching posts from the Protocol API within a specified date range.
     
     If no date range is provided, it defaults to fetching posts from the last 7 days.
     The class handles authentication and proper API versioning.
@@ -83,7 +83,7 @@ class PostsGetter:
         end_date: Optional end date for post fetching (defaults to current time)
     
     Example:
-        getter = PostsGetter(netuid=1)
+        getter = GetAgentPosts(netuid=1)
         posts = await getter.get()
     """
     netuid: int
@@ -158,7 +158,7 @@ class PostsGetter:
                 logger.info(f"Successfully fetched {len(posts)} posts from API")
                 return posts
                 
-            raise PostsAPIError(
+            raise GetAgentPostsAPIError(
                 message="Failed to fetch posts",
                 status_code=response.status_code,
                 response_body=response.text
