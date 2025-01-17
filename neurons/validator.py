@@ -320,7 +320,7 @@ class AgentValidator:
 
     async def fetch_x_tweet_by_id(self, id: str) -> Dict[str, Any]:
         request = Request()
-        response = await request.execute(data={"tweet_id": id}, type="tweet")
+        response = await request.execute(data={"tweet_id": id})
         return response
 
     async def sync_loop(self) -> None:
