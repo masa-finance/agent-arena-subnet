@@ -4,6 +4,7 @@ import json
 from typing import Dict, Any
 import httpx
 import os
+import numpy as np
 
 from validator.posts_scorer import PostsScorer
 from validator.get_agent_posts import GetAgentPosts
@@ -104,38 +105,68 @@ async def test_live_scoring_with_registered_agents():
         logger.info("\n=== Scoring Results ===")
         logger.info(f"Number of scored agents: {len(scores)}")
         
-        # Print SHAP values
-        logger.info("\n=== Feature Importance (SHAP Values) ===")
+        # Enhanced SHAP value visualization
+        logger.info("\n=== Feature Importance Analysis ===")
+        
         # Sort features by importance
         sorted_features = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)
-        for feature, importance in sorted_features:
-            logger.info(f"{feature:12} : {importance:.4f}")
-            
-        # Visualize relative importance with simple bar chart
-        max_importance = max(importance for _, importance in sorted_features)
-        logger.info("\nRelative Feature Importance:")
-        for feature, importance in sorted_features:
-            bar_length = int((importance / max_importance) * 40)  # Scale to 40 chars max
-            bar = "█" * bar_length
-            logger.info(f"{feature:12} : {bar} ({importance:.4f})")
         
-        # Sort and log detailed scores
-        sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        logger.info("\nDetailed Scores (sorted by score):")
-        for uid, score in sorted_scores:
+        # Calculate total importance for percentage calculation
+        total_importance = sum(importance for _, importance in sorted_features)
+        
+        # Print detailed feature importance table
+        logger.info("\nFeature Importance Breakdown:")
+        logger.info("=" * 80)
+        logger.info(f"{'Feature':<15} {'Importance':<12} {'Percentage':<12} {'Visualization'}")
+        logger.info("=" * 80)
+        
+        for feature, importance in sorted_features:
+            percentage = (importance / total_importance) * 100
+            bar_length = int((importance / sorted_features[0][1]) * 40)  # Scale to 40 chars
+            bar = "█" * bar_length
+            logger.info(f"{feature:<15} {importance:>10.4f}   {percentage:>8.2f}%   {bar}")
+        
+        logger.info("=" * 80)
+        
+        # Print top contributing factors for highest scoring agents
+        logger.info("\n=== Top Agent Analysis ===")
+        top_agents = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        for uid, score in top_agents:
             agent = next((a for a in validator.registered_agents.values() if int(a.UID) == uid), None)
             if agent:
                 username = agent.Username if hasattr(agent, 'Username') else 'Unknown'
-                logger.info(
-                    f"Agent UID {uid} (UserID: {agent.UserID}, @{username}): Score = {score:.4f}"
-                )
-
-        # Log statistics
-        logger.info("\n=== Score Statistics ===")
-        logger.info(f"Maximum score: {max(scores.values()):.4f}")
-        logger.info(f"Minimum score: {min(scores.values()):.4f}")
-        logger.info(f"Average score: {sum(scores.values()) / len(scores):.4f}")
+                logger.info(f"\nAgent: @{username} (UID: {uid})")
+                logger.info(f"Total Score: {score:.4f}")
+                
+                # Get agent's posts
+                agent_posts = [p for p in posts if str(p.get('UserID')) == str(agent.UserID)]
+                if agent_posts:
+                    avg_metrics = {
+                        'text_length': np.mean([len(str(p.get('Text', ''))) for p in agent_posts]),
+                        'likes': np.mean([p.get('Likes', 0) for p in agent_posts]),
+                        'retweets': np.mean([p.get('Retweets', 0) for p in agent_posts]),
+                        'replies': np.mean([p.get('Replies', 0) for p in agent_posts]),
+                        'views': np.mean([p.get('Views', 0) for p in agent_posts])
+                    }
+                    
+                    logger.info("Average Metrics:")
+                    for metric, value in avg_metrics.items():
+                        logger.info(f"- {metric}: {value:.2f}")
         
+        # Print overall statistics
+        logger.info("\n=== Overall Score Distribution ===")
+        scores_array = np.array(list(scores.values()))
+        percentiles = np.percentile(scores_array, [25, 50, 75])
+        
+        logger.info(f"Maximum score: {max(scores_array):.4f}")
+        logger.info(f"75th percentile: {percentiles[2]:.4f}")
+        logger.info(f"Median score: {percentiles[1]:.4f}")
+        logger.info(f"25th percentile: {percentiles[0]:.4f}")
+        logger.info(f"Minimum score: {min(scores_array):.4f}")
+        logger.info(f"Average score: {np.mean(scores_array):.4f}")
+        logger.info(f"Standard deviation: {np.std(scores_array):.4f}")
+
         # Basic assertions
         assert isinstance(scores, dict), "Scores should be returned as a dictionary"
         assert all(isinstance(score, float) for score in scores.values()), "All scores should be floats"

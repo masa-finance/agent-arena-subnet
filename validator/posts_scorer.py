@@ -40,24 +40,24 @@ class PerformanceConfig:
     # Apple Silicon Configurations
     M_SERIES = {
         32: HardwareConfig(
-            batch_size=4096,
-            max_samples=8000,
-            shap_background_samples=800,
-            shap_nsamples=400,
+            batch_size=1024,
+            max_samples=4000,
+            shap_background_samples=400,
+            shap_nsamples=200,
             device_type='mps'
         ),
         64: HardwareConfig(  # Optimized for M3 Max
-            batch_size=8192,
-            max_samples=20000,
-            shap_background_samples=2000,
-            shap_nsamples=1000,
+            batch_size=2048,
+            max_samples=8000,
+            shap_background_samples=500,
+            shap_nsamples=250,
             device_type='mps'
         ),
         96: HardwareConfig(
-            batch_size=16384,
-            max_samples=30000,
-            shap_background_samples=3000,
-            shap_nsamples=1500,
+            batch_size=4096,
+            max_samples=12000,
+            shap_background_samples=1000,
+            shap_nsamples=500,
             device_type='mps'
         )
     }
@@ -196,16 +196,15 @@ class PostsScorer:
         if len(posts) > self.config.max_samples:
             posts = np.random.choice(posts, self.config.max_samples, replace=False)
         
-        # Use configured device
+        # Move calculations to appropriate device and ensure float32
         device = torch.device(self.config.device_type)
         
         features = []
         scores = []
         
-        # Batch process features
-        BATCH_SIZE = 100
-        for i in range(0, len(posts), BATCH_SIZE):
-            batch = posts[i:i + BATCH_SIZE]
+        # Use configured batch size
+        for i in range(0, len(posts), self.config.batch_size):
+            batch = posts[i:i + self.config.batch_size]
             batch_features = [{
                 'text_length': len(str(post.get('Text', ''))),
                 'likes': post.get('Likes', 0),
@@ -233,9 +232,9 @@ class PostsScorer:
             
         df = pd.DataFrame(features)
         
-        # Optimize SHAP calculations
+        # Fix SHAP warnings by explicitly setting l1_reg
         def score_func(X):
-            X_tensor = torch.tensor(X, device=device)
+            X_tensor = torch.tensor(X, device=device, dtype=torch.float32)
             return np.array([np.log1p(
                 row['text_length'] * self.length_weight +
                 row['likes'] * self.engagement_weights['Likes'] +
@@ -244,9 +243,16 @@ class PostsScorer:
                 row['views'] * self.engagement_weights['Views']
             ) for _, row in pd.DataFrame(X, columns=df.columns).iterrows()])
         
-        # Use fewer background samples for efficiency and ensure float32
-        explainer = shap.KernelExplainer(score_func, shap.sample(df, 100).astype(np.float32))
-        shap_values = explainer.shap_values(df.astype(np.float32), nsamples=100)
+        # Use explicit l1_reg parameter and ensure float32 dtype
+        explainer = shap.KernelExplainer(
+            score_func, 
+            shap.sample(df, self.config.shap_background_samples).astype(np.float32),
+            l1_reg='num_features(10)'  # Fix for SHAP warning
+        )
+        shap_values = explainer.shap_values(
+            df.astype(np.float32), 
+            nsamples=self.config.shap_nsamples
+        )
         
         feature_importance = {
             feature: float(np.abs(shap_values[:, i]).mean())
@@ -297,29 +303,55 @@ class PostsScorer:
                 posts_by_uid[uid] = []
             posts_by_uid[uid].append(post)
 
-        # Single progress bar for all agents
-        with tqdm(total=len(posts_by_uid), desc="Scoring all agents", unit="agent") as pbar:
+        # Process semantic scores in larger batches
+        all_texts = []
+        text_to_post_map = {}  # Map to track which posts each text belongs to
+        
+        logger.info("Processing semantic scores...")
+        with tqdm(total=len(posts_by_uid), desc="Processing agents", unit="agent") as pbar:
+            for uid, agent_posts in posts_by_uid.items():
+                for post in agent_posts:
+                    text = post.get("Text", "")
+                    if text:
+                        all_texts.append(text)
+                        if uid not in text_to_post_map:
+                            text_to_post_map[uid] = []
+                        text_to_post_map[uid].append(len(all_texts) - 1)
+                pbar.update(1)
+
+        # Calculate all semantic scores at once with larger batch size
+        logger.info("Calculating semantic scores...")
+        semantic_scores = self.semantic_scorer.calculate_scores(
+            all_texts, 
+            batch_size=self.config.batch_size
+        )
+
+        # Process final scores
+        logger.info("Calculating final scores...")
+        with tqdm(total=len(posts_by_uid), desc="Scoring agents", unit="agent") as pbar:
             for uid, agent_posts in posts_by_uid.items():
                 if not agent_posts:
                     continue
-                    
-                post_texts = [post.get("Text", "") for post in agent_posts]
-                if not any(post_texts):
+                
+                # Get pre-calculated semantic scores for this agent's posts
+                agent_semantic_scores = [
+                    semantic_scores[idx] 
+                    for idx in text_to_post_map.get(uid, [])
+                ]
+                
+                if not agent_semantic_scores:
                     continue
-                    
-                semantic_scores = self.semantic_scorer.calculate_scores(post_texts)
-                semantic_scores = np.nan_to_num(semantic_scores, nan=0.0, posinf=100.0, neginf=0.0)
                 
                 scores = []
-                for idx, post in enumerate(agent_posts):
+                for post, semantic_score in zip(agent_posts, agent_semantic_scores):
                     try:
-                        score = self._calculate_post_score(post, semantic_scores[idx])
+                        score = self._calculate_post_score(post, semantic_score)
                         if np.isfinite(score):
                             scores.append(score)
                     except Exception as e:
                         logger.warning(f"Error processing post for UID {uid}: {str(e)}")
                         continue
-                
+
                 if scores:
                     mean_score = np.mean(scores)
                     post_count = len(scores)
