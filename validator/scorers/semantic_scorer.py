@@ -7,7 +7,7 @@ from fiber.logging_utils import get_logger
 from interfaces.types import Tweet
 from .base_scorer import BaseScorer
 from ..config.hardware_config import HardwareConfig, PerformanceConfig
-from ..config.progress_config import ProgressStages
+from collections import Counter
 
 logger = get_logger(__name__)
 
@@ -19,7 +19,10 @@ class SemanticConfig:
         'originality': 0.7,
         'uniqueness': 0.3
     }
-
+    # Add keyword stuffing detection
+    KEYWORD_THRESHOLD = 0.3  # Max ratio of repeated key phrases
+    MIN_POST_LENGTH = 20     # Minimum meaningful post length
+    
 class SemanticScorer(BaseScorer):
     """Analyzes semantic similarity between texts and calculates originality scores."""
     
@@ -58,20 +61,60 @@ class SemanticScorer(BaseScorer):
         similarity_matrix.fill_diagonal_(0)
         return similarity_matrix
 
-    def _calculate_component_scores(self, embeddings: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """Calculate originality and uniqueness scores with increased sensitivity"""
+    def _detect_keyword_stuffing(self, texts: List[str]) -> torch.Tensor:
+        """Detect repetitive phrases and keyword stuffing"""
+        keyword_penalties = []
+        
+        for text in texts:
+            # Skip empty or very short texts
+            if not text or len(text) < SemanticConfig.MIN_POST_LENGTH:
+                keyword_penalties.append(0.2)  # Penalize too-short content
+                continue
+                
+            # Extract common phrases (2-3 words)
+            words = text.lower().split()
+            phrases = []
+            for i in range(len(words)-1):
+                phrases.append(' '.join(words[i:i+2]))
+                if i < len(words)-2:
+                    phrases.append(' '.join(words[i:i+3]))
+            
+            # Count phrase frequencies
+            phrase_counts = Counter(phrases)
+            total_phrases = len(phrases)
+            
+            # Calculate repetition ratio
+            if total_phrases > 0:
+                repeat_ratio = max(phrase_counts.values()) / total_phrases
+                if repeat_ratio > SemanticConfig.KEYWORD_THRESHOLD:
+                    keyword_penalties.append(0.3)  # Heavy penalty for keyword stuffing
+                else:
+                    keyword_penalties.append(1.0)
+            else:
+                keyword_penalties.append(0.5)
+        
+        return torch.tensor(keyword_penalties, device=self.device)
+
+    def _calculate_component_scores(self, embeddings: torch.Tensor, texts: List[str]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Calculate originality and uniqueness scores with content quality checks"""
         similarity_matrix = self._get_similarity_matrix(embeddings)
         
-        # Calculate originality scores with exponential penalty for similarity
-        originality_scores = torch.exp(-similarity_matrix.mean(dim=1) * 2)
+        # Get keyword stuffing penalties
+        quality_penalties = self._detect_keyword_stuffing(texts)
         
-        # Calculate uniqueness scores with stronger penalties for similar content
+        # Calculate originality with content quality consideration
+        mean_similarity = similarity_matrix.mean(dim=1)
+        std_similarity = similarity_matrix.std(dim=1)
+        
+        originality_scores = torch.exp(-mean_similarity * 2) * (1 + std_similarity)
+        
+        # Calculate uniqueness with stronger penalties
         similar_posts = (similarity_matrix > self.similarity_threshold).sum(dim=1).float()
-        uniqueness_scores = torch.exp(-similar_posts * 0.5)
+        uniqueness_scores = torch.exp(-similar_posts * 0.8)
         
-        # Apply non-linear scaling to amplify differences
-        originality_scores = torch.pow(originality_scores, 1.5)
-        uniqueness_scores = torch.pow(uniqueness_scores, 1.5)
+        # Apply quality penalties
+        originality_scores = originality_scores * quality_penalties
+        uniqueness_scores = uniqueness_scores * quality_penalties
         
         return (
             torch.clamp(originality_scores, 0, 1),
@@ -84,10 +127,8 @@ class SemanticScorer(BaseScorer):
             return 0.0
         return self.calculate_scores([text])[0]
 
-    def calculate_scores(self, 
-                        texts: List[str], 
-                        progress_bar: Optional[tqdm] = None) -> List[float]:
-        """Calculate semantic scores with increased weight for quality content"""
+    def calculate_scores(self, texts: List[str], progress_bar: Optional[tqdm] = None) -> List[float]:
+        """Calculate semantic scores with quality content emphasis"""
         if not texts:
             return []
             
@@ -102,7 +143,7 @@ class SemanticScorer(BaseScorer):
                     normalize_embeddings=True
                 )
                 
-                orig_scores, uniq_scores = self._calculate_component_scores(embeddings)
+                orig_scores, uniq_scores = self._calculate_component_scores(embeddings, texts)
                 
                 # Combine scores with weighted components
                 combined_scores = (
@@ -110,7 +151,7 @@ class SemanticScorer(BaseScorer):
                     self.weights['uniqueness'] * uniq_scores
                 ).cpu().numpy()
                 
-                # Apply non-linear scaling to amplify high-quality content
+                # Apply stronger non-linear scaling for quality emphasis
                 scores = [np.power(score, 0.75) for score in combined_scores]
                 
                 # Clean up GPU memory

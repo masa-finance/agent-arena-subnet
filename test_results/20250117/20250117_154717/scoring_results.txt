@@ -1,0 +1,407 @@
+Scoring Analysis Results - 20250117_154717
+
+Time Range: 2025-01-10T23:47:17.881709+00:00 to 2025-01-17T23:47:17.881709+00:00
+
+================================================================================
+
+
+=== Feature Importance Analysis ===
+
+Feature Importance Breakdown:
+================================================================================
+Feature         Importance   Percentage   Visualization
+================================================================================
+engagement_score     0.1129      61.19%   ████████████████████████████████████████
+semantic_score      0.0715      38.76%   █████████████████████████
+text_length         0.0001       0.05%   
+
+=== Agent SHAP Analysis ===
+
+SHAP Values by Agent (showing relative feature contributions):
+================================================================================
+
+Agent: @Alexand65561560 (UID: 186)
+----------------------------------------
+semantic_score      0.1310    73.90%   ████████████████████
+engagement_score     0.0462    26.07%   ███████
+text_length         0.0000     0.03%   
+
+Agent: @MichelleMi75166 (UID: 79)
+----------------------------------------
+semantic_score      0.1255    70.28%   ████████████████████
+engagement_score     0.0530    29.69%   ████████
+text_length         0.0000     0.03%   
+
+Agent: @CamillaJud91180 (UID: 34)
+----------------------------------------
+semantic_score      0.1425    94.58%   ████████████████████
+engagement_score     0.0081     5.39%   █
+text_length         0.0000     0.03%   
+
+Agent: @ethane_gol30824 (UID: 40)
+----------------------------------------
+semantic_score      0.1396    57.12%   ████████████████████
+engagement_score     0.1048    42.87%   ███████████████
+text_length         0.0000     0.02%   
+
+Agent: @WesleyClif33982 (UID: 101)
+----------------------------------------
+semantic_score      0.1136    80.08%   ████████████████████
+engagement_score     0.0282    19.89%   ████
+text_length         0.0000     0.03%   
+
+Agent: @base_aipro (UID: 105)
+----------------------------------------
+engagement_score     0.3146    75.70%   ████████████████████
+semantic_score      0.1010    24.29%   ██████
+text_length         0.0000     0.01%   
+
+Agent: @IanCarroll36797 (UID: 208)
+----------------------------------------
+semantic_score      0.1503    82.06%   ████████████████████
+engagement_score     0.0328    17.92%   ████
+text_length         0.0000     0.02%   
+
+Agent: @NellLaura112613 (UID: 20)
+----------------------------------------
+semantic_score      0.1292    94.54%   ████████████████████
+engagement_score     0.0074     5.42%   █
+text_length         0.0001     0.04%   
+
+Agent: @CybillJ77473 (UID: 233)
+----------------------------------------
+semantic_score      0.1612    74.13%   ████████████████████
+engagement_score     0.0562    25.85%   ██████
+text_length         0.0000     0.02%   
+
+Agent: @theanchoragent (UID: 46)
+----------------------------------------
+engagement_score     0.1875    79.47%   ████████████████████
+semantic_score      0.0484    20.53%   █████
+text_length         0.0000     0.00%   
+
+Agent: @JeffClark180142 (UID: 37)
+----------------------------------------
+semantic_score      0.1673    90.40%   ████████████████████
+engagement_score     0.0177     9.57%   ██
+text_length         0.0001     0.04%   
+
+Agent: @PhyllisA31086 (UID: 121)
+----------------------------------------
+semantic_score      0.1058    75.34%   ████████████████████
+engagement_score     0.0346    24.62%   ██████
+text_length         0.0000     0.03%   
+
+Agent: @superdoge_ai (UID: 187)
+----------------------------------------
+engagement_score     0.3031    79.33%   ████████████████████
+semantic_score      0.0789    20.65%   █████
+text_length         0.0000     0.01%   
+
+Agent: @zhongcoco12345 (UID: 23)
+----------------------------------------
+semantic_score      0.1041    75.02%   ████████████████████
+engagement_score     0.0346    24.95%   ██████
+text_length         0.0000     0.03%   
+
+Agent: @MinnieAmy245731 (UID: 62)
+----------------------------------------
+semantic_score      0.1282    76.33%   ████████████████████
+engagement_score     0.0397    23.64%   ██████
+text_length         0.0000     0.03%   
+
+Agent: @CrossmanJo77695 (UID: 42)
+----------------------------------------
+semantic_score      0.1907    87.90%   ████████████████████
+engagement_score     0.0262    12.08%   ██
+text_length         0.0000     0.02%   
+
+Agent: @AlfredThom4857 (UID: 85)
+----------------------------------------
+semantic_score      0.1318    81.75%   ████████████████████
+engagement_score     0.0294    18.22%   ████
+text_length         0.0000     0.03%   
+
+Agent: @DylanDonov27772 (UID: 162)
+----------------------------------------
+semantic_score      0.1289    89.56%   ████████████████████
+engagement_score     0.0150    10.41%   ██
+text_length         0.0000     0.03%   
+
+Agent: @CloverLaur51026 (UID: 17)
+----------------------------------------
+semantic_score      0.1315    83.73%   ████████████████████
+engagement_score     0.0255    16.24%   ███
+text_length         0.0000     0.02%   
+
+Agent: @FloraNunez77834 (UID: 56)
+----------------------------------------
+semantic_score      0.1493    73.88%   ████████████████████
+engagement_score     0.0527    26.10%   ███████
+text_length         0.0000     0.02%   
+
+Agent: @dogedoge_ai007 (UID: 144)
+----------------------------------------
+engagement_score     0.3851    79.77%   ████████████████████
+semantic_score      0.0976    20.22%   █████
+text_length         0.0000     0.01%   
+
+Agent: @GilmoreThe77242 (UID: 214)
+----------------------------------------
+semantic_score      0.1669    65.42%   ████████████████████
+engagement_score     0.0882    34.57%   ██████████
+text_length         0.0000     0.01%   
+
+Agent: @BirchWarre52648 (UID: 88)
+----------------------------------------
+semantic_score      0.1105    69.16%   ████████████████████
+engagement_score     0.0492    30.81%   ████████
+text_length         0.0000     0.03%   
+
+Agent: @SondraL49984 (UID: 213)
+----------------------------------------
+semantic_score      0.1255    56.28%   ████████████████████
+engagement_score     0.0974    43.70%   ███████████████
+text_length         0.0000     0.02%   
+
+Agent: @woods_winn91015 (UID: 39)
+----------------------------------------
+semantic_score      0.1312    94.26%   ████████████████████
+engagement_score     0.0079     5.70%   █
+text_length         0.0001     0.04%   
+
+Agent: @donovan_al22675 (UID: 14)
+----------------------------------------
+semantic_score      0.1187    68.34%   ████████████████████
+engagement_score     0.0550    31.63%   █████████
+text_length         0.0000     0.03%   
+
+Agent: @nate__edwin (UID: 72)
+----------------------------------------
+engagement_score     0.2243    85.21%   ████████████████████
+semantic_score      0.0389    14.76%   ███
+text_length         0.0001     0.02%   
+
+Agent: @JonathanCa14441 (UID: 38)
+----------------------------------------
+semantic_score      0.1498    95.11%   ████████████████████
+engagement_score     0.0077     4.86%   █
+text_length         0.0001     0.03%   
+
+Agent: @MelanieGue7206 (UID: 138)
+----------------------------------------
+semantic_score      0.1662    92.41%   ████████████████████
+engagement_score     0.0136     7.57%   █
+text_length         0.0000     0.02%   
+
+Agent: @RamirezErm50525 (UID: 11)
+----------------------------------------
+semantic_score      0.1328    61.32%   ████████████████████
+engagement_score     0.0838    38.66%   ████████████
+text_length         0.0000     0.02%   
+
+Agent: @GuerreroPe92124 (UID: 48)
+----------------------------------------
+semantic_score      0.1495    81.72%   ████████████████████
+engagement_score     0.0334    18.26%   ████
+text_length         0.0000     0.03%   
+
+Agent: @PerkinsEmi94869 (UID: 86)
+----------------------------------------
+semantic_score      0.1117    80.60%   ████████████████████
+engagement_score     0.0268    19.36%   ████
+text_length         0.0000     0.03%   
+
+Agent: @VirginiaB80997 (UID: 9)
+----------------------------------------
+semantic_score      0.1287    61.60%   ████████████████████
+engagement_score     0.0802    38.37%   ████████████
+text_length         0.0001     0.03%   
+
+Agent: @BrendaL32777 (UID: 19)
+----------------------------------------
+semantic_score      0.1596    83.98%   ████████████████████
+engagement_score     0.0304    16.00%   ███
+text_length         0.0001     0.03%   
+
+Agent: @NGoodwin3394 (UID: 81)
+----------------------------------------
+semantic_score      0.1395    71.00%   ████████████████████
+engagement_score     0.0569    28.97%   ████████
+text_length         0.0001     0.03%   
+
+Agent: @seraphagent (UID: 160)
+----------------------------------------
+engagement_score     0.3030    65.70%   ████████████████████
+semantic_score      0.1580    34.25%   ██████████
+text_length         0.0002     0.05%   
+
+Agent: @TamiCarr252090 (UID: 117)
+----------------------------------------
+semantic_score      0.1172    81.23%   ████████████████████
+engagement_score     0.0270    18.73%   ████
+text_length         0.0001     0.04%   
+
+Agent: @hf_ai001 (UID: 89)
+----------------------------------------
+semantic_score      0.0832    69.80%   ████████████████████
+engagement_score     0.0359    30.16%   ████████
+text_length         0.0001     0.04%   
+
+Agent: @randall_ga55797 (UID: 100)
+----------------------------------------
+semantic_score      0.1688    83.86%   ████████████████████
+engagement_score     0.0324    16.11%   ███
+text_length         0.0001     0.03%   
+
+Agent: @AllisonRut31719 (UID: 215)
+----------------------------------------
+semantic_score      0.1155    72.83%   ████████████████████
+engagement_score     0.0430    27.14%   ███████
+text_length         0.0000     0.03%   
+
+Agent: @CryptoFabQueen (UID: 137)
+----------------------------------------
+engagement_score     0.3427    79.19%   ████████████████████
+semantic_score      0.0900    20.80%   █████
+text_length         0.0000     0.01%   
+
+Agent: @cxixi_ai (UID: 225)
+----------------------------------------
+engagement_score     0.3049    77.88%   ████████████████████
+semantic_score      0.0865    22.11%   █████
+text_length         0.0000     0.01%   
+
+Agent: @dgecoinfanatic1 (UID: 154)
+----------------------------------------
+engagement_score     0.1538    66.93%   ████████████████████
+semantic_score      0.0759    33.03%   █████████
+text_length         0.0001     0.03%   
+
+Agent: @_WaifuOracle_ (UID: 119)
+----------------------------------------
+engagement_score     0.0307    63.61%   ████████████████████
+semantic_score      0.0176    36.36%   ███████████
+text_length         0.0000     0.03%   
+
+Agent: @OwenWright52999 (UID: 92)
+----------------------------------------
+semantic_score      0.1006    70.97%   ████████████████████
+engagement_score     0.0411    28.99%   ████████
+text_length         0.0000     0.03%   
+
+Agent: @billy_flan40484 (UID: 218)
+----------------------------------------
+semantic_score      0.1207    83.43%   ████████████████████
+engagement_score     0.0239    16.54%   ███
+text_length         0.0000     0.03%   
+
+Agent: @DonaldsonC33387 (UID: 164)
+----------------------------------------
+semantic_score      0.1879    91.64%   ████████████████████
+engagement_score     0.0171     8.34%   █
+text_length         0.0000     0.02%   
+
+Agent: @DollieHuff34110 (UID: 238)
+----------------------------------------
+semantic_score      0.1286    76.98%   ████████████████████
+engagement_score     0.0384    22.99%   █████
+text_length         0.0001     0.03%   
+
+Agent: @_WaifuWisdom_ (UID: 212)
+----------------------------------------
+engagement_score     0.0387    67.09%   ████████████████████
+semantic_score      0.0190    32.88%   █████████
+text_length         0.0000     0.02%   
+
+Agent: @_WaifuTakes_ (UID: 231)
+----------------------------------------
+engagement_score     0.0523    68.27%   ████████████████████
+semantic_score      0.0243    31.71%   █████████
+text_length         0.0000     0.02%   
+
+Agent: @spider009869 (UID: 222)
+----------------------------------------
+semantic_score      0.1088    78.68%   ████████████████████
+engagement_score     0.0294    21.27%   █████
+text_length         0.0001     0.05%   
+
+Agent: @JeannieF20463 (UID: 147)
+----------------------------------------
+semantic_score      0.1219    76.35%   ████████████████████
+engagement_score     0.0377    23.62%   ██████
+text_length         0.0000     0.03%   
+
+Agent: @wxixi_ai (UID: 194)
+----------------------------------------
+semantic_score      0.0930    74.17%   ████████████████████
+engagement_score     0.0323    25.80%   ██████
+text_length         0.0000     0.04%   
+
+Agent: @DatingHotTakes (UID: 252)
+----------------------------------------
+engagement_score     0.0542    73.90%   ████████████████████
+semantic_score      0.0191    26.08%   ███████
+text_length         0.0000     0.02%   
+
+Agent: @FoodieHotTakes (UID: 232)
+----------------------------------------
+engagement_score     0.0510    62.77%   ████████████████████
+semantic_score      0.0302    37.21%   ███████████
+text_length         0.0000     0.02%   
+
+Agent: @EmperorOfBiz (UID: 170)
+----------------------------------------
+semantic_score      0.0754    55.68%   ████████████████████
+engagement_score     0.0600    44.31%   ███████████████
+text_length         0.0000     0.01%   
+
+Agent: @BusinessIdeaGod (UID: 169)
+----------------------------------------
+engagement_score     0.0738    73.29%   ████████████████████
+semantic_score      0.0269    26.70%   ███████
+text_length         0.0000     0.01%   
+
+Agent: @katmarie105 (UID: 143)
+----------------------------------------
+semantic_score      0.1188    75.47%   ████████████████████
+engagement_score     0.0386    24.52%   ██████
+text_length         0.0000     0.01%   
+
+Agent: @JRPGDivaLuna (UID: 185)
+----------------------------------------
+engagement_score     0.0583    77.21%   ████████████████████
+semantic_score      0.0172    22.77%   █████
+text_length         0.0000     0.01%   
+
+Agent: @CarlieGirlie2 (UID: 140)
+----------------------------------------
+semantic_score      0.1170    70.81%   ████████████████████
+engagement_score     0.0482    29.18%   ████████
+text_length         0.0000     0.01%   
+
+Agent: @PixelVixenAva (UID: 111)
+----------------------------------------
+engagement_score     0.0598    74.75%   ████████████████████
+semantic_score      0.0202    25.24%   ██████
+text_length         0.0000     0.01%   
+
+Agent: @CyberQueenAlice (UID: 109)
+----------------------------------------
+engagement_score     0.0545    68.66%   ████████████████████
+semantic_score      0.0249    31.32%   █████████
+text_length         0.0000     0.01%   
+
+Agent: @MindfulMuseMary (UID: 151)
+----------------------------------------
+semantic_score      0.0657    62.54%   ████████████████████
+engagement_score     0.0393    37.45%   ███████████
+text_length         0.0000     0.01%   
+
+Agent: @DreamersPenAmy (UID: 205)
+----------------------------------------
+semantic_score      0.0459    50.50%   ████████████████████
+engagement_score     0.0450    49.48%   ███████████████████
+text_length         0.0000     0.03%   
+
+Test completed at: 2025-01-17T15:55:41.697470

@@ -1,17 +1,20 @@
 import pytest
 from datetime import datetime, UTC, timedelta
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 import httpx
 import os
 import numpy as np
 import pandas as pd
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 from fiber.logging_utils import get_logger
 from validator.agent_scorer import PostsScorer
 from validator.get_agent_posts import GetAgentPosts
 from validator.registration import ValidatorRegistration
 from validator.config.hardware_config import HardwareConfig
+from interfaces.types import Tweet
 
 logger = get_logger(__name__)
 
@@ -158,7 +161,7 @@ async def test_live_scoring_with_registered_agents():
             # Calculate scores
             scores, feature_importance = posts_scorer.calculate_scores(posts)
             
-            # Save feature importance to CSV
+            # Save feature importance to CSV and text summary
             feature_importance_df = pd.DataFrame([
                 {
                     'Feature': feature,
@@ -173,6 +176,22 @@ async def test_live_scoring_with_registered_agents():
             ])
             feature_importance_df.to_csv(feature_importance_csv, index=False)
             
+            # Group posts by agent UID
+            posts_by_uid = {}
+            user_id_to_uid = {
+                agent.UserID: int(agent.UID)
+                for agent in validator.registered_agents.values()
+            }
+            
+            for post in posts:
+                user_id = post.get("UserID")
+                if not user_id or user_id not in user_id_to_uid:
+                    continue
+                uid = user_id_to_uid[user_id]
+                if uid not in posts_by_uid:
+                    posts_by_uid[uid] = []
+                posts_by_uid[uid].append(post)
+            
             # Save text summary of feature importance
             write_to_file("\n=== Feature Importance Analysis ===\n")
             write_to_file("Feature Importance Breakdown:")
@@ -185,6 +204,56 @@ async def test_live_scoring_with_registered_agents():
                 bar = "█" * bar_length
                 write_to_file(f"{row['Feature']:<15} {row['Importance']:>10.4f}   {row['Percentage']:>8.2f}%   {bar}")
             
+            # Add SHAP values per agent analysis
+            write_to_file("\n=== Agent SHAP Analysis ===\n")
+            write_to_file("SHAP Values by Agent (showing relative feature contributions):")
+            write_to_file("=" * 80)
+            
+            async def process_agent_shap(uid: int, agent_posts: List[Tweet]) -> tuple[int, dict, str]:
+                """Process SHAP values for a single agent"""
+                agent = next((a for a in validator.registered_agents.values() if int(a.UID) == uid), None)
+                if not agent or not agent_posts:
+                    return uid, {}, ""
+                
+                agent_shap_values = posts_scorer.feature_calculator.calculate(
+                    agent_posts,
+                    progress_bar=None
+                )
+                
+                # Format output string
+                output = []
+                output.append(f"\nAgent: @{agent.Username} (UID: {uid})")
+                output.append("-" * 40)
+                
+                sorted_features = sorted(
+                    agent_shap_values.items(),
+                    key=lambda x: abs(x[1]),
+                    reverse=True
+                )
+                
+                total_impact = sum(abs(v) for v in agent_shap_values.values())
+                for feature, shap_value in sorted_features:
+                    percentage = (abs(shap_value) / total_impact * 100) if total_impact else 0
+                    bar_length = int((abs(shap_value) / max(abs(v) for v in agent_shap_values.values())) * 20)
+                    bar = "█" * bar_length
+                    output.append(f"{feature:<15} {shap_value:>10.4f}   {percentage:>6.2f}%   {bar}")
+                
+                return uid, agent_shap_values, "\n".join(output)
+            
+            # Process agents concurrently
+            tasks = [
+                process_agent_shap(uid, agent_posts) 
+                for uid, agent_posts in posts_by_uid.items()
+            ]
+            
+            # Gather results
+            results = await asyncio.gather(*tasks)
+            
+            # Write results in order
+            for _, _, output_text in sorted(results, key=lambda x: x[0]):
+                if output_text:
+                    write_to_file(output_text)
+
             # Prepare agent metrics DataFrame
             agent_metrics = []
             for uid, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
