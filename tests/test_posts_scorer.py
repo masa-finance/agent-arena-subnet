@@ -97,12 +97,27 @@ async def test_live_scoring_with_registered_agents():
             logger.info(f"- Replies: {post.get('Replies', 0)}")
             logger.info(f"- Views: {post.get('Views', 0)}")
         
-        # Calculate scores
-        scores = posts_scorer.calculate_agent_scores(posts)
+        # Calculate scores and feature importance
+        scores, feature_importance = posts_scorer.calculate_agent_scores(posts)
         
         # Print scoring results
         logger.info("\n=== Scoring Results ===")
         logger.info(f"Number of scored agents: {len(scores)}")
+        
+        # Print SHAP values
+        logger.info("\n=== Feature Importance (SHAP Values) ===")
+        # Sort features by importance
+        sorted_features = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)
+        for feature, importance in sorted_features:
+            logger.info(f"{feature:12} : {importance:.4f}")
+            
+        # Visualize relative importance with simple bar chart
+        max_importance = max(importance for _, importance in sorted_features)
+        logger.info("\nRelative Feature Importance:")
+        for feature, importance in sorted_features:
+            bar_length = int((importance / max_importance) * 40)  # Scale to 40 chars max
+            bar = "█" * bar_length
+            logger.info(f"{feature:12} : {bar} ({importance:.4f})")
         
         # Sort and log detailed scores
         sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -114,7 +129,7 @@ async def test_live_scoring_with_registered_agents():
                 logger.info(
                     f"Agent UID {uid} (UserID: {agent.UserID}, @{username}): Score = {score:.4f}"
                 )
-        
+
         # Log statistics
         logger.info("\n=== Score Statistics ===")
         logger.info(f"Maximum score: {max(scores.values()):.4f}")

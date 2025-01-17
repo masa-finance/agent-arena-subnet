@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime, UTC, timedelta
@@ -6,6 +6,8 @@ from interfaces.types import Tweet
 from fiber.logging_utils import get_logger
 from .semantic_scorer import SemanticScorer
 from tqdm import tqdm
+import shap
+import pandas as pd
 
 logger = get_logger(__name__)
 
@@ -43,7 +45,67 @@ class PostsScorer:
 
         return np.log1p(base_score)
 
-    def calculate_agent_scores(self, posts: List[Tweet]) -> Dict[int, float]:
+    def _calculate_feature_importance(self, posts: List[Tweet]) -> Dict[str, float]:
+        """Calculate SHAP values for scoring features using a sample of posts"""
+        # Sample posts to reduce computation time (e.g., 1000 posts)
+        MAX_SAMPLES = 1000
+        if len(posts) > MAX_SAMPLES:
+            posts = np.random.choice(posts, MAX_SAMPLES, replace=False)
+        
+        features = []
+        scores = []
+        
+        for post in posts:
+            feature_dict = {
+                'text_length': len(str(post.get('Text', ''))),
+                'likes': post.get('Likes', 0),
+                'retweets': post.get('Retweets', 0),
+                'replies': post.get('Replies', 0),
+                'views': post.get('Views', 0),
+            }
+            features.append(feature_dict)
+            
+            # Calculate raw score without semantic component
+            base_score = (
+                feature_dict['text_length'] * self.length_weight +
+                feature_dict['likes'] * self.engagement_weights['Likes'] +
+                feature_dict['retweets'] * self.engagement_weights['Retweets'] +
+                feature_dict['replies'] * self.engagement_weights['Replies'] +
+                feature_dict['views'] * self.engagement_weights['Views']
+            )
+            scores.append(np.log1p(base_score))
+        
+        if not features:
+            return {}
+            
+        # Convert to DataFrame for SHAP
+        df = pd.DataFrame(features)
+        
+        # Define scoring function
+        def score_func(X):
+            return np.array([np.log1p(
+                row['text_length'] * self.length_weight +
+                row['likes'] * self.engagement_weights['Likes'] +
+                row['retweets'] * self.engagement_weights['Retweets'] +
+                row['replies'] * self.engagement_weights['Replies'] +
+                row['views'] * self.engagement_weights['Views']
+            ) for _, row in pd.DataFrame(X, columns=df.columns).iterrows()])
+        
+        # Create explainer with smaller number of background samples
+        explainer = shap.KernelExplainer(score_func, shap.sample(df, 100))  # Reduce background samples
+        
+        # Calculate SHAP values with reduced nsamples
+        shap_values = explainer.shap_values(df, nsamples=100)  # Reduce number of samples
+        
+        # Calculate mean absolute SHAP values for each feature
+        feature_importance = {
+            feature: np.abs(shap_values[:, i]).mean()
+            for i, feature in enumerate(df.columns)
+        }
+        
+        return feature_importance
+
+    def calculate_agent_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Dict[str, float]]:
         if not posts:
             logger.warning("No posts provided for scoring")
             return {}
@@ -138,4 +200,10 @@ class PostsScorer:
         logger.info("- Total agents scored: %d", len(final_scores))
         logger.info("- Agents with non-zero scores: %d", len(non_zero_scores))
         
-        return final_scores
+        # Calculate feature importance
+        feature_importance = self._calculate_feature_importance(filtered_posts)
+        logger.info("\nFeature Importance:")
+        for feature, importance in sorted(feature_importance.items(), key=lambda x: x[1], reverse=True):
+            logger.info(f"- {feature}: {importance:.4f}")
+            
+        return final_scores, feature_importance

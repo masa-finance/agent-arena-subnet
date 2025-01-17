@@ -71,28 +71,27 @@ class SemanticScorer:
             logger.debug("No valid texts after filtering")
             return [0.0] * len(texts)
 
-        logger.debug("Encoding %d texts for semantic analysis", len(valid_texts))
-        embeddings = self.model.encode(valid_texts, show_progress_bar=False)
+        # Process in batches to reduce memory usage
+        BATCH_SIZE = 1000
+        final_scores = []
         
-        originality_scores, uniqueness_scores = self._calculate_component_scores(embeddings)
-        
-        logger.debug("Originality scores range: min=%.3f, max=%.3f", 
-                     np.min(originality_scores), np.max(originality_scores))
-        logger.debug("Uniqueness scores range: min=%.3f, max=%.3f", 
-                     np.min(uniqueness_scores), np.max(uniqueness_scores))
+        for i in range(0, len(valid_texts), BATCH_SIZE):
+            batch = valid_texts[i:i + BATCH_SIZE]
+            logger.debug(f"Processing batch {i//BATCH_SIZE + 1}, size: {len(batch)}")
+            
+            embeddings = self.model.encode(batch, 
+                                         show_progress_bar=False,
+                                         batch_size=32,  # Adjust based on GPU memory
+                                         convert_to_numpy=True)
+            
+            orig_scores, uniq_scores = self._calculate_component_scores(embeddings)
+            batch_scores = (
+                self.weights['originality'] * orig_scores +
+                self.weights['uniqueness'] * uniq_scores
+            )
+            final_scores.extend(np.clip(batch_scores, 0, 1))
 
-        final_scores = (
-            self.weights['originality'] * originality_scores +
-            self.weights['uniqueness'] * uniqueness_scores
-        )
-
-        # Ensure final scores are finite and in [0,1] range
-        final_scores = np.clip(final_scores, 0, 1)
-
-        logger.debug("Final semantic scores range: min=%.3f, max=%.3f", 
-                     np.min(final_scores), np.max(final_scores))
-                     
-        # If we filtered out any empty texts, we need to reconstruct the full scores list
+        # If we filtered out any empty texts, reconstruct the full scores list
         if len(valid_texts) != len(texts):
             full_scores = []
             valid_idx = 0
