@@ -57,9 +57,12 @@ async def test_live_scoring_with_registered_agents():
     4. Provides detailed output of the scoring process
     """
     
-    # Setup time range for last 24 hours
-    end_date = datetime.now(UTC)
-    start_date = end_date - timedelta(hours=24)
+    # Set end time to now
+    end_time = datetime.now(UTC)
+    # Set start time to 7 days ago
+    start_time = end_time - timedelta(days=7)
+    
+    logger.info("Time Range: %s to %s", start_time.isoformat(), end_time.isoformat())
     
     async with MockValidator() as validator:
         # Initialize components
@@ -67,14 +70,14 @@ async def test_live_scoring_with_registered_agents():
         await registrar.fetch_registered_agents()
         
         logger.info("\n=== Test Configuration ===")
-        logger.info(f"Time Range: {start_date.isoformat()} to {end_date.isoformat()}")
+        logger.info(f"Time Range: {start_time.isoformat()} to {end_time.isoformat()}")
         logger.info(f"Number of registered agents: {len(validator.registered_agents)}")
         
         # Initialize scorers and getters
         posts_getter = GetAgentPosts(
             netuid=59,
-            start_date=start_date,
-            end_date=end_date
+            start_date=start_time,
+            end_date=end_time
         )
         posts_scorer = PostsScorer(validator)
         

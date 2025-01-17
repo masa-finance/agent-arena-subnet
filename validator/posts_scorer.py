@@ -1,7 +1,7 @@
 from typing import Dict, List, Any
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from interfaces.types import Tweet
 from fiber.logging_utils import get_logger
 from .semantic_scorer import SemanticScorer
@@ -47,10 +47,20 @@ class PostsScorer:
             logger.warning("No posts provided for scoring")
             return {}
             
+        # Filter posts from the last 7 days
+        current_time = datetime.now(UTC)
+        scoring_window = timedelta(days=7)
+        
+        filtered_posts = [
+            post for post in posts 
+            if (current_time - datetime.fromtimestamp(post.get("Timestamp", 0), UTC)) <= scoring_window
+        ]
+            
         logger.info("Input posts breakdown:")
         logger.info("- Total posts: %d", len(posts))
-        logger.info("- Unique users: %d", len(set(post.get("UserID") for post in posts)))
-        logger.info("- Posts with text: %d", len([p for p in posts if p.get("Text")]))
+        logger.info("- Posts in 7d window: %d", len(filtered_posts))
+        logger.info("- Unique users: %d", len(set(post.get("UserID") for post in filtered_posts)))
+        logger.info("- Posts with text: %d", len([p for p in filtered_posts if p.get("Text")]))
         
         # Create a temporary dictionary mapping UserId to UID
         user_id_to_uid = {
@@ -59,12 +69,17 @@ class PostsScorer:
         }
         logger.debug("Found %d registered agents", len(user_id_to_uid))
 
+        # Count how many unique users map to UIDs
+        unique_users = set(post.get("UserID") for post in filtered_posts)
+        mapped_users = sum(1 for user_id in unique_users if user_id in user_id_to_uid)
+        logger.info("- Users mapped to UIDs: %d/%d", mapped_users, len(unique_users))
+
         # Initialize scores dict with zeros for all registered agents
         final_scores = {uid: 0.0 for uid in user_id_to_uid.values()}
 
         # Group posts by UID first
         posts_by_uid: Dict[int, List[Tweet]] = {}
-        for post in posts:
+        for post in filtered_posts:  # Use filtered_posts instead of posts
             user_id = post.get("UserID")
             if not user_id:
                 continue
