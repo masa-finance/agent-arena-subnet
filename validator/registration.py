@@ -158,22 +158,26 @@ class ValidatorRegistration:
                                     agent.Username}"
                         )
                         (
-                            verified_tweet,
-                            user_id,
+                            _,
+                            _,
                             username,
-                            avatar,
-                            name,
-                            is_verified,
-                            followers_count,
+                            _,
+                            _,
+                            _,
+                            _,
                             error,
                         ) = await self.verify_tweet(
                             agent.VerificationTweetID, agent.HotKey
                         )
-                        x_profile = await self.validator.fetch_x_profile(username)
-                        if x_profile is None:
-                            logger.error(
-                                f"Failed to fetch X profile on second attempt for {username}, continuing..."
-                            )
+                        if not error:
+                            x_profile = await self.validator.fetch_x_profile(username)
+                            if x_profile is None:
+                                logger.error(
+                                    f"Failed to fetch X profile on second attempt for {username}, continuing..."
+                                )
+                                continue
+                        else:
+                            logger.error(str(error))
                             continue
                     except Exception as e:
                         logger.error(
@@ -360,7 +364,7 @@ class ValidatorRegistration:
             is_verified = x_profile["data"]["IsVerified"]
 
             logger.info(
-                f"Got tweet result: {tweet_id} - {screen_name} **** {full_text} - {avatar}"
+                f"Got tweet result: {tweet_id} - {screen_name} **** {full_text}"
             )
 
             verification_tweet = VerifiedTweet(
