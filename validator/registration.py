@@ -45,7 +45,7 @@ import os
 import json
 import httpx
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from fiber.logging_utils import get_logger
 from fiber.networking.models import NodeWithFernet as Node
@@ -153,10 +153,18 @@ class ValidatorRegistration:
             
             if response.status_code == 200:
                 agents = response.json() or []
-                self.validator.registered_agents = {
-                    agent["HotKey"]: RegisteredAgentResponse(**agent) for agent in agents
-                }
-                logger.info(f"Successfully fetched {len(agents)} agents for subnet {self.validator.netuid}")
+                # Filter the fields before creating RegisteredAgentResponse objects
+                self.validator.registered_agents = {}
+                for agent in agents:
+                    try:
+                        # Only pass the fields that RegisteredAgentResponse expects
+                        filtered_agent = self._filter_agent_fields(agent)
+                        self.validator.registered_agents[agent["HotKey"]] = RegisteredAgentResponse(**filtered_agent)
+                    except Exception as e:
+                        logger.error(f"Failed to process agent data: {str(e)}, Agent data: {agent}")
+                        continue
+                        
+                logger.info(f"Successfully fetched {len(self.validator.registered_agents)} agents for subnet {self.validator.netuid}")
                 return
                 
             raise RegistrationAPIError(
@@ -167,8 +175,23 @@ class ValidatorRegistration:
             
         except httpx.HTTPError as e:
             logger.error(f"HTTP error occurred while fetching agents: {str(e)}")
+            raise
         except Exception as e:
             logger.error(f"Unexpected error while fetching agents: {str(e)}")
+            raise
+
+    def _filter_agent_fields(self, agent_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Filter agent data to only include fields expected by RegisteredAgentResponse"""
+        expected_fields = {
+            'ID', 'HotKey', 'UID', 'SubnetID', 'Version', 'UserID', 'Username', 
+            'Avatar', 'Name', 'IsVerified', 'IsActive', 'FollowersCount',
+            'VerificationTweetID', 'VerificationTweetURL', 'VerificationTweetTimestamp',
+            'VerificationTweetText', 'CreatedAt', 'UpdatedAt', 'Banner', 'Biography',
+            'Birthday', 'FollowingCount', 'FriendsCount', 'IsPrivate', 'Joined',
+            'LikesCount', 'ListedCount', 'Location', 'PinnedTweetIDs', 'TweetsCount',
+            'URL', 'Website', 'Emissions', 'Marketcap'
+        }
+        return {k: v for k, v in agent_data.items() if k in expected_fields}
 
     async def register_agent(self, node: Any, verified_tweet: VerifiedTweet,
                            user_id: str, screen_name: str, avatar: str, 

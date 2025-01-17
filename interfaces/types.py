@@ -64,6 +64,7 @@ class RegisteredAgentResponse(JSONSerializable):
     UserID: str
     SubnetID: int
     Version: str
+    IsActive: bool
     CreatedAt: str
     UpdatedAt: str
     Avatar: Optional[str]

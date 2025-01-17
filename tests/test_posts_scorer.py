@@ -33,6 +33,19 @@ class MockValidator:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.httpx_client.aclose()
 
+    def _filter_agent_fields(self, agent_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Filter out unexpected fields from agent data before creating RegisteredAgentResponse"""
+        expected_fields = {
+            'ID', 'HotKey', 'UID', 'SubnetID', 'Version', 'UserID', 'Username', 
+            'Avatar', 'Name', 'IsVerified', 'IsActive', 'FollowersCount',
+            'VerificationTweetID', 'VerificationTweetURL', 'VerificationTweetTimestamp',
+            'VerificationTweetText', 'CreatedAt', 'UpdatedAt', 'Banner', 'Biography',
+            'Birthday', 'FollowingCount', 'FriendsCount', 'IsPrivate', 'Joined',
+            'LikesCount', 'ListedCount', 'Location', 'PinnedTweetIDs', 'TweetsCount',
+            'URL', 'Website', 'Emissions', 'Marketcap'
+        }
+        return {k: v for k, v in agent_data.items() if k in expected_fields}
+
 @pytest.mark.asyncio
 async def test_live_scoring_with_registered_agents():
     """
