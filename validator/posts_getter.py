@@ -1,3 +1,41 @@
+"""
+Protocol API Posts Getter Module
+
+This module provides functionality to fetch posts from the Protocol API service within
+specified time ranges. It handles authentication, error handling, and proper API versioning
+for subnet post retrieval operations.
+
+Key Components:
+    - PostsGetter: Main class for fetching posts with configurable date ranges
+    - PostsAPIError: Custom exception for handling API-specific errors
+
+Environment Variables:
+    - API_KEY: Authentication token for the Protocol API (optional)
+    - API_URL: Base URL for the API (defaults to https://test.protocol-api.masa.ai)
+
+Usage Example:
+    ```python
+    from datetime import datetime, UTC
+    
+    # Initialize with default 7-day lookback
+    getter = PostsGetter(netuid=1)
+    
+    # Or specify custom date range
+    getter = PostsGetter(
+        netuid=1,
+        start_date=datetime(2024, 1, 1, tzinfo=UTC),
+        end_date=datetime(2024, 1, 7, tzinfo=UTC)
+    )
+    
+    # Fetch posts asynchronously
+    posts = await getter.get()
+    ```
+
+Note:
+    All timestamps are handled in UTC timezone to ensure consistency
+    across different environments and time zones.
+"""
+
 from dataclasses import dataclass
 from typing import List, Any, Optional
 from datetime import datetime, UTC, timedelta
@@ -15,7 +53,14 @@ SUBNET_API_PATH = "subnet59"
 
 
 class PostsAPIError(Exception):
-    """Custom exception for Posts API related errors"""
+    """
+    PostsAPIError represents errors that occur during Posts API operations.
+    
+    Attributes:
+        status_code: Optional HTTP status code from the failed request
+        response_body: Optional response body from the failed request
+        message: Descriptive error message
+    """
     def __init__(self, message: str, status_code: Optional[int] = None, response_body: Optional[str] = None):
         self.status_code = status_code
         self.response_body = response_body
@@ -27,8 +72,19 @@ class PostsAPIError(Exception):
 @dataclass
 class PostsGetter:
     """
-    Fetches posts from the API within a specified date range.
-    If no date range is provided, defaults to the last 7 days.
+    PostsGetter handles fetching posts from the Protocol API within a specified date range.
+    
+    If no date range is provided, it defaults to fetching posts from the last 7 days.
+    The class handles authentication and proper API versioning.
+    
+    Attributes:
+        netuid: Network user identifier for the subnet
+        start_date: Optional start date for post fetching (defaults to 7 days ago)
+        end_date: Optional end date for post fetching (defaults to current time)
+    
+    Example:
+        getter = PostsGetter(netuid=1)
+        posts = await getter.get()
     """
     netuid: int
     start_date: Optional[datetime] = None
@@ -44,7 +100,12 @@ class PostsGetter:
         self._setup_client()
 
     def _setup_client(self) -> None:
-        """Sets up the HTTP client with appropriate headers"""
+        """
+        _setup_client initializes the HTTP client with authentication headers.
+        
+        Uses API_KEY from environment variables if available. The client is configured
+        with proper authentication headers and base URL settings.
+        """
         self.api_key = os.getenv("API_KEY")
         self.api_url = os.getenv("API_URL", DEFAULT_API_URL)
         
@@ -56,7 +117,15 @@ class PostsGetter:
         )
 
     async def get(self) -> List[Any]:
-        """Fetches and returns posts for the configured date range"""
+        """
+        get fetches posts for the configured date range.
+        
+        Returns:
+            List[Any]: List of posts within the specified date range
+            
+        Note:
+            The posts are fetched asynchronously using httpx client.
+        """
         posts = await self._fetch_posts()
         logger.info(
             f"Loaded {len(posts)} posts between {datetime.fromtimestamp(self.start_timestamp, UTC)} "
@@ -65,7 +134,19 @@ class PostsGetter:
         return posts
 
     async def _fetch_posts(self) -> List[Any]:
-        """Fetches posts from the API within the specified date range"""
+        """
+        _fetch_posts performs the actual HTTP request to fetch posts.
+        
+        Returns:
+            List[Any]: List of posts from the API response
+            
+        Raises:
+            PostsAPIError: When the API request fails with non-200 status code
+            
+        Note:
+            This method handles various error cases and logs appropriate messages.
+            On error, it returns an empty list instead of raising exceptions.
+        """
         try:
             response = await self.httpx_client.get(
                 f"{self.api_url}/{API_VERSION}/{SUBNET_API_PATH}/miners/posts",
