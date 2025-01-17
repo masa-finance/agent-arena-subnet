@@ -9,6 +9,7 @@ from fiber.networking.models import NodeWithFernet as Node
 
 
 from interfaces.types import (
+    TweetVerificationResult,
     VerifiedTweet,
     RegisteredAgentResponse,
     RegisteredAgentRequest,
@@ -314,30 +315,45 @@ class ValidatorRegistration:
         except Exception as e:
             logger.error("Error checking registered nodes: %s", str(e))
 
-    async def verify_tweet(
-        self, id: str, hotkey: str
-    ) -> tuple[VerifiedTweet, str, str, str, str, bool, int, str]:
+    async def verify_tweet(self, id: str, hotkey: str) -> TweetVerificationResult:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
-            error = None
-            result = await self.validator.fetch_x_tweet_by_id(id)
+            tweet_response = await self.validator.fetch_x_tweet_by_id(id)
 
-            if not result or result.get("recordCount", 0) == 0:
+            if not tweet_response or tweet_response.get("recordCount", 0) == 0:
                 error = f"Could not fetch tweet id {id} for node {hotkey}"
                 logger.error(error)
-                return None, None, None, None, None, None, None, str(error)
+                return TweetVerificationResult(
+                    None, None, None, None, None, None, None, str(error)
+                )
 
-            tweet_data_result = result.get("data", {})
+            tweet_data_result = tweet_response.get("data", {})
             tweet_id = tweet_data_result.get("ID")
             created_at = tweet_data_result.get("TimeParsed")
             screen_name = tweet_data_result.get("Username")
             name = tweet_data_result.get("Name")
             user_id = tweet_data_result.get("UserID")
             full_text = tweet_data_result.get("Text")
+            permanent_url = tweet_data_result.get("PermanentURL")
+
+            # ensure hotkey is in the tweet text
+            if hotkey not in full_text:
+                error = f"Hotkey {hotkey} is not in the tweet text {full_text}"
+                logger.error(error)
+                return TweetVerificationResult(
+                    None, None, None, None, None, None, None, str(error)
+                )
 
             # Fetching profile to keep the response the same
             x_profile = await self.validator.fetch_x_profile(screen_name)
+
+            if not x_profile:
+                error = f"Could not fetch profile for {screen_name}"
+                logger.error(error)
+                return TweetVerificationResult(
+                    None, None, None, None, None, None, None, str(error)
+                )
 
             followers_count = x_profile["data"]["FollowersCount"]
             avatar = x_profile["data"]["Avatar"]
@@ -347,22 +363,13 @@ class ValidatorRegistration:
                 f"Got tweet result: {tweet_id} - {screen_name} **** {full_text} - {avatar}"
             )
 
-            if not isinstance(screen_name, str) or not isinstance(full_text, str):
-                error = "Invalid tweet data: screen_name or full_text is not a string"
-                logger.error(error)
-
-            # ensure hotkey is in the tweet text
-            if hotkey not in full_text:
-                error = f"Hotkey {hotkey} is not in the tweet text {full_text}"
-                logger.error(error)
-
             verification_tweet = VerifiedTweet(
                 TweetID=tweet_id,
-                URL=tweet_data_result.get("PermanentURL"),
+                URL=permanent_url,
                 Timestamp=created_at,
                 FullText=full_text,
             )
-            return (
+            return TweetVerificationResult(
                 verification_tweet,
                 user_id,
                 screen_name,
@@ -370,11 +377,13 @@ class ValidatorRegistration:
                 name,
                 is_verified,
                 followers_count,
-                error,
+                None,
             )
         except Exception as e:
             logger.error(f"Failed to register agent: {str(e)}")
-            return None, None, None, None, None, None, None, str(e)
+            return TweetVerificationResult(
+                None, None, None, None, None, None, None, str(e)
+            )
 
     async def get_verification_tweet_id(self, node: Node) -> Optional[str]:
         endpoint = "/get_verification_tweet_id"

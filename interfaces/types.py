@@ -186,3 +186,15 @@ class Tweet(BaseModel, JSONSerializable):
 class RegistrationCallback(BaseModel):
     agent: Optional[str] = None
     message: Optional[str] = None
+
+
+@dataclass
+class TweetVerificationResult:
+    verification_tweet: Optional[VerifiedTweet]
+    user_id: Optional[str]
+    screen_name: Optional[str]
+    avatar: Optional[str]
+    name: Optional[str]
+    is_verified: Optional[bool]
+    followers_count: Optional[int]
+    error: Optional[str]
