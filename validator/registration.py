@@ -189,7 +189,7 @@ class ValidatorRegistration:
                         Timestamp=agent.VerificationTweetTimestamp,
                         FullText=agent.VerificationTweetText,
                     )
-                    profile = dict(x_profile.get("data", {}))
+                    profile = dict(dict(x_profile).get("data", {}))
                     update_data = RegisteredAgentRequest(
                         HotKey=hotkey,
                         UID=str(agent.UID),
@@ -324,14 +324,14 @@ class ValidatorRegistration:
                     None, None, None, None, None, None, None, str(error)
                 )
 
-            tweet_data_result = tweet_response.get("data", {})
-            tweet_id = tweet_data_result.get("ID")
-            created_at = tweet_data_result.get("TimeParsed")
-            screen_name = tweet_data_result.get("Username")
-            name = tweet_data_result.get("Name")
-            user_id = tweet_data_result.get("UserID")
-            full_text = tweet_data_result.get("Text")
-            permanent_url = tweet_data_result.get("PermanentURL")
+            tweet = tweet_response.get("data", {})
+            tweet_id = tweet.get("ID")
+            created_at = tweet.get("TimeParsed")
+            screen_name = tweet.get("Username")
+            name = tweet.get("Name")
+            user_id = tweet.get("UserID")
+            full_text = tweet.get("Text")
+            permanent_url = tweet.get("PermanentURL")
 
             # ensure hotkey is in the tweet text
             if hotkey not in full_text:
@@ -351,7 +351,7 @@ class ValidatorRegistration:
                     None, None, None, None, None, None, None, str(error)
                 )
 
-            profile = dict(x_profile.get("data", {}))
+            profile = dict(dict(x_profile).get("data", {}))
             followers_count = profile.get["FollowersCount"]
             avatar = profile.get["Avatar"]
             is_verified = profile.get["IsVerified"]
