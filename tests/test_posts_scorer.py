@@ -54,15 +54,20 @@ async def test_live_scoring_with_registered_agents():
     """
     Test scoring using real API data and registered agents.
     """
-    # Create results directory if it doesn't exist
-    results_dir = "test_results"
+    # Create dated results directory structure
+    base_dir = "test_results"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    dated_dir = datetime.now().strftime("%Y%m%d")
+    results_dir = os.path.join(base_dir, dated_dir, timestamp)
     os.makedirs(results_dir, exist_ok=True)
     
-    # Generate timestamp for unique filename base
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_file = os.path.join(results_dir, f"scoring_results_{timestamp}.txt")
-    feature_importance_csv = os.path.join(results_dir, f"feature_importance_{timestamp}.csv")
-    agent_metrics_csv = os.path.join(results_dir, f"agent_metrics_{timestamp}.csv")
+    # Define file paths in the dated directory
+    results_file = os.path.join(results_dir, "scoring_results.txt")
+    feature_importance_csv = os.path.join(results_dir, "feature_importance.csv")
+    agent_metrics_csv = os.path.join(results_dir, "agent_metrics.csv")
+    
+    # Create a metadata file to track test configuration
+    metadata_file = os.path.join(results_dir, "metadata.json")
     
     def write_to_file(content: str):
         with open(results_file, "a") as f:
@@ -71,6 +76,24 @@ async def test_live_scoring_with_registered_agents():
     # Set end time to now
     end_time = datetime.now(UTC)
     start_time = end_time - timedelta(days=7)
+    
+    # Save metadata
+    metadata = {
+        "timestamp": timestamp,
+        "date": dated_dir,
+        "time_range": {
+            "start": start_time.isoformat(),
+            "end": end_time.isoformat()
+        },
+        "files": {
+            "scoring_results": "scoring_results.txt",
+            "feature_importance": "feature_importance.csv",
+            "agent_metrics": "agent_metrics.csv"
+        }
+    }
+    
+    with open(metadata_file, 'w') as f:
+        json.dump(metadata, f, indent=2)
     
     write_to_file(f"Scoring Analysis Results - {timestamp}\n")
     write_to_file(f"Time Range: {start_time.isoformat()} to {end_time.isoformat()}\n")
@@ -214,10 +237,12 @@ async def test_live_scoring_with_registered_agents():
             for stat_name, value in stats.items():
                 write_to_file(f"{stat_name}: {value:.4f}")
             
-            logger.info(f"Results saved to:")
-            logger.info(f"- Summary: {results_file}")
-            logger.info(f"- Feature Importance: {feature_importance_csv}")
-            logger.info(f"- Agent Metrics: {agent_metrics_csv}")
+            logger.info(f"Results saved to directory: {results_dir}")
+            logger.info(f"Files saved:")
+            logger.info(f"- Summary: scoring_results.txt")
+            logger.info(f"- Feature Importance: feature_importance.csv")
+            logger.info(f"- Agent Metrics: agent_metrics.csv")
+            logger.info(f"- Metadata: metadata.json")
             
             # Continue with existing assertions
             assert isinstance(scores, dict)
