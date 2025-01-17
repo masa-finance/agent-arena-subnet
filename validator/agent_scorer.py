@@ -7,10 +7,11 @@ from interfaces.types import Tweet
 from fiber.logging_utils import get_logger
 from validator.config.hardware_config import HardwareConfig, PerformanceConfig
 from validator.config.scoring_config import ScoringWeights
-from validator.config.progress_config import ProgressBarConfig, ProgressStages
+from validator.config.progress_config import ProgressBarConfig, ProgressStages, ScoringProgressConfig, ShapProgressConfig
 from validator.scorers.semantic_scorer import SemanticScorer
 from validator.scorers.engagement_scorer import EngagementScorer
 from validator.scorers.feature_importance import FeatureImportanceCalculator
+from time import time
 
 logger = get_logger(__name__)
 
@@ -61,45 +62,26 @@ class AgentScorer:
             logger.warning("No posts provided for scoring")
             return {}, {}
             
-        progress_config = ProgressBarConfig(
-            desc=ProgressStages.SCORING,
-            total=4,  # Total major steps
-            initial_status={"stage": ProgressStages.INITIALIZATION}
-        )
+        # Step 1: Filter posts
+        filtered_posts = self._filter_recent_posts(posts)
+        stats = self._calculate_post_stats(filtered_posts)
+        
+        # Step 2: Process posts by agent
+        posts_by_uid = self._group_posts_by_agent(filtered_posts)
+        
+        # Use ScoringProgressConfig instead of base ProgressBarConfig
+        progress_config = ScoringProgressConfig(total_agents=len(posts_by_uid))
         
         with progress_config.create_progress_bar() as main_pbar:
-            # Step 1: Filter posts
-            filtered_posts = self._filter_recent_posts(posts)
-            stats = self._calculate_post_stats(filtered_posts)
+            main_pbar.set_postfix(**stats)
             
-            main_pbar.set_postfix(ProgressStages.get_scoring_status(
-                ProgressStages.FILTERING, 
-                **stats
-            ))
-            main_pbar.update(1)
-
-            # Step 2: Process posts by agent
-            agent_data = self._group_posts_by_agent(filtered_posts)
-            main_pbar.set_postfix(ProgressStages.get_scoring_status(
-                ProgressStages.SEMANTIC,
-                agents=len(agent_data)
-            ))
-            main_pbar.update(1)
-
             # Step 3: Calculate scores
-            agent_scores = self._calculate_agent_scores(agent_data, main_pbar)
-            main_pbar.set_postfix(ProgressStages.get_scoring_status(
-                ProgressStages.SCORING,
-                scored_agents=len(agent_scores)
-            ))
-            main_pbar.update(1)
-
-            # Step 4: Calculate feature importance
-            feature_importance = self.feature_calculator.calculate(filtered_posts)
-            main_pbar.set_postfix(ProgressStages.get_scoring_status(
-                ProgressStages.COMPLETE
-            ))
-            main_pbar.update(1)
+            agent_scores = self._calculate_agent_scores(posts_by_uid, main_pbar)
+            
+            # Step 4: Calculate feature importance with ShapProgressConfig
+            shap_config = ShapProgressConfig(total_samples=self.config.shap_background_samples)
+            with shap_config.create_progress_bar() as shap_pbar:
+                feature_importance = self.feature_calculator.calculate(filtered_posts, shap_pbar)
 
             return agent_scores, feature_importance
 
@@ -144,10 +126,12 @@ class AgentScorer:
                               progress_bar: tqdm) -> Dict[int, float]:
         """Calculate final scores for each agent"""
         final_scores = {uid: 0.0 for uid in posts_by_uid.keys()}
+        start_time = time()
+        processed_agents = 0
         
         for uid, agent_posts in posts_by_uid.items():
             texts = [post.get("Text", "") for post in agent_posts]
-            semantic_scores = self.semantic_scorer.calculate_scores(texts, progress_bar)
+            semantic_scores = self.semantic_scorer.calculate_scores(texts)
             
             scores = []
             for post, semantic_score in zip(agent_posts, semantic_scores):
@@ -163,6 +147,17 @@ class AgentScorer:
                 mean_score = np.mean(scores)
                 post_count = len(scores)
                 final_scores[uid] = mean_score * np.log1p(post_count)
+            
+            # Update progress
+            processed_agents += 1
+            elapsed_time = time() - start_time
+            rate = processed_agents / elapsed_time if elapsed_time > 0 else 0
+            
+            progress_bar.update(1)
+            progress_bar.set_postfix({
+                "agents": f"{processed_agents}/{len(posts_by_uid)}",
+                "rate": f"{rate:.2f} agents/s"
+            })
 
         return self._normalize_scores(final_scores)
 
