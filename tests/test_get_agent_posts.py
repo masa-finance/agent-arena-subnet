@@ -43,4 +43,4 @@ async def test_get_posts_last_20_mins():
         sample_post = posts[0]
         assert isinstance(sample_post, dict), "Each post should be a dictionary" 
 
-# pytest tests/test_posts_getter.py -v -s to run the test and get the output with full response body
+# pytest tests/test_get_agent_posts.py -v -s to run the test and get the output with full response body
