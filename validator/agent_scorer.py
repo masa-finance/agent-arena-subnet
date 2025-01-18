@@ -12,7 +12,6 @@ from validator.scorers.semantic_scorer import SemanticScorer
 from validator.scorers.engagement_scorer import EngagementScorer
 from validator.scorers.feature_importance import FeatureImportanceCalculator
 from time import time
-from validator.scorers.follower_scorer import FollowerScorer
 
 logger = get_logger(__name__)
 
@@ -38,10 +37,8 @@ class AgentScorer:
         self.feature_calculator = FeatureImportanceCalculator(
             config=self.shap_config,
             weights=self.weights,
-            semantic_scorer=self.semantic_scorer,
-            validator=self.validator
+            semantic_scorer=self.semantic_scorer
         )
-        self.follower_scorer = FollowerScorer()
         
         self._log_initialization()
 
@@ -58,30 +55,28 @@ class AgentScorer:
             logger.info(f"SHAP GPU Memory: {self.shap_config.gpu_memory}GB")
 
     def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
-        """Calculate individual post score with semantic quality and follower metrics"""
+        """Calculate individual post score with semantic quality as the primary factor"""
         text = post.get("Text", "")
         
-        # Get the agent data for follower scoring - use str(UserID) for lookup
-        user_id = str(post.get("UserID"))
-        agent = self.validator.registered_agents.get(user_id)
-        follower_score = self.follower_scorer.calculate_score(post, agent)
+        # Significantly reduce text length importance
+        text_length = min(len(str(text)), 280) / 280  # Normalize to max tweet length
+        length_score = text_length * (self.weights.length_weight * 0.1)  # Further reduce length weight
         
-        # Calculate other scores as before
-        text_length = min(len(str(text)), 280) / 280
-        length_score = text_length * (self.weights.length_weight * 0.1)
+        # Calculate engagement score but cap its impact
         engagement_score = min(self.engagement_scorer.calculate_score(post), 1.0)
-        weighted_semantic = semantic_score * (self.weights.semantic_weight * 2.0)
         
-        # Combine scores with follower influence
+        # Amplify semantic score importance
+        weighted_semantic = semantic_score * (self.weights.semantic_weight * 2.0)  # Double semantic weight
+        
+        # Combine scores with heavily weighted semantic component
         base_score = (
-            weighted_semantic * 0.55 +     # 55% semantic
-            engagement_score * 0.15 +      # 15% engagement
-            follower_score * 0.25 +        # 25% follower influence
-            length_score * 0.05            # 5% length
+            weighted_semantic * 0.8 +    # 80% semantic
+            engagement_score * 0.15 +    # 15% engagement
+            length_score * 0.05          # 5% length
         )
         
-        # Apply quality multiplier
-        quality_multiplier = 1.0 + (semantic_score * 0.5)
+        # Apply additional semantic quality multiplier
+        quality_multiplier = 1.0 + (semantic_score * 0.5)  # Up to 50% boost for high semantic quality
         
         return np.log1p(base_score * quality_multiplier)
 
@@ -143,26 +138,10 @@ class AgentScorer:
 
     def _group_posts_by_agent(self, posts: List[Tweet]) -> Dict[int, List[Tweet]]:
         """Group posts by agent UID"""
-        # Debug logging to see what agents we have
-        logger.info(f"Number of registered agents: {len(self.validator.registered_agents)}")
-        logger.info("Registered agent UserIDs: %s", [
-            agent.UserID for agent in self.validator.registered_agents.values()
-        ])
-        
         user_id_to_uid = {
             agent.UserID: int(agent.UID)
             for agent in self.validator.registered_agents.values()
         }
-        
-        # Debug logging for posts
-        unmatched_user_ids = set()
-        for post in posts:
-            user_id = post.get("UserID")
-            if user_id and user_id not in user_id_to_uid:
-                unmatched_user_ids.add(user_id)
-        
-        if unmatched_user_ids:
-            logger.warning("Found posts from unregistered UserIDs: %s", unmatched_user_ids)
         
         posts_by_uid: Dict[int, List[Tweet]] = {}
         for post in posts:

@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 import torch
@@ -9,21 +9,14 @@ from interfaces.types import Tweet
 from ..config.hardware_config import HardwareConfig
 from ..config.scoring_config import ScoringWeights
 from ..scorers.semantic_scorer import SemanticScorer
-from ..scorers.follower_scorer import FollowerScorer
-import logging
-
-logger = logging.getLogger(__name__)
 
 class FeatureImportanceCalculator:
     """Calculates feature importance using SHAP values"""
 
-    def __init__(self, config: HardwareConfig, weights: ScoringWeights, 
-                 semantic_scorer: SemanticScorer, validator: Any):
+    def __init__(self, config: HardwareConfig, weights: ScoringWeights, semantic_scorer: SemanticScorer):
         self.config = config
         self.weights = weights
         self.semantic_scorer = semantic_scorer
-        self.validator = validator
-        self.follower_scorer = FollowerScorer()
         self.device = torch.device(self.config.device_type)
 
     def _prepare_features(self, posts: List[Tweet]) -> pd.DataFrame:
@@ -41,31 +34,18 @@ class FeatureImportanceCalculator:
                 post.get('Retweets', 0) * self.weights.engagement_weights['Retweets'] +
                 post.get('Replies', 0) * self.weights.engagement_weights['Replies'] +
                 post.get('Views', 0) * self.weights.engagement_weights['Views']
-            ),
-            'follower_score': self._get_follower_score(post)
+            )
         } for post, semantic_score in zip(posts, semantic_scores)]
         
         return pd.DataFrame(features)
 
-    def _get_follower_score(self, post: Tweet) -> float:
-        """Get follower score for a post"""
-        user_id = post.get("UserID")
-        agent = self.validator.registered_agents.get(str(user_id))
-        if not agent:
-            logger.debug(f"No agent found for UserID: {user_id}")
-            return 0.0
-        score = self.follower_scorer.calculate_score(post, agent)
-        logger.debug(f"Follower score for {agent.Username}: {score}")
-        return score
-
     def _score_function(self, X: np.ndarray) -> np.ndarray:
         """Score function for SHAP explainer - apply weights here"""
-        df = pd.DataFrame(X, columns=['text_length', 'semantic_score', 'engagement_score', 'follower_score'])
+        df = pd.DataFrame(X, columns=['text_length', 'semantic_score', 'engagement_score'])
         return np.array([np.log1p(
             (row['text_length'] / 280) * (self.weights.length_weight * 0.1 * 0.05) +
-            np.power(row['semantic_score'], 0.75) * (self.weights.semantic_weight * 2.0 * 0.55) +
-            row['engagement_score'] * 0.15 +
-            np.power(row['follower_score'], 0.8) * 0.25
+            np.power(row['semantic_score'], 0.75) * (self.weights.semantic_weight * 2.0 * 0.8) +
+            row['engagement_score'] * 0.15
         ) * (1.0 + (row['semantic_score'] * 0.5)) for _, row in df.iterrows()])
 
     def calculate(self, posts: List[Tweet], progress_bar: Optional[tqdm] = None) -> Dict[str, float]:
@@ -92,7 +72,7 @@ class FeatureImportanceCalculator:
             progress_bar.update(self.config.shap_background_samples)
             progress_bar.set_postfix({
                 "samples": f"{self.config.shap_background_samples}/{self.config.shap_background_samples}",
-                "features": "text_length,semantic_score,engagement_score,follower_score"
+                "features": "text_length,semantic_score,engagement_score"
             })
 
         # Calculate absolute mean SHAP values
