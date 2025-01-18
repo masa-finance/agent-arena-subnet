@@ -59,23 +59,16 @@ class AgentScorer:
     def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
         """Calculate individual post score with semantic quality as the primary factor"""
         text = post.get("Text", "")
-        
-        # Get profile metrics
-        followers_count = post.get("FollowersCount", 0)
         is_verified = post.get("IsVerified", False)
-        profile_score = self.profile_scorer.calculate_score(followers_count, is_verified)
         
-        # Significantly reduce text length importance
-        text_length = min(len(str(text)), 280) / 280  # Normalize to max tweet length
-        length_score = text_length * (self.weights.length_weight * 0.1)  # Further reduce length weight
-        
-        # Calculate engagement score but cap its impact
+        # Calculate component scores normally
+        profile_score = self.profile_scorer.calculate_score(post)
+        text_length = min(len(str(text)), 280) / 280
+        length_score = text_length * (self.weights.length_weight * 0.1)
         engagement_score = min(self.engagement_scorer.calculate_score(post), 1.0)
+        weighted_semantic = semantic_score * (self.weights.semantic_weight * 2.0)
         
-        # Amplify semantic score importance
-        weighted_semantic = semantic_score * (self.weights.semantic_weight * 2.0)  # Double semantic weight
-        
-        # Combine scores with heavily weighted semantic component
+        # Combine base scores
         base_score = (
             weighted_semantic * 0.7 +     # 70% semantic
             engagement_score * 0.15 +     # 15% engagement
@@ -83,10 +76,13 @@ class AgentScorer:
             length_score * 0.05           # 5% length
         )
         
-        # Apply additional semantic quality multiplier
-        quality_multiplier = 1.0 + (semantic_score * 0.5)  # Up to 50% boost for high semantic quality
+        # Apply semantic quality multiplier
+        quality_multiplier = 1.0 + (semantic_score * 0.5)
         
-        return np.log1p(base_score * quality_multiplier)
+        # Apply severe verification penalty to final combined score
+        verification_multiplier = 1.0 if is_verified else 0.05  # 95% penalty for unverified
+        
+        return np.log1p(base_score * quality_multiplier * verification_multiplier)
 
     def calculate_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Dict[str, float]]:
         """
