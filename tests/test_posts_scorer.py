@@ -161,7 +161,33 @@ async def test_live_scoring_with_registered_agents():
             # Calculate scores
             scores, feature_importance = posts_scorer.calculate_scores(posts)
             
-            # Save feature importance to CSV and text summary
+            # Immediately prepare and save agent metrics DataFrame
+            agent_metrics = []
+            for uid, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
+                agent = next((a for a in validator.registered_agents.values() if int(a.UID) == uid), None)
+                if agent:
+                    agent_posts = [p for p in posts if str(p.get('UserID')) == str(agent.UserID)]
+                    if agent_posts:
+                        metrics = {
+                            'Username': agent.Username,
+                            'UID': uid,
+                            'Total_Score': score,
+                            'Post_Count': len(agent_posts),
+                            'Avg_Text_Length': np.mean([len(str(p.get('Text', ''))) for p in agent_posts]),
+                            'Avg_Likes': np.mean([p.get('Likes', 0) for p in agent_posts]),
+                            'Avg_Retweets': np.mean([p.get('Retweets', 0) for p in agent_posts]),
+                            'Avg_Replies': np.mean([p.get('Replies', 0) for p in agent_posts]),
+                            'Avg_Views': np.mean([p.get('Views', 0) for p in agent_posts]),
+                            'FollowersCount': agent.FollowersCount,
+                            'IsVerified': agent.IsVerified
+                        }
+                        agent_metrics.append(metrics)
+            
+            # Save agent metrics to CSV before SHAP calculation
+            agent_metrics_df = pd.DataFrame(agent_metrics)
+            agent_metrics_df.to_csv(agent_metrics_csv, index=False)
+            
+            # Save feature importance to CSV
             feature_importance_df = pd.DataFrame([
                 {
                     'Feature': feature,
@@ -175,7 +201,12 @@ async def test_live_scoring_with_registered_agents():
                 )
             ])
             feature_importance_df.to_csv(feature_importance_csv, index=False)
-            
+
+            # Now process SHAP values sequentially
+            write_to_file("\n=== Agent SHAP Analysis ===\n")
+            write_to_file("SHAP Values by Agent (showing relative feature contributions):")
+            write_to_file("=" * 80)
+
             # Group posts by agent UID
             posts_by_uid = {}
             user_id_to_uid = {
@@ -203,80 +234,6 @@ async def test_live_scoring_with_registered_agents():
                 bar_length = int((row['Importance'] / feature_importance_df['Importance'].max()) * 40)
                 bar = "█" * bar_length
                 write_to_file(f"{row['Feature']:<15} {row['Importance']:>10.4f}   {row['Percentage']:>8.2f}%   {bar}")
-            
-            # Add SHAP values per agent analysis
-            write_to_file("\n=== Agent SHAP Analysis ===\n")
-            write_to_file("SHAP Values by Agent (showing relative feature contributions):")
-            write_to_file("=" * 80)
-            
-            async def process_agent_shap(uid: int, agent_posts: List[Tweet]) -> tuple[int, dict, str]:
-                """Process SHAP values for a single agent"""
-                agent = next((a for a in validator.registered_agents.values() if int(a.UID) == uid), None)
-                if not agent or not agent_posts:
-                    return uid, {}, ""
-                
-                agent_shap_values = posts_scorer.feature_calculator.calculate(
-                    agent_posts,
-                    progress_bar=None
-                )
-                
-                # Format output string
-                output = []
-                output.append(f"\nAgent: @{agent.Username} (UID: {uid})")
-                output.append("-" * 40)
-                
-                sorted_features = sorted(
-                    agent_shap_values.items(),
-                    key=lambda x: abs(x[1]),
-                    reverse=True
-                )
-                
-                total_impact = sum(abs(v) for v in agent_shap_values.values())
-                for feature, shap_value in sorted_features:
-                    percentage = (abs(shap_value) / total_impact * 100) if total_impact else 0
-                    bar_length = int((abs(shap_value) / max(abs(v) for v in agent_shap_values.values())) * 20)
-                    bar = "█" * bar_length
-                    output.append(f"{feature:<15} {shap_value:>10.4f}   {percentage:>6.2f}%   {bar}")
-                
-                return uid, agent_shap_values, "\n".join(output)
-            
-            # Process agents concurrently
-            tasks = [
-                process_agent_shap(uid, agent_posts) 
-                for uid, agent_posts in posts_by_uid.items()
-            ]
-            
-            # Gather results
-            results = await asyncio.gather(*tasks)
-            
-            # Write results in order
-            for _, _, output_text in sorted(results, key=lambda x: x[0]):
-                if output_text:
-                    write_to_file(output_text)
-
-            # Prepare agent metrics DataFrame
-            agent_metrics = []
-            for uid, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
-                agent = next((a for a in validator.registered_agents.values() if int(a.UID) == uid), None)
-                if agent:
-                    agent_posts = [p for p in posts if str(p.get('UserID')) == str(agent.UserID)]
-                    if agent_posts:
-                        metrics = {
-                            'Username': agent.Username,
-                            'UID': uid,
-                            'Total_Score': score,
-                            'Post_Count': len(agent_posts),
-                            'Avg_Text_Length': np.mean([len(str(p.get('Text', ''))) for p in agent_posts]),
-                            'Avg_Likes': np.mean([p.get('Likes', 0) for p in agent_posts]),
-                            'Avg_Retweets': np.mean([p.get('Retweets', 0) for p in agent_posts]),
-                            'Avg_Replies': np.mean([p.get('Replies', 0) for p in agent_posts]),
-                            'Avg_Views': np.mean([p.get('Views', 0) for p in agent_posts])
-                        }
-                        agent_metrics.append(metrics)
-            
-            # Save agent metrics to CSV
-            agent_metrics_df = pd.DataFrame(agent_metrics)
-            agent_metrics_df.to_csv(agent_metrics_csv, index=False)
             
             # Continue with text summary for readability
             write_to_file("\n=== Agent Analysis ===\n")

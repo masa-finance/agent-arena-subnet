@@ -11,6 +11,7 @@ from validator.config.progress_config import ProgressBarConfig, ProgressStages, 
 from validator.scorers.semantic_scorer import SemanticScorer
 from validator.scorers.engagement_scorer import EngagementScorer
 from validator.scorers.feature_importance import FeatureImportanceCalculator
+from validator.scorers.profile_scorer import ProfileScorer, ProfileScoreWeights
 from time import time
 
 logger = get_logger(__name__)
@@ -34,6 +35,7 @@ class AgentScorer:
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.semantic_scorer = SemanticScorer(self.scoring_config)
         self.engagement_scorer = EngagementScorer(self.weights)
+        self.profile_scorer = ProfileScorer()
         self.feature_calculator = FeatureImportanceCalculator(
             config=self.shap_config,
             weights=self.weights,
@@ -58,6 +60,11 @@ class AgentScorer:
         """Calculate individual post score with semantic quality as the primary factor"""
         text = post.get("Text", "")
         
+        # Get profile metrics
+        followers_count = post.get("FollowersCount", 0)
+        is_verified = post.get("IsVerified", False)
+        profile_score = self.profile_scorer.calculate_score(followers_count, is_verified)
+        
         # Significantly reduce text length importance
         text_length = min(len(str(text)), 280) / 280  # Normalize to max tweet length
         length_score = text_length * (self.weights.length_weight * 0.1)  # Further reduce length weight
@@ -70,9 +77,10 @@ class AgentScorer:
         
         # Combine scores with heavily weighted semantic component
         base_score = (
-            weighted_semantic * 0.8 +    # 80% semantic
-            engagement_score * 0.15 +    # 15% engagement
-            length_score * 0.05          # 5% length
+            weighted_semantic * 0.7 +     # 70% semantic
+            engagement_score * 0.15 +     # 15% engagement
+            profile_score * 0.1 +         # 10% profile
+            length_score * 0.05           # 5% length
         )
         
         # Apply additional semantic quality multiplier
