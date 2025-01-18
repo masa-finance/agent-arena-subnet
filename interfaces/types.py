@@ -12,10 +12,10 @@ class JSONSerializable:
 
 @dataclass
 class VerifiedTweet(JSONSerializable):
-    tweet_id: str
-    url: str
-    timestamp: str
-    full_text: str
+    TweetID: str
+    URL: str
+    Timestamp: str
+    FullText: str
 
 
 @dataclass
@@ -47,14 +47,13 @@ class Profile(JSONSerializable):
 
 @dataclass
 class RegisteredAgentRequest(JSONSerializable):
-    hotkey: str
-    uid: int
-    subnet_id: int
-    version: str
-    isActive: bool
-    emissions: float
-    verification_tweet: Optional[VerifiedTweet]
-    profile: Optional[dict[str, Profile]]
+    HotKey: str
+    UID: int
+    SubnetID: int
+    Version: str
+    Emissions: float
+    VerificationTweet: Optional[VerifiedTweet]
+    Profile: Optional[dict[str, Profile]]
 
 
 @dataclass
@@ -68,16 +67,6 @@ class RegisteredAgentResponse(JSONSerializable):
     IsActive: bool
     CreatedAt: str
     UpdatedAt: str
-    Emissions: float
-    VerificationTweetID: str
-    VerificationTweetURL: str
-    VerificationTweetTimestamp: str
-    VerificationTweetText: str
-    Nominations: Optional[int]
-    IsNominated: Optional[bool]
-    Marketcap: Optional[int]
-
-    # Profile attributes
     Avatar: Optional[str]
     Banner: Optional[str]
     Biography: Optional[str]
@@ -91,12 +80,18 @@ class RegisteredAgentResponse(JSONSerializable):
     LikesCount: int
     ListedCount: int
     Location: Optional[str]
-    Name: Optional[str]
-    PinnedTweetIDs: list[str]
+    Name: str
+    PinnedTweetIDs: Optional[list[str]]
     TweetsCount: int
     URL: Optional[str]
-    Username: Optional[str]
+    Username: str
     Website: Optional[str]
+    VerificationTweetID: str
+    VerificationTweetURL: str
+    VerificationTweetTimestamp: str
+    VerificationTweetText: str
+    Emissions: float
+    Marketcap: int
 
 
 @dataclass
@@ -146,5 +141,5 @@ class Tweet(BaseModel, JSONSerializable):
 
 
 class RegistrationCallback(BaseModel):
-    registered: str
+    agent: Optional[str] = None
     message: Optional[str] = None
