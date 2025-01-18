@@ -79,8 +79,13 @@ class AgentScorer:
         # Apply semantic quality multiplier
         quality_multiplier = 1.0 + (semantic_score * 0.5)
         
-        # Apply severe verification penalty to final combined score
-        verification_multiplier = 1.0 if is_verified else 0.05  # 95% penalty for unverified
+        # Apply more severe verification penalty to final combined score
+        # Increase penalty for unverified accounts from 0.05 to 0.01 (99% penalty)
+        verification_multiplier = 1.0 if is_verified else 0.01
+        
+        # Add additional score dampening for unverified accounts
+        if not is_verified:
+            base_score *= 0.5  # Further reduce base score for unverified accounts
         
         return np.log1p(base_score * quality_multiplier * verification_multiplier)
 
@@ -99,26 +104,64 @@ class AgentScorer:
             filtered_posts = self._filter_recent_posts(posts)
             stats = self._calculate_post_stats(filtered_posts)
             
-            # Step 2: Process posts by agent
-            posts_by_uid = self._group_posts_by_agent(filtered_posts)
+            # Step 2: Process posts by agent and verification status
+            verified_posts_by_uid = {}
+            unverified_posts_by_uid = {}
             
-            progress_config = ScoringProgressConfig(total_agents=len(posts_by_uid))
+            for post in filtered_posts:
+                uid = self._get_agent_uid(post)
+                if not uid:
+                    continue
+                    
+                if post.get("IsVerified", False):
+                    if uid not in verified_posts_by_uid:
+                        verified_posts_by_uid[uid] = []
+                    verified_posts_by_uid[uid].append(post)
+                else:
+                    if uid not in unverified_posts_by_uid:
+                        unverified_posts_by_uid[uid] = []
+                    unverified_posts_by_uid[uid].append(post)
+            
+            progress_config = ScoringProgressConfig(
+                total_agents=len(verified_posts_by_uid) + len(unverified_posts_by_uid)
+            )
             
             with progress_config.create_progress_bar() as main_pbar:
                 main_pbar.set_postfix(**stats)
                 
-                # Step 3: Calculate scores
-                agent_scores = self._calculate_agent_scores(posts_by_uid, main_pbar)
+                # Step 3: Calculate scores separately for verified and unverified
+                verified_scores = self._calculate_agent_scores(verified_posts_by_uid, main_pbar)
+                unverified_scores = self._calculate_agent_scores(unverified_posts_by_uid, main_pbar)
                 
-                # Step 4: Calculate feature importance with ShapProgressConfig
+                # Step 4: Combine scores with verified accounts getting priority
+                final_scores = {}
+                
+                # Scale unverified scores to be strictly less than minimum verified score
+                if verified_scores:
+                    min_verified = min(verified_scores.values())
+                    scale_factor = min_verified * 0.9 / max(unverified_scores.values()) if unverified_scores else 0
+                    
+                    # Add verified scores first
+                    final_scores.update(verified_scores)
+                    
+                    # Add scaled unverified scores
+                    for uid, score in unverified_scores.items():
+                        final_scores[uid] = score * scale_factor
+                else:
+                    # If no verified accounts, scale unverified scores very low
+                    for uid, score in unverified_scores.items():
+                        final_scores[uid] = score * 0.1
+                
+                # Step 5: Calculate feature importance
                 shap_config = ShapProgressConfig(total_samples=self.shap_config.shap_background_samples)
                 with shap_config.create_progress_bar() as shap_pbar:
                     feature_importance = self.feature_calculator.calculate(
                         filtered_posts, 
                         progress_bar=shap_pbar
                     )
-                    return agent_scores, feature_importance
-            
+                    
+                return final_scores, feature_importance
+                
         except Exception as e:
             logger.error(f"Error in calculate_scores: {str(e)}")
             raise
@@ -213,6 +256,20 @@ class AgentScorer:
                 logger.error(f"Error during score normalization: {str(e)}")
         
         return scores
+
+    def _get_agent_uid(self, post: Tweet) -> Optional[int]:
+        """Get agent UID from post UserID"""
+        user_id = post.get("UserID")
+        if not user_id:
+            return None
+        
+        # Convert registered agents to UserID -> UID mapping
+        user_id_to_uid = {
+            agent.UserID: int(agent.UID)
+            for agent in self.validator.registered_agents.values()
+        }
+        
+        return user_id_to_uid.get(user_id)
 
 
 # For backward compatibility
