@@ -59,7 +59,17 @@ class AgentScorer:
     def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
         """Calculate individual post score with semantic quality as the primary factor"""
         text = post.get("Text", "")
-        is_verified = post.get("IsVerified", False)
+        
+        # Get verification status from validator's registered agents
+        user_id = post.get("UserID")
+        is_verified = False
+        if user_id:
+            agent = next(
+                (agent for agent in self.validator.registered_agents.values() 
+                 if agent.UserID == user_id),
+                None
+            )
+            is_verified = bool(agent and agent.IsVerified)
         
         # Calculate component scores normally
         profile_score = self.profile_scorer.calculate_score(post)
@@ -79,22 +89,21 @@ class AgentScorer:
         # Apply semantic quality multiplier
         quality_multiplier = 1.0 + (semantic_score * 0.5)
         
-        # Apply more severe verification penalty to final combined score
-        # Increase penalty for unverified accounts from 0.05 to 0.01 (99% penalty)
-        verification_multiplier = 1.0 if is_verified else 0.01
+        # Calculate initial score
+        initial_score = base_score * quality_multiplier
         
-        # Add additional score dampening for unverified accounts
-        if not is_verified:
-            base_score *= 0.5  # Further reduce base score for unverified accounts
-        
-        return np.log1p(base_score * quality_multiplier * verification_multiplier)
+        # Apply verification scaling:
+        # - Verified accounts: Score range (0.1-1.0)
+        # - Unverified accounts: Score range (0-0.1)
+        if is_verified:
+            # Scale verified scores to 0.1-1.0 range
+            return 0.1 + (initial_score * 0.9)
+        else:
+            # Scale unverified scores to 0-0.1 range
+            return initial_score * 0.1
 
     def calculate_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Dict[str, float]]:
-        """
-        Calculate agent scores from posts.
-        Returns:
-            Tuple[Dict[int, float], Dict[str, float]]: (agent_scores, feature_importance)
-        """
+        """Calculate agent scores from posts."""
         if not posts:
             logger.warning("No posts provided for scoring")
             return {}, {}
@@ -129,30 +138,23 @@ class AgentScorer:
             with progress_config.create_progress_bar() as main_pbar:
                 main_pbar.set_postfix(**stats)
                 
-                # Step 3: Calculate scores separately for verified and unverified
+                # Calculate raw scores
                 verified_scores = self._calculate_agent_scores(verified_posts_by_uid, main_pbar)
                 unverified_scores = self._calculate_agent_scores(unverified_posts_by_uid, main_pbar)
                 
-                # Step 4: Combine scores with verified accounts getting priority
-                final_scores = {}
+                # Find the minimum verified score (if any verified accounts exist)
+                min_verified_score = min(verified_scores.values()) if verified_scores else 1.0
                 
                 # Scale unverified scores to be strictly less than minimum verified score
-                if verified_scores:
-                    min_verified = min(verified_scores.values())
-                    scale_factor = min_verified * 0.9 / max(unverified_scores.values()) if unverified_scores else 0
-                    
-                    # Add verified scores first
-                    final_scores.update(verified_scores)
-                    
-                    # Add scaled unverified scores
-                    for uid, score in unverified_scores.items():
-                        final_scores[uid] = score * scale_factor
-                else:
-                    # If no verified accounts, scale unverified scores very low
-                    for uid, score in unverified_scores.items():
-                        final_scores[uid] = score * 0.1
+                max_unverified = max(unverified_scores.values()) if unverified_scores else 0.0
+                if max_unverified > 0:
+                    scale_factor = (min_verified_score * 0.5) / max_unverified  # Ensure unverified scores are at most half of min verified
+                    unverified_scores = {uid: score * scale_factor for uid, score in unverified_scores.items()}
                 
-                # Step 5: Calculate feature importance
+                # Combine scores
+                final_scores = {**verified_scores, **unverified_scores}
+                
+                # Calculate feature importance
                 shap_config = ShapProgressConfig(total_samples=self.shap_config.shap_background_samples)
                 with shap_config.create_progress_bar() as shap_pbar:
                     feature_importance = self.feature_calculator.calculate(
@@ -240,22 +242,8 @@ class AgentScorer:
                 "rate": f"{rate:.2f} agents/s"
             })
 
-        return self._normalize_scores(final_scores)
-
-    def _normalize_scores(self, scores: Dict[int, float]) -> Dict[int, float]:
-        """Normalize agent scores"""
-        scores_array = np.array(list(scores.values())).reshape(-1, 1)
-        scores_array = np.nan_to_num(scores_array, nan=0.0, posinf=100.0, neginf=0.0)
-        
-        non_zero_scores = [score for score in scores_array.flatten() if score > 0]
-        if len(non_zero_scores) > 1:
-            try:
-                normalized_scores = self.scaler.fit_transform(scores_array).flatten()
-                return {uid: score for uid, score in zip(scores.keys(), normalized_scores)}
-            except Exception as e:
-                logger.error(f"Error during score normalization: {str(e)}")
-        
-        return scores
+        # Remove normalization here - we'll normalize once at the end
+        return final_scores
 
     def _get_agent_uid(self, post: Tweet) -> Optional[int]:
         """Get agent UID from post UserID"""
