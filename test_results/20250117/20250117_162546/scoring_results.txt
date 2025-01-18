@@ -1,0 +1,50 @@
+Scoring Analysis Results - 20250117_162546
+
+Time Range: 2025-01-11T00:25:46.950059+00:00 to 2025-01-18T00:25:46.950059+00:00
+
+================================================================================
+
+
+=== Feature Importance Analysis ===
+
+Feature Importance Breakdown:
+================================================================================
+Feature         Importance   Percentage   Visualization
+================================================================================
+
+=== Feature Importance Analysis ===
+
+Feature Importance Breakdown:
+================================================================================
+Feature         Importance   Percentage   Visualization
+================================================================================
+engagement_score     0.1639      70.04%   ████████████████████████████████████████
+semantic_score      0.0700      29.92%   █████████████████
+text_length         0.0001       0.04%   
+follower_score      0.0000       0.00%   
+
+=== Agent SHAP Analysis ===
+
+SHAP Values by Agent (showing relative feature contributions):
+================================================================================
+
+Agent: @Alexand65561560 (UID: 186)
+----------------------------------------
+semantic_score      0.0806    61.01%   ████████████████████
+engagement_score     0.0514    38.95%   ████████████
+text_length         0.0001     0.04%   
+follower_score      0.0000     0.00%   
+
+Agent: @MichelleMi75166 (UID: 79)
+----------------------------------------
+semantic_score      0.0778    57.45%   ████████████████████
+engagement_score     0.0575    42.51%   ██████████████
+text_length         0.0001     0.04%   
+follower_score      0.0000     0.00%   
+
+Agent: @CamillaJud91180 (UID: 34)
+----------------------------------------
+semantic_score      0.0891    90.68%   ████████████████████
+engagement_score     0.0091     9.27%   ██
+text_length         0.0001     0.05%   
+follower_score      0.0000     0.00%   
