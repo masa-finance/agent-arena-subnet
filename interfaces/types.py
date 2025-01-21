@@ -12,10 +12,10 @@ class JSONSerializable:
 
 @dataclass
 class VerifiedTweet(JSONSerializable):
-    tweet_id: str
-    url: str
-    timestamp: str
-    full_text: str
+    TweetID: str
+    URL: str
+    Timestamp: str
+    FullText: str
 
 
 @dataclass
@@ -47,14 +47,13 @@ class Profile(JSONSerializable):
 
 @dataclass
 class RegisteredAgentRequest(JSONSerializable):
-    hotkey: str
-    uid: int
-    subnet_id: int
-    version: str
-    isActive: bool
-    emissions: float
-    verification_tweet: Optional[VerifiedTweet]
-    profile: Optional[dict[str, Profile]]
+    HotKey: str
+    UID: int
+    SubnetID: int
+    Version: str
+    Emissions: float
+    VerificationTweet: Optional[VerifiedTweet]
+    Profile: Optional[dict[str, Profile]]
 
 
 @dataclass
@@ -65,19 +64,8 @@ class RegisteredAgentResponse(JSONSerializable):
     UserID: str
     SubnetID: int
     Version: str
-    IsActive: bool
     CreatedAt: str
     UpdatedAt: str
-    Emissions: float
-    VerificationTweetID: str
-    VerificationTweetURL: str
-    VerificationTweetTimestamp: str
-    VerificationTweetText: str
-    Nominations: Optional[int]
-    IsNominated: Optional[bool]
-    Marketcap: Optional[int]
-
-    # Profile attributes
     Avatar: Optional[str]
     Banner: Optional[str]
     Biography: Optional[str]
@@ -91,12 +79,18 @@ class RegisteredAgentResponse(JSONSerializable):
     LikesCount: int
     ListedCount: int
     Location: Optional[str]
-    Name: Optional[str]
-    PinnedTweetIDs: list[str]
+    Name: str
+    PinnedTweetIDs: Optional[list[str]]
     TweetsCount: int
     URL: Optional[str]
-    Username: Optional[str]
+    Username: str
     Website: Optional[str]
+    VerificationTweetID: str
+    VerificationTweetURL: str
+    VerificationTweetTimestamp: str
+    VerificationTweetText: str
+    Emissions: float
+    Marketcap: int
 
 
 @dataclass
@@ -108,13 +102,57 @@ class ConnectedNode(JSONSerializable):
 
 
 @dataclass
+class Mention:
+    ID: str
+    Username: str
+    Name: str
+
+
+@dataclass
+class Photo:
+    ID: str
+    URL: str
+
+
+@dataclass
+class GIF:
+    ID: str
+    Preview: str
+    URL: str
+
+
+@dataclass
+class Video:
+    ID: str
+    Preview: str
+    URL: str
+
+
+@dataclass
+class BoundingBox:
+    Coordinates: Optional[List[List[float]]]
+    Type: str
+
+
+@dataclass
+class Place:
+    bounding_box: BoundingBox
+    country: str
+    country_code: str
+    full_name: str
+    id: str
+    name: str
+    place_type: str
+
+
+@dataclass
 class Tweet(BaseModel, JSONSerializable):
     ConversationID: Optional[str]
-    GIFs: Optional[List[str]]
+    GIFs: Optional[List[GIF]]
     Hashtags: Optional[List[str]]
     HTML: Optional[str]
     ID: Optional[str]
-    InReplyToStatus: Optional[str]
+    InReplyToStatus: Optional["Tweet"]
     InReplyToStatusID: Optional[str]
     IsQuoted: Optional[bool]
     IsPin: Optional[bool]
@@ -123,28 +161,40 @@ class Tweet(BaseModel, JSONSerializable):
     IsSelfThread: Optional[bool]
     Likes: Optional[int]
     Name: Optional[str]
-    Mentions: Optional[List[Dict[str, Any]]]
+    Mentions: Optional[List[Mention]]
     PermanentURL: Optional[str]
-    Photos: Optional[List[str]]
-    Place: Optional[Dict[str, Any]]
-    QuotedStatus: Optional[str]
+    Photos: Optional[List[Photo]]
+    Place: Optional[Place]
+    QuotedStatus: Optional["Tweet"]
     QuotedStatusID: Optional[str]
     Replies: Optional[int]
     Retweets: Optional[int]
-    RetweetedStatus: Optional[str]
+    RetweetedStatus: Optional["Tweet"]
     RetweetedStatusID: Optional[str]
     Text: Optional[str]
-    Thread: Optional[str]
+    Thread: Optional[List["Tweet"]]
     TimeParsed: Optional[str]
     Timestamp: Optional[int]
     URLs: Optional[List[str]]
     UserID: Optional[str]
     Username: Optional[str]
-    Videos: Optional[List[str]]
+    Videos: Optional[List[Video]]
     Views: Optional[int]
     SensitiveContent: Optional[bool]
 
 
 class RegistrationCallback(BaseModel):
-    registered: str
+    agent: Optional[str] = None
     message: Optional[str] = None
+
+
+@dataclass
+class TweetVerificationResult:
+    verification_tweet: Optional[VerifiedTweet]
+    user_id: Optional[str]
+    screen_name: Optional[str]
+    avatar: Optional[str]
+    name: Optional[str]
+    is_verified: Optional[bool]
+    followers_count: Optional[int]
+    error: Optional[str]

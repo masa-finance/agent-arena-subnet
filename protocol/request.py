@@ -8,6 +8,7 @@ import itertools
 
 # Import the functions from their respective modules
 from protocol.profile import get_x_profile
+from protocol.tweet import get_x_tweet_by_id
 
 # Load environment variables
 load_dotenv()
@@ -40,7 +41,6 @@ class Request:
         queues (Dict[str, PriorityQueue]): Dictionary of priority queues for different request types.
         lock (threading.Lock): Thread lock for managing concurrent access.
         active_requests (int): Counter for currently processing requests.
-        counter (itertools.count): Unique sequence counter for request ordering.
         requests_per_second (float): Maximum number of requests allowed per second.
         last_request_time (float): Timestamp of the last processed request.
         rate_limit_lock (threading.Lock): Thread lock for rate limiting.
@@ -72,7 +72,6 @@ class Request:
         self.max_concurrent_requests = max_concurrent_requests
         self.lock = threading.Lock()
         self.active_requests = 0
-        self.counter = itertools.count()  # Unique sequence count
 
         # Rate limiting attributes
         self.requests_per_second = DEFAULT_API_REQUESTS_PER_SECOND
@@ -85,7 +84,7 @@ class Request:
         )
 
     async def execute(self, data: Dict[str, Any]):
-        response = self._handle_request(data, True)
+        response = self._handle_request(data)
         return response
 
     def _wait_for_rate_limit(self):
@@ -109,15 +108,17 @@ class Request:
 
             self.last_request_time = time.time()
 
-    def _handle_request(self, data: Dict[str, Any], quick_return=False):
+    def _handle_request(self, data: Dict[str, Any]):
         """Process a single request with error handling, retry mechanism, and rate limiting.
 
         Args:
             data (Dict[str, Any]): Request payload data.
+            type (str): The type of request, either 'profile' or 'tweet'.
 
         Note:
             This method enforces rate limiting before making the actual API request.
         """
+
         with self.lock:
             self.active_requests += 1
             logger.debug(f"Active requests increased to {self.active_requests}")
@@ -125,25 +126,14 @@ class Request:
         try:
             self._wait_for_rate_limit()  # Apply rate limiting before making request
 
-            response = get_x_profile(username=data["username"])
+            if dict(data).get("username"):
+                response = get_x_profile(username=data["username"])
+            elif dict(data).get("tweet_id"):
+                response = get_x_tweet_by_id(tweet_id=data["tweet_id"])
+            else:
+                raise ValueError("Invalid request data")
 
-            if quick_return:
-                return response
-
-            if response["data"] is not None:
-                logger.info(f"Processed request: {response}")
-
-                metadata = {
-                    "uid": data["metadata"].UID,
-                    "user_id": data["metadata"].UserID,
-                    "subnet_id": data["metadata"].SubnetID,
-                    "query": data["query"],
-                    "count": len(response),
-                    "created_at": int(time.time()),
-                }
-
-                self.saver.save_post(response, metadata)
-                return response, metadata
+            return response
 
         except Exception as e:
             logger.error(f"Error processing request: {e}")
@@ -151,10 +141,7 @@ class Request:
         finally:
             with self.lock:
                 self.active_requests -= 1
-                logger.debug(
-                    f"Active requests decreased to {
-                             self.active_requests}"
-                )
+                logger.debug(f"Active requests decreased to {self.active_requests}")
 
     def _retry_request(
         self,

@@ -156,7 +156,6 @@ class AgentMiner:
         """Registration Callback"""
         try:
             logger.info(f"Message From Validator: {payload}")
-            logger.info(f"Registration Success!")
             return {"status": "Callback received"}
         except Exception as e:
             logger.error(f"Error in registration callback: {str(e)}")

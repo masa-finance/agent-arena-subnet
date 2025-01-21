@@ -1,15 +1,15 @@
 import os
 import json
 import httpx
-from datetime import datetime
+
 from typing import Any, Optional
 
 from fiber.logging_utils import get_logger
 from fiber.networking.models import NodeWithFernet as Node
 
-from masa_ai.tools.validator import TweetValidator
 
 from interfaces.types import (
+    TweetVerificationResult,
     VerifiedTweet,
     RegisteredAgentResponse,
     RegisteredAgentRequest,
@@ -32,6 +32,7 @@ class ValidatorRegistration:
 
         # endpoints for requests to the API
         self.registration_endpoint = "/v1.0.0/subnet59/miners/register"
+        self.deregistration_endpoint = "/v1.0.0/subnet59/miners/deregister"
         self.active_agents_endpoint = (
             f"/v1.0.0/subnet59/miners/active/{self.validator.netuid}"
         )
@@ -43,24 +44,26 @@ class ValidatorRegistration:
         )
 
     async def fetch_registered_agents(self) -> None:
-        """Fetch active agents from the API and update registered_agents"""
+        """Fetch registered agents from the API"""
         try:
             response = await self.httpx_client.get(self.active_agents_endpoint)
-            if response.status_code == 200:
-                active_agents = response.json()
-                self.validator.registered_agents = {
-                    agent["HotKey"]: RegisteredAgentResponse(**agent)
-                    for agent in active_agents
-                }
-                logger.info("Successfully fetched and updated active agents.")
-            else:
-                logger.error(
-                    f"Failed to fetch active agents, status code: {response.status_code}, message: {response.text}"
-                )
-        except Exception as e:
-            logger.error(f"Exception occurred while fetching active agents: {str(e)}")
+            response.raise_for_status()
+            agents = response.json() or []
 
-    # TODO add followers count
+            # Safely access the data
+            self.validator.registered_agents = {
+                agent["HotKey"]: RegisteredAgentResponse(**agent) for agent in agents
+            }
+
+            logger.info(
+                f"Successfully fetched {len(agents)} agents for subnet {self.validator.netuid}"
+            )
+
+        except httpx.RequestError as e:
+            logger.error(f"HTTP request failed: {e}")
+        except Exception as e:
+            logger.error(f"Exception occurred while fetching active agents: {e}")
+
     async def register_agent(
         self,
         node: Any,
@@ -69,20 +72,26 @@ class ValidatorRegistration:
         screen_name: str,
         avatar: str,
         name: str,
+        is_verified: bool,
+        followers_count: int,
     ) -> None:
         """Register an agent"""
         node_emissions, _ = self.validator.get_emissions(node)
         registration_data = RegisteredAgentRequest(
-            hotkey=node.hotkey,
-            uid=str(node.node_id),
-            subnet_id=int(self.validator.netuid),
-            version=str(node.protocol),
-            isActive=True,
-            verification_tweet=verified_tweet,
-            emissions=node_emissions,
-            profile={
+            HotKey=node.hotkey,
+            UID=str(node.node_id),
+            SubnetID=int(self.validator.netuid),
+            Version=str(node.protocol),
+            VerificationTweet=verified_tweet,
+            Emissions=node_emissions,
+            Profile={
                 "data": Profile(
-                    UserID=user_id, Username=screen_name, Avatar=avatar, Name=name
+                    UserID=user_id,
+                    Username=screen_name,
+                    Avatar=avatar,
+                    Name=name,
+                    IsVerified=is_verified,
+                    FollowersCount=followers_count,
                 )
             },
         )
@@ -103,47 +112,36 @@ class ValidatorRegistration:
         except Exception as e:
             logger.error(f"Exception occurred during agent registration: {str(e)}")
 
-    async def deregister_agent(self, agent: RegisteredAgentResponse) -> None:
-        """Deregister agent with the API"""
-        logger.info("Deregistering agent...")
+    async def deregister_agent(self, agent: RegisteredAgentResponse) -> bool:
+        """Deregister agent with the API
+
+        Args:
+            agent: The agent to deregister
+
+        Returns:
+            bool: True if deregistration was successful, False otherwise
+        """
+        logger.info(f"Deregistering agent {agent.Username} (UID: {agent.UID})...")
         try:
-            verification_tweet = VerifiedTweet(
-                tweet_id=agent.VerificationTweetID,
-                url=agent.VerificationTweetURL,
-                timestamp=agent.VerificationTweetTimestamp,
-                full_text=agent.VerificationTweetText,
+            response = await self.httpx_client.delete(
+                f"{self.deregistration_endpoint}/{self.validator.netuid}/{agent.UID}"
             )
-            deregistration_data = RegisteredAgentRequest(
-                hotkey=agent.HotKey,
-                uid=str(agent.UID),
-                subnet_id=int(self.validator.netuid),
-                version=str(agent.Version),
-                isActive=False,
-                verification_tweet=verification_tweet,
-                emissions=0,
-                profile={
-                    "data": Profile(
-                        UserID=agent.UserID,
-                        Username=agent.Username,
-                    )
-                },
+            response.raise_for_status()
+            logger.info(f"Successfully deregistered agent {agent.Username}!")
+            await self.fetch_registered_agents()
+            return True
+
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"HTTP error during agent deregistration: Status {e.response.status_code} - {e.response.text}"
             )
-            deregistration_data = json.loads(
-                json.dumps(deregistration_data, default=lambda o: o.__dict__)
-            )
-            response = await self.httpx_client.post(
-                self.registration_endpoint,
-                json=deregistration_data,
-            )
-            if response.status_code == 200:
-                logger.info("Successfully deregistered agent!")
-                await self.fetch_registered_agents()
-            else:
-                logger.error(
-                    f"Failed to deregister agent, status code: {response.status_code}, message: {response.text}"
-                )
+            return False
+        except httpx.RequestError as e:
+            logger.error(f"Network error during agent deregistration: {str(e)}")
+            return False
         except Exception as e:
-            logger.error(f"Exception occurred during agent deregistration: {str(e)}")
+            logger.error(f"Unexpected error during agent deregistration: {str(e)}")
+            return False
 
     async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.validator.get_emissions(None)
@@ -159,16 +157,21 @@ class ValidatorRegistration:
                             f"Trying to refetch username for agent: {
                                     agent.Username}"
                         )
-                        verified_tweet, user_id, username, avatar, name = (
-                            await self.verify_tweet(
-                                agent.VerificationTweetID, agent.HotKey
-                            )
+                        verification_result = await self.verify_tweet(
+                            agent.VerificationTweetID, agent.HotKey
                         )
-                        x_profile = await self.validator.fetch_x_profile(username)
-                        if x_profile is None:
-                            logger.error(
-                                f"Failed to fetch X profile on second attempt for {username}, continuing..."
-                            )
+                        username = verification_result.screen_name
+                        error = verification_result.error
+
+                        if not error:
+                            x_profile = await self.validator.fetch_x_profile(username)
+                            if x_profile is None:
+                                logger.error(
+                                    f"Failed to fetch X profile on second attempt for {username}, continuing..."
+                                )
+                                continue
+                        else:
+                            logger.error(f"Failed to verify tweet: {str(error)}")
                             continue
                     except Exception as e:
                         logger.error(
@@ -176,36 +179,43 @@ class ValidatorRegistration:
                         )
                         continue
                 try:
-                    logger.info(f"X Profile To Update: {x_profile}")
                     agent_emissions = emissions[int(agent.UID)]
                     logger.info(
                         f"Emissions Updater: Agent {agent.Username} has {agent_emissions} emissions"
                     )
                     verification_tweet = VerifiedTweet(
-                        tweet_id=agent.VerificationTweetID,
-                        url=agent.VerificationTweetURL,
-                        timestamp=agent.VerificationTweetTimestamp,
-                        full_text=agent.VerificationTweetText,
+                        TweetID=agent.VerificationTweetID,
+                        URL=agent.VerificationTweetURL,
+                        Timestamp=agent.VerificationTweetTimestamp,
+                        FullText=agent.VerificationTweetText,
                     )
+                    profile = dict(dict(x_profile).get("data", {}))
                     update_data = RegisteredAgentRequest(
-                        hotkey=hotkey,
-                        uid=str(agent.UID),
-                        subnet_id=int(self.validator.netuid),
-                        version=str(4),
-                        isActive=True,
-                        emissions=agent_emissions,
-                        verification_tweet=verification_tweet,
-                        profile={
+                        HotKey=hotkey,
+                        UID=str(agent.UID),
+                        SubnetID=int(self.validator.netuid),
+                        Version=str(4),
+                        Emissions=agent_emissions,
+                        VerificationTweet=verification_tweet,
+                        Profile={
                             "data": Profile(
                                 UserID=agent.UserID,
-                                Username=x_profile["data"]["Username"],
-                                Avatar=x_profile["data"]["Avatar"],
-                                Banner=x_profile["data"]["Banner"],
-                                Biography=x_profile["data"]["Biography"],
-                                FollowersCount=x_profile["data"]["FollowersCount"],
-                                FollowingCount=x_profile["data"]["FollowingCount"],
-                                LikesCount=x_profile["data"]["LikesCount"],
-                                Name=x_profile["data"]["Name"],
+                                Username=profile.get("Username"),
+                                Avatar=profile.get("Avatar"),
+                                Banner=profile.get("Banner"),
+                                Biography=profile.get("Biography"),
+                                FollowersCount=profile.get("FollowersCount"),
+                                FollowingCount=profile.get("FollowingCount"),
+                                LikesCount=profile.get("LikesCount"),
+                                Name=profile.get("Name"),
+                                IsVerified=profile.get("IsVerified"),
+                                Joined=profile.get("Joined"),
+                                ListedCount=profile.get("ListedCount"),
+                                Location=profile.get("Location"),
+                                PinnedTweetIDs=profile.get("PinnedTweetIDs"),
+                                TweetsCount=profile.get("TweetsCount"),
+                                URL=profile.get("URL"),
+                                Website=profile.get("Website"),
                             )
                         },
                     )
@@ -249,105 +259,126 @@ class ValidatorRegistration:
                     if node:
                         # note, could refactor to this module but will keep vali <> miner calls in vali for now
                         tweet_id = await self.get_verification_tweet_id(node)
-                        verified_tweet, user_id, screen_name, avatar, name = (
+                        verification_result: TweetVerificationResult = (
                             await self.verify_tweet(tweet_id, node.hotkey)
                         )
-                        if verified_tweet and user_id:
-                            await self.register_agent(
-                                node,
-                                verified_tweet,
-                                user_id,
-                                screen_name,
-                                avatar,
-                                name,
-                            )
-                            payload = {
-                                "registered": str(screen_name),
-                                "message": "Agent successfully registered!",
-                            }
-                            response = await self.registration_callback(node, payload)
-                        else:
-                            payload = {
-                                "registered": "Agent failed to register",
-                                "message": f"Failed to register with tweet {tweet_id}",
-                            }
-                            response = await self.registration_callback(node, payload)
+                        payload = {}
+                        payload["agent"] = str(verification_result.screen_name)
 
+                        if verification_result.error:
+                            payload["message"] = (
+                                f"Failed to verify tweet: {str(verification_result.error)}"
+                            )
+                        elif (
+                            verification_result.verification_tweet
+                            and verification_result.user_id
+                        ):
+                            try:
+                                await self.register_agent(
+                                    node,
+                                    verification_result.verification_tweet,
+                                    verification_result.user_id,
+                                    verification_result.screen_name,
+                                    verification_result.avatar,
+                                    verification_result.name,
+                                    verification_result.is_verified,
+                                    verification_result.followers_count,
+                                )
+                                payload["message"] = "Successfully registered!"
+                            except Exception as e:
+                                payload["message"] = str(e)
+                        elif not verification_result.user_id:
+                            payload["message"] = "UserId not found"
+                        elif not verification_result.verification_tweet:
+                            payload["message"] = "Verified Tweet not found"
+                        else:
+                            payload["message"] = (
+                                "Unknown error occured in agent registration"
+                            )
+
+                        logger.info(f"Sending payload to miner: {payload}")
+                        response = await self.registration_callback(node, payload)
                         logger.info(
-                            f"Miner Response From Registration Callback: {response}"
+                            f"Miner Response from Registration Callback: {response}"
                         )
 
                 except Exception as e:
                     logger.error(
-                        f"Failed to get registration info for node {
+                        f"Unknown exception occured during agent registration loop for node {
                                 hotkey}: {str(e)}"
                     )
 
         except Exception as e:
             logger.error("Error checking registered nodes: %s", str(e))
 
-    async def verify_tweet(
-        self, id: str, hotkey: str
-    ) -> tuple[VerifiedTweet, str, str]:
+    async def verify_tweet(self, id: str, hotkey: str) -> TweetVerificationResult:
         """Fetch tweet from Twitter API"""
         try:
             logger.info(f"Verifying tweet: {id}")
-            result = TweetValidator().fetch_tweet(id)
+            tweet_response = await self.validator.fetch_x_tweet_by_id(id)
 
-            if not result:
-                logger.error(
-                    f"Could not fetch tweet id {
-                            id} for node {hotkey}"
+            if not tweet_response or tweet_response.get("recordCount", 0) == 0:
+                error = f"Could not fetch tweet id {id} for node {hotkey}"
+                logger.error(error)
+                return TweetVerificationResult(
+                    None, None, None, None, None, None, None, str(error)
                 )
-                return False
 
-            tweet_data_result = (
-                result.get("data", {}).get("tweetResult", {}).get("result", {})
-            )
-            created_at = tweet_data_result.get("legacy", {}).get("created_at")
-            tweet_id = tweet_data_result.get("rest_id")
-            user = (
-                tweet_data_result.get("core", {})
-                .get("user_results", {})
-                .get("result", {})
-            )
-
-            screen_name = user.get("legacy", {}).get("screen_name")
-            name = user.get("legacy", {}).get("name")
-            user_id = user.get("rest_id")
-
-            full_text = tweet_data_result.get("legacy", {}).get("full_text")
-            avatar = user.get("legacy", {}).get("profile_image_url_https")
-
-            logger.info(
-                f"Got tweet result: {
-                        tweet_id} - {screen_name} **** {full_text} - {avatar}"
-            )
-
-            if not isinstance(screen_name, str) or not isinstance(full_text, str):
-                msg = "Invalid tweet data: screen_name or full_text is not a string"
-                logger.error(msg)
-                raise ValueError(msg)
+            tweet = tweet_response.get("data", {})
+            tweet_id = tweet.get("ID")
+            created_at = tweet.get("TimeParsed")
+            screen_name = tweet.get("Username")
+            name = tweet.get("Name")
+            user_id = tweet.get("UserID")
+            full_text = tweet.get("Text")
+            permanent_url = tweet.get("PermanentURL")
 
             # ensure hotkey is in the tweet text
-            if not hotkey in full_text:
-                msg = f"Hotkey {hotkey} is not in the tweet text {full_text}"
-                logger.error(msg)
-                raise ValueError(msg)
+            if hotkey not in full_text:
+                error = f"Hotkey {hotkey} is not in the tweet text {full_text}"
+                logger.error(error)
+                return TweetVerificationResult(
+                    None, None, None, None, None, None, None, str(error)
+                )
+
+            # Fetching profile to keep the response the same
+            x_profile = await self.validator.fetch_x_profile(screen_name)
+
+            if not x_profile:
+                error = f"Could not fetch profile for {screen_name}"
+                logger.error(error)
+                return TweetVerificationResult(
+                    None, None, None, None, None, None, None, str(error)
+                )
+
+            profile = dict(dict(x_profile).get("data", {}))
+            followers_count = profile.get("FollowersCount")
+            avatar = profile.get("Avatar")
+            is_verified = profile.get("IsVerified")
+
+            logger.info(f"Verified Tweet: {tweet_id}: {screen_name}: {full_text}")
 
             verification_tweet = VerifiedTweet(
-                tweet_id=tweet_id,
-                url=f"https://twitter.com/{screen_name}/status/{tweet_id}",
-                timestamp=datetime.strptime(
-                    created_at, "%a %b %d %H:%M:%S %z %Y"
-                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                full_text=full_text,
+                TweetID=tweet_id,
+                URL=permanent_url,
+                Timestamp=created_at,
+                FullText=full_text,
             )
-            return verification_tweet, user_id, screen_name, avatar, name
+            return TweetVerificationResult(
+                verification_tweet,
+                user_id,
+                screen_name,
+                avatar,
+                name,
+                is_verified,
+                followers_count,
+                None,
+            )
         except Exception as e:
-            # TODO let the miner know what the issue is
-            logger.error(f"Failed to register agent: {str(e)}")
-            return False
+            logger.error(f"Unknown error, failed to register agent: {str(e)}")
+            return TweetVerificationResult(
+                None, None, None, None, None, None, None, str(e)
+            )
 
     async def get_verification_tweet_id(self, node: Node) -> Optional[str]:
         endpoint = "/get_verification_tweet_id"
