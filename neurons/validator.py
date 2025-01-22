@@ -4,19 +4,15 @@ import os
 import httpx
 import asyncio
 import uvicorn
-from typing import Optional, Dict, Tuple, List, Any
+from typing import Optional, Dict, Any
 
 from fiber.chain import chain_utils, interface
 from fiber.chain.metagraph import Metagraph
-from fiber.encrypted.validator import handshake, client as vali_client
 from fiber.miner.server import factory_app
 from fiber.networking.models import NodeWithFernet as Node
 from fiber.logging_utils import get_logger
 
 from fastapi import FastAPI
-from cryptography.fernet import Fernet
-
-from protocol.request import Request
 
 from interfaces.types import (
     RegisteredAgentResponse,
@@ -27,15 +23,16 @@ from validator.posts_getter import PostsGetter
 from validator.weight_setter import ValidatorWeightSetter
 from validator.registration import ValidatorRegistration
 
-from neurons.validator.config import Config
-from neurons.validator.http_client import HttpClientManager
-from neurons.validator.node_manager import NodeManager
-from neurons.validator.background_tasks import BackgroundTasks
-from neurons.validator.api_routes import register_routes
-from neurons.validator.network_operations import (
+from validator.config import Config
+from validator.http_client import HttpClientManager
+from validator.node_manager import NodeManager
+from validator.background_tasks import BackgroundTasks
+from validator.api_routes import register_routes
+from validator.network_operations import (
     make_non_streamed_get,
     make_non_streamed_post,
 )
+from validator.metagraph import MetagraphManager
 
 
 logger = get_logger(__name__)
@@ -66,7 +63,6 @@ class AgentValidator:
         )
 
         self.netuid = int(os.getenv("NETUID", "59"))
-        self.httpx_client: Optional[httpx.AsyncClient] = None
 
         self.subtensor_network = os.getenv("SUBTENSOR_NETWORK", "finney")
         self.subtensor_address = os.getenv(
@@ -95,32 +91,36 @@ class AgentValidator:
 
         self.registrar = ValidatorRegistration(validator=self)
 
-        self.node_manager = NodeManager(self.metagraph, self.keypair)
-        self.background_tasks = BackgroundTasks(
-            registrar=self.registrar,
-            posts_getter=self.posts_getter,
-            weight_setter=self.weight_setter,
-            scored_posts=self.scored_posts,
-        )
+        self.node_manager = NodeManager(validator=self)
+        self.background_tasks = BackgroundTasks(validator=self)
+        self.metagraph_manager = MetagraphManager(validator=self)
 
     async def start(self) -> None:
         """Start the validator service"""
         try:
             await self.http_client_manager.start()
-            self.app = FastAPI()
+            self.app = factory_app(debug=False)
             register_routes(self.app, self.healthcheck)
 
             # Start background tasks
+
             asyncio.create_task(
-                self.background_tasks.check_agents_registration_loop(60)
-            )
-            asyncio.create_task(
-                self.background_tasks.update_agents_profiles_and_emissions_loop(3600)
+                self.background_tasks.sync_loop(SYNC_LOOP_CADENCE_SECONDS)
             )
             asyncio.create_task(
                 self.background_tasks.set_weights_loop(self.scored_posts, 60)
             )
             asyncio.create_task(self.background_tasks.score_loop(60))
+
+            if os.getenv("API_KEY", None):
+                asyncio.create_task(
+                    self.background_tasks.update_agents_profiles_and_emissions_loop(
+                        3600
+                    )
+                )
+                asyncio.create_task(
+                    self.background_tasks.check_agents_registration_loop(60)
+                )
 
             config = uvicorn.Config(
                 self.app, host="0.0.0.0", port=self.config.VALIDATOR_PORT, lifespan="on"
@@ -143,7 +143,7 @@ class AgentValidator:
 
     async def make_non_streamed_get(self, node: Node, endpoint: str) -> Optional[Any]:
         return await make_non_streamed_get(
-            httpx_client=self.httpx_client,
+            httpx_client=self.http_client_manager.client,
             node=node,
             endpoint=endpoint,
             connected_nodes=self.connected_nodes,
@@ -154,7 +154,7 @@ class AgentValidator:
         self, node: Node, endpoint: str, payload: Any
     ) -> Optional[Any]:
         return await make_non_streamed_post(
-            httpx_client=self.httpx_client,
+            httpx_client=self.http_client_manager.client,
             node=node,
             endpoint=endpoint,
             payload=payload,
@@ -162,18 +162,6 @@ class AgentValidator:
             validator_ss58_address=self.keypair.ss58_address,
             keypair=self.keypair,
         )
-
-    def get_emissions(self, node: Optional[Node]) -> Tuple[float, List[float]]:
-        self.sync_substrate()
-        multiplier = 10**-9
-        emissions = [
-            emission * multiplier
-            for emission in self.substrate.query(
-                "SubtensorModule", "Emission", [self.netuid]
-            ).value
-        ]
-        node_emissions = emissions[int(node.node_id)] if node else 0
-        return node_emissions, emissions
 
     async def stop(self) -> None:
         """Cleanup validator resources and shutdown gracefully.

@@ -1,28 +1,28 @@
-from typing import Dict, Optional
+from typing import Dict
 from fiber.networking.models import NodeWithFernet as Node
-from fiber.encrypted.validator import client as vali_client
+from fiber.encrypted.validator import handshake, client as vali_client
 from cryptography.fernet import Fernet
 from fiber.logging_utils import get_logger
 import os
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from neurons.validator import AgentValidator
 
 logger = get_logger(__name__)
 
 
 class NodeManager:
-    def __init__(self, metagraph, keypair):
+    def __init__(self, validator: "AgentValidator"):
         """
-        Initialize the NodeManager with a metagraph and keypair.
+        Initialize the NodeManager with a validator instance.
 
-        :param metagraph: The metagraph instance to manage nodes.
-        :param keypair: The keypair used for node operations.
+        :param validator: The validator instance to manage nodes.
         """
-        self.metagraph = metagraph
-        self.keypair = keypair
+        self.validator = validator
         self.connected_nodes: Dict[str, Node] = {}
 
-    async def connect_with_miner(
-        self, httpx_client, miner_address: str, miner_hotkey: str
-    ) -> bool:
+    async def connect_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
         """
         Perform a handshake with a miner and establish a secure connection.
 
@@ -33,7 +33,10 @@ class NodeManager:
         """
         try:
             symmetric_key_str, symmetric_key_uuid = await handshake.perform_handshake(
-                httpx_client, miner_address, self.keypair, miner_hotkey
+                self.validator.http_client_manager.client,
+                miner_address,
+                self.validator.keypair,
+                miner_hotkey,
             )
 
             if not symmetric_key_str or not symmetric_key_uuid:
@@ -55,7 +58,7 @@ class NodeManager:
             logger.error(f"Failed to connect to miner: {str(e)}")
             return False
 
-    async def connect_new_nodes(self, httpx_client) -> None:
+    async def connect_new_nodes(self) -> None:
         """
         Verify node registration and attempt to connect to new nodes.
 
@@ -63,7 +66,7 @@ class NodeManager:
         """
         logger.info("Attempting nodes registration")
         try:
-            nodes = dict(self.metagraph.nodes)
+            nodes = dict(self.validator.metagraph.nodes)
             nodes_list = list(nodes.values())
             # Filter to specific miners if in dev environment
             if os.getenv("ENV", "prod").lower() == "dev":
@@ -85,7 +88,6 @@ class NodeManager:
                     replace_with_localhost=True,
                 )
                 success = await self.connect_with_miner(
-                    httpx_client=httpx_client,
                     miner_address=server_address,
                     miner_hotkey=node.hotkey,
                 )
