@@ -212,6 +212,7 @@ class AgentScorer:
         start_time = time()
         processed_agents = 0
         
+        # Calculate initial scores as before
         for uid, agent_posts in posts_by_uid.items():
             texts = [post.get("Text", "") for post in agent_posts]
             semantic_scores = self.semantic_scorer.calculate_scores(texts)
@@ -242,7 +243,25 @@ class AgentScorer:
                 "rate": f"{rate:.2f} agents/s"
             })
 
-        # Remove normalization here - we'll normalize once at the end
+        # Apply kurtosis curve to all scores
+        if final_scores:
+            scores_array = np.array(list(final_scores.values()))
+            min_score = scores_array.min()
+            max_score = scores_array.max()
+            
+            # Normalize scores to 0-1 range
+            normalized_scores = (scores_array - min_score) / (max_score - min_score) if max_score > min_score else scores_array
+            
+            # Apply kurtosis transformation
+            kurtosis_factor = 3.0  # Adjust this to control curve steepness
+            for uid in final_scores:
+                if max_score > min_score:
+                    normalized_score = (final_scores[uid] - min_score) / (max_score - min_score)
+                    # Apply sigmoid-like transformation
+                    curved_score = 1 / (1 + np.exp(-kurtosis_factor * (normalized_score - 0.5)))
+                    # Scale back to original range
+                    final_scores[uid] = min_score + (curved_score * (max_score - min_score))
+
         return final_scores
 
     def _get_agent_uid(self, post: Tweet) -> Optional[int]:
