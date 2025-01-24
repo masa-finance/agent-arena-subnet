@@ -43,3 +43,4 @@ class PostsGetter:
                 return []
         except Exception as e:
             logger.error(f"Exception occurred while fetching posts: {str(e)}")
+            return []
