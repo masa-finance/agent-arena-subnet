@@ -23,7 +23,7 @@ from interfaces.types import (
     ConnectedNode,
 )
 
-from validator.posts_getter import PostsGetter
+from validator.get_agent_posts import GetAgentPosts
 from validator.weight_setter import ValidatorWeightSetter
 from validator.registration import ValidatorRegistration
 
@@ -81,7 +81,7 @@ class AgentValidator:
 
         self.scored_posts = []
 
-        self.posts_getter = PostsGetter(self.netuid)
+        self.posts_getter = GetAgentPosts(self.netuid)
         self.weight_setter = ValidatorWeightSetter(validator=self)
 
         self.registrar = ValidatorRegistration(validator=self)

@@ -1,8 +1,51 @@
+"""
+Agent Registration Module
+
+This module provides functionality to manage agent registration.
+It handles agent registration, deregistration, profile updates, and verification processes.
+
+Key Components:
+    - ValidatorRegistration: Main class for managing agent registration operations
+    - RegistrationAPIError: Custom exception for handling API-specific errors
+
+Environment Variables:
+    - API_KEY: Authentication token for the Protocol API (optional)
+    - API_URL: Base URL for the API (defaults to https://test.protocol-api.masa.ai)
+
+Usage Example:
+    ```python
+    # Initialize registration handler
+    registration = ValidatorRegistration(validator)
+    
+    # Register a new agent
+    await registration.register_agent(
+        node=node,
+        verified_tweet=tweet,
+        user_id="123",
+        screen_name="agent1",
+        avatar="https://...",
+        name="Agent One",
+        is_verified=True,
+        followers_count=1000
+    )
+    
+    # Fetch registered agents
+    await registration.fetch_registered_agents()
+    
+    # Deregister an agent
+    success = await registration.deregister_agent(agent)
+    ```
+
+Note:
+    All API interactions are handled asynchronously using httpx client.
+    The module maintains proper error handling and logging throughout all operations.
+"""
+
 import os
 import json
 import httpx
-
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any, Optional, Dict
 
 from fiber.logging_utils import get_logger
 from fiber.networking.models import NodeWithFernet as Node
@@ -18,130 +61,208 @@ from interfaces.types import (
 
 logger = get_logger(__name__)
 
+# Constants
+DEFAULT_API_URL = "https://test.protocol-api.masa.ai"
+API_VERSION = "v1.0.0"
+SUBNET_API_PATH = "subnet59"
+
+class RegistrationAPIError(Exception):
+    """
+    RegistrationAPIError represents errors that occur during Registration API operations.
+    
+    Attributes:
+        status_code: Optional HTTP status code from the failed request
+        response_body: Optional response body from the failed request
+        message: Descriptive error message
+    """
+    def __init__(self, message: str, status_code: Optional[int] = None, response_body: Optional[str] = None):
+        self.status_code = status_code
+        self.response_body = response_body
+        super().__init__(f"Registration API Error: {message} " + 
+                        (f"(Status: {status_code})" if status_code else "") +
+                        (f" - Response: {response_body}" if response_body else ""))
 
 class ValidatorRegistration:
-    def __init__(
-        self,
-        validator: Any,
-    ):
+    """
+    ValidatorRegistration handles all agent registration operations with the Protocol API.
+    
+    This class manages the complete lifecycle of agent registration including:
+    - Initial registration with verification
+    - Deregistration of existing agents
+    - Fetching currently registered agents
+    - Updating agent profiles and emissions
+    - Verifying registration status
+    
+    Attributes:
+        validator: The validator instance managing the registration operations
+        httpx_client: Async HTTP client for API communication
+        api_url: Base URL for the Protocol API
+        api_key: Authentication key for API access
+    
+    Example:
+        registration = ValidatorRegistration(validator)
+        await registration.fetch_registered_agents()
+    """
+    
+    def __init__(self, validator: Any):
+        """
+        Initialize the registration handler.
+        
+        Args:
+            validator: The validator instance to handle registration for
+        """
         self.validator = validator
+        self._setup_client()
 
-        # note, API key needed for POST requests (at least one validator must have)
-        self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
-        self.api_key = os.getenv("API_KEY", None)
-
-        # endpoints for requests to the API
-        self.registration_endpoint = "/v1.0.0/subnet59/miners/register"
-        self.deregistration_endpoint = "/v1.0.0/subnet59/miners/deregister"
-        self.active_agents_endpoint = (
-            f"/v1.0.0/subnet59/miners/active/{self.validator.netuid}"
-        )
-
-        # http client for requests to the API
+    def _setup_client(self) -> None:
+        """
+        Initialize HTTP client with authentication headers.
+        
+        Uses API_KEY from environment variables if available. The client is configured
+        with proper authentication headers and base URL settings.
+        """
+        self.api_url = os.getenv("API_URL", DEFAULT_API_URL)
+        self.api_key = os.getenv("API_KEY")
+        
+        headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+        logger.debug(f"Initializing Registration client with{'out' if not self.api_key else ''} API authentication")
+        
         self.httpx_client = httpx.AsyncClient(
             base_url=self.api_url,
-            headers={"Authorization": f"Bearer {self.api_key}"},
+            headers=headers,
         )
+
+    @property
+    def _endpoints(self):
+        """
+        Define API endpoints.
+        
+        Returns:
+            dict: Mapping of endpoint names to their URL paths
+        """
+        return {
+            'registration': f"/{API_VERSION}/{SUBNET_API_PATH}/miners/register",
+            'deregistration': f"/{API_VERSION}/{SUBNET_API_PATH}/miners/deregister",
+            'active_agents': f"/{API_VERSION}/{SUBNET_API_PATH}/miners/active/{self.validator.netuid}"
+        }
 
     async def fetch_registered_agents(self) -> None:
         """Fetch registered agents from the API"""
         try:
-            response = await self.httpx_client.get(self.active_agents_endpoint)
-            response.raise_for_status()
-            agents = response.json() or []
-
-            # Safely access the data
-            self.validator.registered_agents = {
-                agent["HotKey"]: RegisteredAgentResponse(**agent) for agent in agents
-            }
-
-            logger.info(
-                f"Successfully fetched {len(agents)} agents for subnet {self.validator.netuid}"
+            response = await self.httpx_client.get(self._endpoints['active_agents'])
+            
+            if response.status_code == 200:
+                agents = response.json() or []
+                # Filter the fields before creating RegisteredAgentResponse objects
+                self.validator.registered_agents = {}
+                for agent in agents:
+                    try:
+                        # Only pass the fields that RegisteredAgentResponse expects
+                        filtered_agent = self._filter_agent_fields(agent)
+                        self.validator.registered_agents[agent["HotKey"]] = RegisteredAgentResponse(**filtered_agent)
+                    except Exception as e:
+                        logger.error(f"Failed to process agent data: {str(e)}, Agent data: {agent}")
+                        continue
+                        
+                logger.info(f"Successfully fetched {len(self.validator.registered_agents)} agents for subnet {self.validator.netuid}")
+                return
+                
+            raise RegistrationAPIError(
+                message="Failed to fetch registered agents",
+                status_code=response.status_code,
+                response_body=response.text
             )
-
-        except httpx.RequestError as e:
-            logger.error(f"HTTP request failed: {e}")
+            
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error occurred while fetching agents: {str(e)}")
+            raise
         except Exception as e:
-            logger.error(f"Exception occurred while fetching active agents: {e}")
+            logger.error(f"Unexpected error while fetching agents: {str(e)}")
+            raise
 
-    async def register_agent(
-        self,
-        node: Any,
-        verified_tweet: VerifiedTweet,
-        user_id: str,
-        screen_name: str,
-        avatar: str,
-        name: str,
-        is_verified: bool,
-        followers_count: int,
-    ) -> None:
+    def _filter_agent_fields(self, agent_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Filter agent data to only include fields expected by RegisteredAgentResponse"""
+        expected_fields = {
+            'ID', 'HotKey', 'UID', 'SubnetID', 'Version', 'UserID', 'Username', 
+            'Avatar', 'Name', 'IsVerified', 'IsActive', 'FollowersCount',
+            'VerificationTweetID', 'VerificationTweetURL', 'VerificationTweetTimestamp',
+            'VerificationTweetText', 'CreatedAt', 'UpdatedAt', 'Banner', 'Biography',
+            'Birthday', 'FollowingCount', 'FriendsCount', 'IsPrivate', 'Joined',
+            'LikesCount', 'ListedCount', 'Location', 'PinnedTweetIDs', 'TweetsCount',
+            'URL', 'Website', 'Emissions', 'Marketcap'
+        }
+        return {k: v for k, v in agent_data.items() if k in expected_fields}
+
+    async def register_agent(self, node: Any, verified_tweet: VerifiedTweet,
+                           user_id: str, screen_name: str, avatar: str, 
+                           name: str, is_verified: bool, followers_count: int) -> None:
         """Register an agent"""
-        node_emissions, _ = self.validator.get_emissions(node)
-        registration_data = RegisteredAgentRequest(
-            HotKey=node.hotkey,
-            UID=str(node.node_id),
-            SubnetID=int(self.validator.netuid),
-            Version=str(node.protocol),
-            VerificationTweet=verified_tweet,
-            Emissions=node_emissions,
-            Profile={
-                "data": Profile(
-                    UserID=user_id,
-                    Username=screen_name,
-                    Avatar=avatar,
-                    Name=name,
-                    IsVerified=is_verified,
-                    FollowersCount=followers_count,
-                )
-            },
-        )
-        registration_data = json.loads(
-            json.dumps(registration_data, default=lambda o: o.__dict__)
-        )
         try:
-            response = await self.httpx_client.post(
-                self.registration_endpoint, json=registration_data
+            node_emissions, _ = self.validator.get_emissions(node)
+            registration_data = RegisteredAgentRequest(
+                HotKey=node.hotkey,
+                UID=str(node.node_id),
+                SubnetID=int(self.validator.netuid),
+                Version=str(node.protocol),
+                VerificationTweet=verified_tweet,
+                Emissions=node_emissions,
+                Profile={
+                    "data": Profile(
+                        UserID=user_id,
+                        Username=screen_name,
+                        Avatar=avatar,
+                        Name=name,
+                        IsVerified=is_verified,
+                        FollowersCount=followers_count,
+                    )
+                },
             )
+            registration_data = json.loads(json.dumps(registration_data, default=lambda o: o.__dict__))
+            
+            response = await self.httpx_client.post(
+                self._endpoints['registration'],
+                json=registration_data
+            )
+            
             if response.status_code == 200:
                 logger.info("Successfully registered agent!")
                 await self.fetch_registered_agents()
-            else:
-                logger.error(
-                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
-                )
+                return
+                
+            raise RegistrationAPIError(
+                message="Failed to register agent",
+                status_code=response.status_code,
+                response_body=response.text
+            )
+            
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error occurred during registration: {str(e)}")
         except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
+            logger.error(f"Unexpected error during registration: {str(e)}")
 
     async def deregister_agent(self, agent: RegisteredAgentResponse) -> bool:
-        """Deregister agent with the API
-
-        Args:
-            agent: The agent to deregister
-
-        Returns:
-            bool: True if deregistration was successful, False otherwise
-        """
-        logger.info(f"Deregistering agent {agent.Username} (UID: {agent.UID})...")
+        """Deregister agent with the API"""
         try:
             response = await self.httpx_client.delete(
-                f"{self.deregistration_endpoint}/{self.validator.netuid}/{agent.UID}"
+                f"{self._endpoints['deregistration']}/{self.validator.netuid}/{agent.UID}"
             )
-            response.raise_for_status()
-            logger.info(f"Successfully deregistered agent {agent.Username}!")
-            await self.fetch_registered_agents()
-            return True
-
-        except httpx.HTTPStatusError as e:
-            logger.error(
-                f"HTTP error during agent deregistration: Status {e.response.status_code} - {e.response.text}"
+            
+            if response.status_code == 200:
+                logger.info(f"Successfully deregistered agent {agent.Username}!")
+                await self.fetch_registered_agents()
+                return True
+                
+            raise RegistrationAPIError(
+                message=f"Failed to deregister agent {agent.Username}",
+                status_code=response.status_code,
+                response_body=response.text
             )
-            return False
-        except httpx.RequestError as e:
-            logger.error(f"Network error during agent deregistration: {str(e)}")
-            return False
+            
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error during deregistration: {str(e)}")
         except Exception as e:
-            logger.error(f"Unexpected error during agent deregistration: {str(e)}")
-            return False
+            logger.error(f"Unexpected error during deregistration: {str(e)}")
+        return False
 
     async def update_agents_profiles_and_emissions(self) -> None:
         _, emissions = self.validator.get_emissions(None)
@@ -223,7 +344,7 @@ class ValidatorRegistration:
                         json.dumps(update_data, default=lambda o: o.__dict__)
                     )
                     response = await self.httpx_client.post(
-                        self.registration_endpoint, json=update_data
+                        self._endpoints['registration'], json=update_data
                     )
                     if response.status_code == 200:
                         logger.info("Successfully updated agent!")
