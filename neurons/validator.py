@@ -26,7 +26,7 @@ from interfaces.types import (
 from validator.posts_getter import PostsGetter
 from validator.weight_setter import ValidatorWeightSetter
 from validator.registration import ValidatorRegistration
-
+from validator.nats import MinersNATSPublisher
 
 logger = get_logger(__name__)
 
@@ -85,6 +85,7 @@ class AgentValidator:
         self.weight_setter = ValidatorWeightSetter(validator=self)
 
         self.registrar = ValidatorRegistration(validator=self)
+        self.NATSPublisher = MinersNATSPublisher(self)
 
     async def start(self) -> None:
         """Start the validator service"""
