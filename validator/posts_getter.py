@@ -16,7 +16,9 @@ class PostsGetter:
         self.api_key = os.getenv("API_KEY", None)
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
         self.httpx_client = httpx.AsyncClient(
-            base_url=self.api_url, headers={"Authorization": f"Bearer {self.api_key}"}
+            base_url=self.api_url,
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            timeout=120,
         )
 
     async def get(self) -> List[Any]:
@@ -43,3 +45,4 @@ class PostsGetter:
                 return []
         except Exception as e:
             logger.error(f"Exception occurred while fetching posts: {str(e)}")
+            return []
