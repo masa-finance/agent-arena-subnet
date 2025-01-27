@@ -42,6 +42,7 @@ from datetime import datetime, UTC, timedelta
 from fiber.logging_utils import get_logger
 import httpx
 import os
+import asyncio
 
 logger = get_logger(__name__)
 
@@ -50,6 +51,9 @@ DEFAULT_DAYS_LOOKBACK = 7
 DEFAULT_API_URL = "https://test.protocol-api.masa.ai"
 API_VERSION = "v1.0.0"
 SUBNET_API_PATH = "subnet59"
+DEFAULT_TIMEOUT = 120.0  # Increased to 120 seconds
+MAX_RETRIES = 3
+RETRY_DELAY = 5  # seconds between retries
 
 
 class GetAgentPostsAPIError(Exception):
@@ -113,29 +117,30 @@ class GetAgentPosts:
         logger.debug(f"Initializing PostsGetter with{'out' if not self.api_key else ''} API authentication")
         
         self.httpx_client = httpx.AsyncClient(
-            headers=headers
+            headers=headers,
+            timeout=httpx.Timeout(DEFAULT_TIMEOUT)
         )
 
     async def get(self) -> List[Any]:
         """
-        get fetches posts for the configured date range.
+        get fetches posts for the configured date range with retry logic.
         
         Returns:
             List[Any]: List of posts within the specified date range
             
         Note:
-            The posts are fetched asynchronously using httpx client.
+            The posts are fetched asynchronously using httpx client with retry logic.
         """
-        posts = await self._fetch_posts()
+        posts = await self._fetch_posts_with_retry()
         logger.info(
             f"Loaded {len(posts)} posts between {datetime.fromtimestamp(self.start_timestamp, UTC)} "
             f"and {datetime.fromtimestamp(self.end_timestamp, UTC)}"
         )
         return posts
 
-    async def _fetch_posts(self) -> List[Any]:
+    async def _fetch_posts_with_retry(self) -> List[Any]:
         """
-        _fetch_posts performs the actual HTTP request to fetch posts.
+        _fetch_posts_with_retry performs the actual HTTP request to fetch posts with retry logic.
         
         Returns:
             List[Any]: List of posts from the API response
@@ -147,26 +152,50 @@ class GetAgentPosts:
             This method handles various error cases and logs appropriate messages.
             On error, it returns an empty list instead of raising exceptions.
         """
-        try:
-            response = await self.httpx_client.get(
-                f"{self.api_url}/{API_VERSION}/{SUBNET_API_PATH}/miners/posts",
-                params={"since": self.start_timestamp, "until": self.end_timestamp}
-            )
-            
-            if response.status_code == 200:
-                posts = response.json().get("posts", [])
-                logger.info(f"Successfully fetched {len(posts)} posts from API")
-                return posts
+        retries = 0
+        while retries < MAX_RETRIES:
+            try:
+                response = await self.httpx_client.get(
+                    f"{self.api_url}/{API_VERSION}/{SUBNET_API_PATH}/miners/posts",
+                    params={"since": self.start_timestamp, "until": self.end_timestamp}
+                )
                 
-            raise GetAgentPostsAPIError(
-                message="Failed to fetch posts",
-                status_code=response.status_code,
-                response_body=response.text
-            )
-            
-        except httpx.HTTPError as e:
-            logger.error(f"HTTP error occurred while fetching posts: {str(e)}")
-            return []
-        except Exception as e:
-            logger.error(f"Unexpected error while fetching posts: {str(e)}")
-            return []
+                if response.status_code == 200:
+                    posts = response.json().get("posts", [])
+                    logger.info(f"Successfully fetched {len(posts)} posts from API")
+                    return posts
+                
+                # Handle specific status codes
+                if response.status_code in [502, 503, 504]:  # Gateway errors
+                    logger.warning(f"Gateway error (status {response.status_code}), attempt {retries + 1} of {MAX_RETRIES}")
+                    retries += 1
+                    if retries < MAX_RETRIES:
+                        await asyncio.sleep(RETRY_DELAY)
+                        continue
+                
+                # Other error status codes
+                raise GetAgentPostsAPIError(
+                    message="Failed to fetch posts",
+                    status_code=response.status_code,
+                    response_body=response.text
+                )
+                
+            except httpx.ReadTimeout:
+                logger.warning(f"Timeout error, attempt {retries + 1} of {MAX_RETRIES}")
+                retries += 1
+                if retries < MAX_RETRIES:
+                    await asyncio.sleep(RETRY_DELAY)
+                    continue
+                logger.error("Max retries reached for timeout")
+                return []
+                
+            except httpx.HTTPError as e:
+                logger.error(f"HTTP error occurred while fetching posts: {str(e)}")
+                return []
+                
+            except Exception as e:
+                logger.error(f"Unexpected error while fetching posts: {str(e)}")
+                return []
+        
+        logger.error("Max retries reached, failed to fetch posts")
+        return []

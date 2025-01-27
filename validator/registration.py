@@ -191,7 +191,13 @@ class ValidatorRegistration:
             'LikesCount', 'ListedCount', 'Location', 'PinnedTweetIDs', 'TweetsCount',
             'URL', 'Website', 'Emissions', 'Marketcap'
         }
-        return {k: v for k, v in agent_data.items() if k in expected_fields}
+        filtered_data = {k: v for k, v in agent_data.items() if k in expected_fields}
+        
+        # Add IsActive field if missing (default to True for existing agents)
+        if 'IsActive' not in filtered_data:
+            filtered_data['IsActive'] = True
+        
+        return filtered_data
 
     async def register_agent(self, node: Any, verified_tweet: VerifiedTweet,
                            user_id: str, screen_name: str, avatar: str, 

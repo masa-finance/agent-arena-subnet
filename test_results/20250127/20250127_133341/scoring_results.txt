@@ -1,0 +1,27 @@
+Scoring Analysis Results - 20250127_133341
+
+Time Range: 2025-01-20T21:33:41.475398+00:00 to 2025-01-27T21:33:41.475398+00:00
+
+================================================================================
+
+
+=== Agent SHAP Analysis ===
+
+SHAP Values by Agent (showing relative feature contributions):
+================================================================================
+
+=== Feature Importance Analysis ===
+
+Feature Importance Breakdown:
+================================================================================
+Feature         Importance   Percentage   Visualization
+================================================================================
+
+=== Agent Analysis ===
+
+
+=== Overall Score Distribution ===
+
+Error during test: index -1 is out of bounds for axis 0 with size 0
+
+Test completed at: 2025-01-27T13:33:49.961448

@@ -56,6 +56,7 @@ class MockValidator:
 async def test_live_scoring_with_registered_agents():
     """
     Test scoring using real API data and registered agents.
+    Fetches only the last 24 hours of posts.
     """
     # Create dated results directory structure
     base_dir = "test_results"
@@ -76,9 +77,9 @@ async def test_live_scoring_with_registered_agents():
         with open(results_file, "a") as f:
             f.write(content + "\n")
     
-    # Set end time to now
+    # Set end time to now and start time to 24 hours ago
     end_time = datetime.now(UTC)
-    start_time = end_time - timedelta(days=7)
+    start_time = end_time - timedelta(hours=24)  # Changed from 7 days to 24 hours
     
     # Save metadata
     metadata = {
