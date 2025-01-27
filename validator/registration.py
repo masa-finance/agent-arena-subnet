@@ -214,7 +214,7 @@ class ValidatorRegistration:
                                 FollowingCount=profile.get("FollowingCount"),
                                 LikesCount=profile.get("LikesCount"),
                                 Name=profile.get("Name"),
-                                IsVerified=profile.get("IsVerified"),
+                                IsVerified=profile.get("IsBlueVerified"),
                                 Joined=profile.get("Joined"),
                                 ListedCount=profile.get("ListedCount"),
                                 Location=profile.get("Location"),
@@ -360,7 +360,7 @@ class ValidatorRegistration:
             profile = dict(dict(x_profile).get("data", {}))
             followers_count = profile.get("FollowersCount")
             avatar = profile.get("Avatar")
-            is_verified = profile.get("IsVerified")
+            is_verified = profile.get("IsBlueVerified")
 
             logger.info(f"Verified Tweet: {tweet_id}: {screen_name}: {full_text}")
 
