@@ -1,7 +1,7 @@
 from typing import Dict
 from interfaces.types import Tweet
-from .base_scorer import BaseScorer
-from ..config.scoring_config import ScoringWeights
+from validator.scoring.scorers.base_scorer import BaseScorer
+from validator.config.scoring_config import ScoringWeights
 import numpy as np
 
 class EngagementScorer(BaseScorer):

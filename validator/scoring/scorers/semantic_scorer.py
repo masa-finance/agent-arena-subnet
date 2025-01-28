@@ -5,8 +5,8 @@ from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 from fiber.logging_utils import get_logger
 from interfaces.types import Tweet
-from .base_scorer import BaseScorer
-from ..config.hardware_config import HardwareConfig, PerformanceConfig
+from validator.scoring.scorers.base_scorer import BaseScorer
+from validator.config.hardware_config import HardwareConfig, PerformanceConfig
 from collections import Counter
 
 logger = get_logger(__name__)

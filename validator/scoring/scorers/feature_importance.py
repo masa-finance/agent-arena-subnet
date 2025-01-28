@@ -6,9 +6,9 @@ import shap
 from tqdm import tqdm
 from time import time
 from interfaces.types import Tweet
-from ..config.hardware_config import HardwareConfig
-from ..config.scoring_config import ScoringWeights
-from ..scorers.semantic_scorer import SemanticScorer
+from validator.config.hardware_config import HardwareConfig
+from validator.config.scoring_config import ScoringWeights
+from validator.scoring.scorers.semantic_scorer import SemanticScorer
 
 class FeatureImportanceCalculator:
     """Calculates feature importance using SHAP values"""

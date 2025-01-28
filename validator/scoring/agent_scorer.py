@@ -7,14 +7,14 @@ from interfaces.types import Tweet
 from fiber.logging_utils import get_logger
 from validator.config.hardware_config import HardwareConfig, PerformanceConfig
 from validator.config.scoring_config import ScoringWeights
-from validator.config.progress_config import ProgressBarConfig, ProgressStages, ScoringProgressConfig, ShapProgressConfig
-from validator.scorers.semantic_scorer import SemanticScorer
-from validator.scorers.engagement_scorer import EngagementScorer
-from validator.scorers.feature_importance import FeatureImportanceCalculator
-from validator.scorers.profile_scorer import ProfileScorer
+from validator.config.progress_config import ScoringProgressConfig, ShapProgressConfig
+from validator.scoring.scorers.semantic_scorer import SemanticScorer
+from validator.scoring.scorers.engagement_scorer import EngagementScorer
+from validator.scoring.scorers.feature_importance import FeatureImportanceCalculator
+from validator.scoring.scorers.profile_scorer import ProfileScorer
 from time import time
-from validator.strategies.base_strategy import BaseScoringStrategy
-from validator.strategies.default_strategy import DefaultScoringStrategy
+from validator.scoring.strategies.base_strategy import BaseScoringStrategy
+from validator.scoring.strategies.default_strategy import DefaultScoringStrategy
 
 logger = get_logger(__name__)
 

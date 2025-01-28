@@ -10,7 +10,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 from fiber.logging_utils import get_logger
-from validator.agent_scorer import PostsScorer
+from validator.scoring.agent_scorer import PostsScorer
 from validator.get_agent_posts import GetAgentPosts
 from validator.registration import ValidatorRegistration
 from validator.config.hardware_config import HardwareConfig

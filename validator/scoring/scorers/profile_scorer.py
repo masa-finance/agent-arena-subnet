@@ -2,7 +2,7 @@ from typing import Optional, Any
 from dataclasses import dataclass
 from fiber.logging_utils import get_logger
 import numpy as np
-from validator.scorers.base_scorer import BaseScorer
+from validator.scoring.scorers.base_scorer import BaseScorer
 from interfaces.types import Tweet
 
 logger = get_logger(__name__)

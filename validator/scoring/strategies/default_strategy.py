@@ -1,6 +1,6 @@
 from typing import Dict
 import numpy as np
-from validator.strategies.base_strategy import BaseScoringStrategy
+from validator.scoring.strategies.base_strategy import BaseScoringStrategy
 
 class DefaultScoringStrategy(BaseScoringStrategy):
     """Default implementation of scoring strategy"""
