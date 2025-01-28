@@ -11,8 +11,10 @@ from validator.config.progress_config import ProgressBarConfig, ProgressStages, 
 from validator.scorers.semantic_scorer import SemanticScorer
 from validator.scorers.engagement_scorer import EngagementScorer
 from validator.scorers.feature_importance import FeatureImportanceCalculator
-from validator.scorers.profile_scorer import ProfileScorer, ProfileScoreWeights
+from validator.scorers.profile_scorer import ProfileScorer
 from time import time
+from validator.strategies.base_strategy import BaseScoringStrategy
+from validator.strategies.default_strategy import DefaultScoringStrategy
 
 logger = get_logger(__name__)
 
@@ -24,7 +26,8 @@ class AgentScorer:
     def __init__(self, 
                  validator: Any, 
                  scoring_hardware_config: Optional[HardwareConfig] = None,
-                 shap_hardware_config: Optional[HardwareConfig] = None):
+                 shap_hardware_config: Optional[HardwareConfig] = None,
+                 scoring_strategy: Optional[BaseScoringStrategy] = None):
         # Initialize configurations
         self.scoring_config = scoring_hardware_config or PerformanceConfig.get_config()
         self.shap_config = shap_hardware_config or self.scoring_config
@@ -42,6 +45,9 @@ class AgentScorer:
             semantic_scorer=self.semantic_scorer
         )
         
+        # Initialize scoring strategy
+        self.scoring_strategy = scoring_strategy or DefaultScoringStrategy(self.weights)
+        
         self._log_initialization()
 
     def _log_initialization(self) -> None:
@@ -57,10 +63,10 @@ class AgentScorer:
             logger.info(f"SHAP GPU Memory: {self.shap_config.gpu_memory}GB")
 
     def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
-        """Calculate individual post score with semantic quality as the primary factor"""
+        """Calculate individual post score using the scoring strategy"""
         text = post.get("Text", "")
         
-        # Get verification status from validator's registered agents
+        # Get verification status
         user_id = post.get("UserID")
         is_verified = False
         if user_id:
@@ -71,36 +77,18 @@ class AgentScorer:
             )
             is_verified = bool(agent and agent.IsVerified)
         
-        # Calculate component scores normally
+        # Calculate component scores
         profile_score = self.profile_scorer.calculate_score(post)
-        text_length = min(len(str(text)), 280) / 280
-        length_score = text_length * (self.weights.length_weight * 0.1)
-        engagement_score = min(self.engagement_scorer.calculate_score(post), 1.0)
-        weighted_semantic = semantic_score * (self.weights.semantic_weight * 2.0)
+        text_length_ratio = min(len(str(text)), 280) / 280
+        engagement_score = self.engagement_scorer.calculate_score(post)
         
-        # Combine base scores
-        base_score = (
-            weighted_semantic * 0.7 +     # 70% semantic
-            engagement_score * 0.15 +     # 15% engagement
-            profile_score * 0.1 +         # 10% profile
-            length_score * 0.05           # 5% length
+        return self.scoring_strategy.calculate_post_score(
+            semantic_score=semantic_score,
+            engagement_score=engagement_score,
+            profile_score=profile_score,
+            text_length_ratio=text_length_ratio,
+            is_verified=is_verified
         )
-        
-        # Apply semantic quality multiplier
-        quality_multiplier = 1.0 + (semantic_score * 0.5)
-        
-        # Calculate initial score
-        initial_score = base_score * quality_multiplier
-        
-        # Apply verification scaling:
-        # - Verified accounts: Score range (0.1-1.0)
-        # - Unverified accounts: Score range (0-0.1)
-        if is_verified:
-            # Scale verified scores to 0.1-1.0 range
-            return 0.1 + (initial_score * 0.9)
-        else:
-            # Scale unverified scores to 0-0.1 range
-            return initial_score * 0.1
 
     def calculate_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Dict[str, float]]:
         """Calculate agent scores from posts."""
@@ -185,25 +173,6 @@ class AgentScorer:
             "posts_with_text": len([p for p in posts if p.get("Text")])
         }
 
-    def _group_posts_by_agent(self, posts: List[Tweet]) -> Dict[int, List[Tweet]]:
-        """Group posts by agent UID"""
-        user_id_to_uid = {
-            agent.UserID: int(agent.UID)
-            for agent in self.validator.registered_agents.values()
-        }
-        
-        posts_by_uid: Dict[int, List[Tweet]] = {}
-        for post in posts:
-            user_id = post.get("UserID")
-            if not user_id or user_id not in user_id_to_uid:
-                continue
-            uid = user_id_to_uid[user_id]
-            if uid not in posts_by_uid:
-                posts_by_uid[uid] = []
-            posts_by_uid[uid].append(post)
-            
-        return posts_by_uid
-
     def _calculate_agent_scores(self, 
                               posts_by_uid: Dict[int, List[Tweet]], 
                               progress_bar: tqdm) -> Dict[int, float]:
@@ -212,7 +181,7 @@ class AgentScorer:
         start_time = time()
         processed_agents = 0
         
-        # Calculate initial scores as before
+        # Calculate initial scores
         for uid, agent_posts in posts_by_uid.items():
             texts = [post.get("Text", "") for post in agent_posts]
             semantic_scores = self.semantic_scorer.calculate_scores(texts)
@@ -243,25 +212,8 @@ class AgentScorer:
                 "rate": f"{rate:.2f} agents/s"
             })
 
-        # Apply kurtosis curve to all scores
-        if final_scores:
-            scores_array = np.array(list(final_scores.values()))
-            min_score = scores_array.min()
-            max_score = scores_array.max()
-            
-            # Normalize scores to 0-1 range
-            normalized_scores = (scores_array - min_score) / (max_score - min_score) if max_score > min_score else scores_array
-            
-            # Apply kurtosis transformation
-            kurtosis_factor = 3.0  # Adjust this to control curve steepness
-            for uid in final_scores:
-                if max_score > min_score:
-                    normalized_score = (final_scores[uid] - min_score) / (max_score - min_score)
-                    # Apply sigmoid-like transformation
-                    curved_score = 1 / (1 + np.exp(-kurtosis_factor * (normalized_score - 0.5)))
-                    # Scale back to original range
-                    final_scores[uid] = min_score + (curved_score * (max_score - min_score))
-
+        # Apply normalization
+        final_scores = self.scoring_strategy.normalize_scores(final_scores)
         return final_scores
 
     def _get_agent_uid(self, post: Tweet) -> Optional[int]:
@@ -277,7 +229,6 @@ class AgentScorer:
         }
         
         return user_id_to_uid.get(user_id)
-
 
 # For backward compatibility
 class PostsScorer(AgentScorer):
