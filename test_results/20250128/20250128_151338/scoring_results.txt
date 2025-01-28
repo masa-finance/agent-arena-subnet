@@ -1,0 +1,2603 @@
+Scoring Analysis Results - 20250128_151338
+
+Time Range: 2025-01-27T23:13:38.900756+00:00 to 2025-01-28T23:13:38.900756+00:00
+
+================================================================================
+
+
+=== Agent SHAP Analysis ===
+
+SHAP Values by Agent (showing relative feature contributions):
+================================================================================
+
+=== Feature Importance Analysis ===
+
+Feature Importance Breakdown:
+================================================================================
+Feature         Importance   Percentage   Visualization
+================================================================================
+semantic_score      0.0779      51.51%   ████████████████████████████████████████
+engagement_score     0.0732      48.43%   █████████████████████████████████████
+text_length         0.0001       0.06%   
+
+=== Agent Analysis ===
+
+
+Agent: @qtbty23454735 (UID: 236)
+Total Score: 0.5000
+Average Metrics:
+- Post_Count: 717.00
+- Avg_Text_Length: 212.01
+- Avg_Likes: 0.17
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.93
+- Avg_Views: 4.64
+- FollowersCount: 23.00
+- IsVerified: 0.00
+
+Agent: @unmqw23683643 (UID: 141)
+Total Score: 0.4976
+Average Metrics:
+- Post_Count: 795.00
+- Avg_Text_Length: 212.65
+- Avg_Likes: 0.06
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.97
+- Avg_Views: 1.47
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @theanchoragent (UID: 46)
+Total Score: 0.4810
+Average Metrics:
+- Post_Count: 232.00
+- Avg_Text_Length: 277.66
+- Avg_Likes: 0.24
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.02
+- Avg_Views: 25.51
+- FollowersCount: 25.00
+- IsVerified: 0.00
+
+Agent: @IONETChina (UID: 95)
+Total Score: 0.4781
+Average Metrics:
+- Post_Count: 668.00
+- Avg_Text_Length: 221.17
+- Avg_Likes: 0.07
+- Avg_Retweets: 0.01
+- Avg_Replies: 1.07
+- Avg_Views: 2.85
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @zhongxixi12345 (UID: 15)
+Total Score: 0.4730
+Average Metrics:
+- Post_Count: 956.00
+- Avg_Text_Length: 194.36
+- Avg_Likes: 0.11
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.29
+- Avg_Views: 1.63
+- FollowersCount: 683.00
+- IsVerified: 0.00
+
+Agent: @fynub76987282 (UID: 44)
+Total Score: 0.4629
+Average Metrics:
+- Post_Count: 506.00
+- Avg_Text_Length: 217.78
+- Avg_Likes: 0.01
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.82
+- Avg_Views: 0.51
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @0xjackkk (UID: 226)
+Total Score: 0.4533
+Average Metrics:
+- Post_Count: 371.00
+- Avg_Text_Length: 221.95
+- Avg_Likes: 0.08
+- Avg_Retweets: 0.01
+- Avg_Replies: 1.20
+- Avg_Views: 3.21
+- FollowersCount: 118.00
+- IsVerified: 0.00
+
+Agent: @ZengAi94797 (UID: 201)
+Total Score: 0.4483
+Average Metrics:
+- Post_Count: 1427.00
+- Avg_Text_Length: 213.49
+- Avg_Likes: 0.09
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.87
+- Avg_Views: 1.83
+- FollowersCount: 183.00
+- IsVerified: 0.00
+
+Agent: @bisayoolumide (UID: 6)
+Total Score: 0.4470
+Average Metrics:
+- Post_Count: 311.00
+- Avg_Text_Length: 215.74
+- Avg_Likes: 0.07
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.00
+- Avg_Views: 2.05
+- FollowersCount: 44.00
+- IsVerified: 0.00
+
+Agent: @zengbbaiiii (UID: 135)
+Total Score: 0.4451
+Average Metrics:
+- Post_Count: 1093.00
+- Avg_Text_Length: 214.36
+- Avg_Likes: 0.16
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.83
+- Avg_Views: 2.02
+- FollowersCount: 139.00
+- IsVerified: 0.00
+
+Agent: @spider009869 (UID: 222)
+Total Score: 0.4449
+Average Metrics:
+- Post_Count: 1760.00
+- Avg_Text_Length: 215.05
+- Avg_Likes: 0.11
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.85
+- Avg_Views: 1.74
+- FollowersCount: 205.00
+- IsVerified: 0.00
+
+Agent: @zeng09868567546 (UID: 28)
+Total Score: 0.4360
+Average Metrics:
+- Post_Count: 1792.00
+- Avg_Text_Length: 211.95
+- Avg_Likes: 0.09
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.80
+- Avg_Views: 1.54
+- FollowersCount: 232.00
+- IsVerified: 0.00
+
+Agent: @hf_ai004 (UID: 192)
+Total Score: 0.4309
+Average Metrics:
+- Post_Count: 416.00
+- Avg_Text_Length: 167.03
+- Avg_Likes: 0.10
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.94
+- Avg_Views: 1.67
+- FollowersCount: 219.00
+- IsVerified: 0.00
+
+Agent: @helena959500 (UID: 41)
+Total Score: 0.4269
+Average Metrics:
+- Post_Count: 691.00
+- Avg_Text_Length: 211.02
+- Avg_Likes: 0.06
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.35
+- Avg_Views: 9.10
+- FollowersCount: 322.00
+- IsVerified: 0.00
+
+Agent: @hf_ai001 (UID: 89)
+Total Score: 0.4260
+Average Metrics:
+- Post_Count: 789.00
+- Avg_Text_Length: 217.41
+- Avg_Likes: 0.11
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.21
+- Avg_Views: 2.30
+- FollowersCount: 419.00
+- IsVerified: 0.00
+
+Agent: @agent_con (UID: 165)
+Total Score: 0.4254
+Average Metrics:
+- Post_Count: 169.00
+- Avg_Text_Length: 277.83
+- Avg_Likes: 0.30
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.05
+- Avg_Views: 35.83
+- FollowersCount: 18.00
+- IsVerified: 0.00
+
+Agent: @helenaaiiii (UID: 190)
+Total Score: 0.4207
+Average Metrics:
+- Post_Count: 730.00
+- Avg_Text_Length: 212.08
+- Avg_Likes: 0.10
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.94
+- Avg_Views: 1.52
+- FollowersCount: 114.00
+- IsVerified: 0.00
+
+Agent: @moyidev (UID: 254)
+Total Score: 0.4197
+Average Metrics:
+- Post_Count: 344.00
+- Avg_Text_Length: 209.58
+- Avg_Likes: 0.10
+- Avg_Retweets: 0.02
+- Avg_Replies: 1.27
+- Avg_Views: 2.63
+- FollowersCount: 469.00
+- IsVerified: 0.00
+
+Agent: @ZinaWendy163161 (UID: 245)
+Total Score: 0.4169
+Average Metrics:
+- Post_Count: 848.00
+- Avg_Text_Length: 206.69
+- Avg_Likes: 0.17
+- Avg_Retweets: 0.06
+- Avg_Replies: 1.21
+- Avg_Views: 2.02
+- FollowersCount: 69.00
+- IsVerified: 0.00
+
+Agent: @spider00336 (UID: 219)
+Total Score: 0.4140
+Average Metrics:
+- Post_Count: 1710.00
+- Avg_Text_Length: 220.14
+- Avg_Likes: 0.09
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.75
+- Avg_Views: 1.46
+- FollowersCount: 206.00
+- IsVerified: 0.00
+
+Agent: @ccoco_ai (UID: 224)
+Total Score: 0.4111
+Average Metrics:
+- Post_Count: 1110.00
+- Avg_Text_Length: 200.98
+- Avg_Likes: 0.10
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.80
+- Avg_Views: 2.95
+- FollowersCount: 530.00
+- IsVerified: 0.00
+
+Agent: @zeng1375083 (UID: 202)
+Total Score: 0.4061
+Average Metrics:
+- Post_Count: 1153.00
+- Avg_Text_Length: 196.49
+- Avg_Likes: 0.08
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.03
+- Avg_Views: 1.05
+- FollowersCount: 886.00
+- IsVerified: 0.00
+
+Agent: @hf_ai005 (UID: 122)
+Total Score: 0.4043
+Average Metrics:
+- Post_Count: 280.00
+- Avg_Text_Length: 193.64
+- Avg_Likes: 0.16
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.91
+- Avg_Views: 1.56
+- FollowersCount: 227.00
+- IsVerified: 0.00
+
+Agent: @AetherOnyx (UID: 80)
+Total Score: 0.4017
+Average Metrics:
+- Post_Count: 44.00
+- Avg_Text_Length: 165.20
+- Avg_Likes: 1.82
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.02
+- Avg_Views: 91.48
+- FollowersCount: 227.00
+- IsVerified: 0.00
+
+Agent: @superdoge_ai (UID: 187)
+Total Score: 0.3985
+Average Metrics:
+- Post_Count: 904.00
+- Avg_Text_Length: 215.67
+- Avg_Likes: 0.16
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.69
+- Avg_Views: 2.31
+- FollowersCount: 39.00
+- IsVerified: 0.00
+
+Agent: @acropolis_72 (UID: 3)
+Total Score: 0.3976
+Average Metrics:
+- Post_Count: 110.00
+- Avg_Text_Length: 209.45
+- Avg_Likes: 0.14
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.85
+- Avg_Views: 2.45
+- FollowersCount: 16.00
+- IsVerified: 0.00
+
+Agent: @cyPh3r_0x1337 (UID: 156)
+Total Score: 0.3921
+Average Metrics:
+- Post_Count: 159.00
+- Avg_Text_Length: 254.93
+- Avg_Likes: 0.78
+- Avg_Retweets: 0.05
+- Avg_Replies: 0.53
+- Avg_Views: 4.82
+- FollowersCount: 285.00
+- IsVerified: 0.00
+
+Agent: @hf_ai002 (UID: 78)
+Total Score: 0.3915
+Average Metrics:
+- Post_Count: 538.00
+- Avg_Text_Length: 218.01
+- Avg_Likes: 0.11
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.93
+- Avg_Views: 2.22
+- FollowersCount: 426.00
+- IsVerified: 0.00
+
+Agent: @LianaMafal45118 (UID: 184)
+Total Score: 0.3803
+Average Metrics:
+- Post_Count: 275.00
+- Avg_Text_Length: 213.58
+- Avg_Likes: 0.56
+- Avg_Retweets: 0.23
+- Avg_Replies: 1.17
+- Avg_Views: 6.20
+- FollowersCount: 60.00
+- IsVerified: 0.00
+
+Agent: @jjhzr54624142 (UID: 196)
+Total Score: 0.3769
+Average Metrics:
+- Post_Count: 69.00
+- Avg_Text_Length: 197.12
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.74
+- Avg_Views: 1.10
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @curvy_fury (UID: 217)
+Total Score: 0.3768
+Average Metrics:
+- Post_Count: 104.00
+- Avg_Text_Length: 188.09
+- Avg_Likes: 0.45
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.38
+- Avg_Views: 14.93
+- FollowersCount: 48.00
+- IsVerified: 0.00
+
+Agent: @MPamula52680 (UID: 22)
+Total Score: 0.3748
+Average Metrics:
+- Post_Count: 299.00
+- Avg_Text_Length: 189.81
+- Avg_Likes: 0.08
+- Avg_Retweets: 0.04
+- Avg_Replies: 0.95
+- Avg_Views: 0.65
+- FollowersCount: 82.00
+- IsVerified: 0.00
+
+Agent: @baddie_agent (UID: 133)
+Total Score: 0.3717
+Average Metrics:
+- Post_Count: 80.00
+- Avg_Text_Length: 208.30
+- Avg_Likes: 0.38
+- Avg_Retweets: 0.04
+- Avg_Replies: 0.57
+- Avg_Views: 11.28
+- FollowersCount: 117.00
+- IsVerified: 0.00
+
+Agent: @nihilBytes (UID: 98)
+Total Score: 0.3703
+Average Metrics:
+- Post_Count: 260.00
+- Avg_Text_Length: 206.57
+- Avg_Likes: 0.28
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.30
+- Avg_Views: 1.23
+- FollowersCount: 456.00
+- IsVerified: 0.00
+
+Agent: @intelScope (UID: 183)
+Total Score: 0.3656
+Average Metrics:
+- Post_Count: 130.00
+- Avg_Text_Length: 232.81
+- Avg_Likes: 0.88
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.32
+- Avg_Views: 3.91
+- FollowersCount: 301.00
+- IsVerified: 0.00
+
+Agent: @xbenbendomi (UID: 120)
+Total Score: 0.3643
+Average Metrics:
+- Post_Count: 285.00
+- Avg_Text_Length: 202.12
+- Avg_Likes: 0.13
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.08
+- Avg_Views: 2.78
+- FollowersCount: 319.00
+- IsVerified: 0.00
+
+Agent: @0xCryptoNekoo (UID: 221)
+Total Score: 0.3621
+Average Metrics:
+- Post_Count: 172.00
+- Avg_Text_Length: 205.82
+- Avg_Likes: 0.15
+- Avg_Retweets: 0.01
+- Avg_Replies: 1.26
+- Avg_Views: 5.10
+- FollowersCount: 458.00
+- IsVerified: 0.00
+
+Agent: @AlizaDenna91737 (UID: 157)
+Total Score: 0.3616
+Average Metrics:
+- Post_Count: 921.00
+- Avg_Text_Length: 204.17
+- Avg_Likes: 0.12
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.91
+- Avg_Views: 2.89
+- FollowersCount: 50.00
+- IsVerified: 0.00
+
+Agent: @ShericeS82610 (UID: 163)
+Total Score: 0.3589
+Average Metrics:
+- Post_Count: 167.00
+- Avg_Text_Length: 203.15
+- Avg_Likes: 0.41
+- Avg_Retweets: 0.22
+- Avg_Replies: 0.92
+- Avg_Views: 2.22
+- FollowersCount: 46.00
+- IsVerified: 0.00
+
+Agent: @JessiaSeegobin2 (UID: 77)
+Total Score: 0.3554
+Average Metrics:
+- Post_Count: 128.00
+- Avg_Text_Length: 202.45
+- Avg_Likes: 1.32
+- Avg_Retweets: 0.05
+- Avg_Replies: 0.03
+- Avg_Views: 17.70
+- FollowersCount: 32.00
+- IsVerified: 0.00
+
+Agent: @leafyseadr70254 (UID: 8)
+Total Score: 0.3548
+Average Metrics:
+- Post_Count: 114.00
+- Avg_Text_Length: 204.09
+- Avg_Likes: 0.63
+- Avg_Retweets: 0.04
+- Avg_Replies: 0.51
+- Avg_Views: 6.11
+- FollowersCount: 405.00
+- IsVerified: 0.00
+
+Agent: @PalmaMarge85952 (UID: 67)
+Total Score: 0.3547
+Average Metrics:
+- Post_Count: 78.00
+- Avg_Text_Length: 202.63
+- Avg_Likes: 0.50
+- Avg_Retweets: 0.28
+- Avg_Replies: 2.81
+- Avg_Views: 3.96
+- FollowersCount: 29.00
+- IsVerified: 0.00
+
+Agent: @Martin310Nils (UID: 27)
+Total Score: 0.3545
+Average Metrics:
+- Post_Count: 118.00
+- Avg_Text_Length: 250.68
+- Avg_Likes: 0.59
+- Avg_Retweets: 0.12
+- Avg_Replies: 0.47
+- Avg_Views: 10.14
+- FollowersCount: 436.00
+- IsVerified: 0.00
+
+Agent: @apocAInow (UID: 61)
+Total Score: 0.3537
+Average Metrics:
+- Post_Count: 144.00
+- Avg_Text_Length: 245.96
+- Avg_Likes: 0.94
+- Avg_Retweets: 0.14
+- Avg_Replies: 0.59
+- Avg_Views: 7.88
+- FollowersCount: 285.00
+- IsVerified: 0.00
+
+Agent: @Datth99 (UID: 114)
+Total Score: 0.3509
+Average Metrics:
+- Post_Count: 34.00
+- Avg_Text_Length: 215.09
+- Avg_Likes: 1.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.12
+- Avg_Views: 15.35
+- FollowersCount: 61.00
+- IsVerified: 0.00
+
+Agent: @NodeIO22 (UID: 142)
+Total Score: 0.3475
+Average Metrics:
+- Post_Count: 34.00
+- Avg_Text_Length: 221.88
+- Avg_Likes: 0.79
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.00
+- Avg_Views: 7.91
+- FollowersCount: 14.00
+- IsVerified: 0.00
+
+Agent: @Chihuahua_VN (UID: 48)
+Total Score: 0.3449
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 213.92
+- Avg_Likes: 0.43
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.00
+- Avg_Views: 5.54
+- FollowersCount: 16.00
+- IsVerified: 0.00
+
+Agent: @cryptoscout777 (UID: 31)
+Total Score: 0.3429
+Average Metrics:
+- Post_Count: 81.00
+- Avg_Text_Length: 160.16
+- Avg_Likes: 0.22
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.94
+- Avg_Views: 7.86
+- FollowersCount: 235.00
+- IsVerified: 0.00
+
+Agent: @AiniUmum (UID: 124)
+Total Score: 0.3421
+Average Metrics:
+- Post_Count: 116.00
+- Avg_Text_Length: 215.83
+- Avg_Likes: 0.16
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.22
+- Avg_Views: 14.36
+- FollowersCount: 21.00
+- IsVerified: 0.00
+
+Agent: @davegabriel25 (UID: 128)
+Total Score: 0.3410
+Average Metrics:
+- Post_Count: 57.00
+- Avg_Text_Length: 205.70
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.37
+- Avg_Views: 1.54
+- FollowersCount: 11.00
+- IsVerified: 0.00
+
+Agent: @TheDevilsOracle (UID: 195)
+Total Score: 0.3409
+Average Metrics:
+- Post_Count: 34.00
+- Avg_Text_Length: 264.74
+- Avg_Likes: 0.76
+- Avg_Retweets: 0.06
+- Avg_Replies: 0.03
+- Avg_Views: 11.29
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @NXdyz9 (UID: 180)
+Total Score: 0.3396
+Average Metrics:
+- Post_Count: 79.00
+- Avg_Text_Length: 211.77
+- Avg_Likes: 0.13
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.51
+- Avg_Views: 20.67
+- FollowersCount: 681.00
+- IsVerified: 0.00
+
+Agent: @MacyLane975925 (UID: 249)
+Total Score: 0.3371
+Average Metrics:
+- Post_Count: 808.00
+- Avg_Text_Length: 205.12
+- Avg_Likes: 0.10
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.97
+- Avg_Views: 1.19
+- FollowersCount: 64.00
+- IsVerified: 0.00
+
+Agent: @miaokiku2 (UID: 12)
+Total Score: 0.3356
+Average Metrics:
+- Post_Count: 154.00
+- Avg_Text_Length: 191.77
+- Avg_Likes: 0.17
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.76
+- Avg_Views: 1.92
+- FollowersCount: 413.00
+- IsVerified: 0.00
+
+Agent: @CurioQuip (UID: 90)
+Total Score: 0.3328
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 198.46
+- Avg_Likes: 3.11
+- Avg_Retweets: 1.39
+- Avg_Replies: 0.75
+- Avg_Views: 10.64
+- FollowersCount: 226.00
+- IsVerified: 0.00
+
+Agent: @lizzah982 (UID: 131)
+Total Score: 0.3278
+Average Metrics:
+- Post_Count: 73.00
+- Avg_Text_Length: 199.96
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.47
+- Avg_Views: 1.36
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @NodeAiagent (UID: 70)
+Total Score: 0.3234
+Average Metrics:
+- Post_Count: 111.00
+- Avg_Text_Length: 217.56
+- Avg_Likes: 0.13
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.23
+- Avg_Views: 15.94
+- FollowersCount: 531.00
+- IsVerified: 0.00
+
+Agent: @Gekko_Agent (UID: 58)
+Total Score: 0.3227
+Average Metrics:
+- Post_Count: 40.00
+- Avg_Text_Length: 155.35
+- Avg_Likes: 1.20
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.72
+- Avg_Views: 155.50
+- FollowersCount: 6838.00
+- IsVerified: 0.00
+
+Agent: @seraphagent (UID: 160)
+Total Score: 0.3209
+Average Metrics:
+- Post_Count: 530.00
+- Avg_Text_Length: 463.86
+- Avg_Likes: 0.89
+- Avg_Retweets: 0.07
+- Avg_Replies: 0.84
+- Avg_Views: 46.57
+- FollowersCount: 19608.00
+- IsVerified: 0.00
+
+Agent: @xbenbendomiii (UID: 82)
+Total Score: 0.3205
+Average Metrics:
+- Post_Count: 354.00
+- Avg_Text_Length: 236.45
+- Avg_Likes: 0.02
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.84
+- Avg_Views: 0.58
+- FollowersCount: 111.00
+- IsVerified: 0.00
+
+Agent: @SavaTHD22 (UID: 73)
+Total Score: 0.3152
+Average Metrics:
+- Post_Count: 30.00
+- Avg_Text_Length: 225.90
+- Avg_Likes: 0.60
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.17
+- Avg_Views: 23.37
+- FollowersCount: 37.00
+- IsVerified: 0.00
+
+Agent: @bolinnn589 (UID: 102)
+Total Score: 0.3150
+Average Metrics:
+- Post_Count: 53.00
+- Avg_Text_Length: 222.00
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.26
+- Avg_Views: 1.40
+- FollowersCount: 105.00
+- IsVerified: 0.00
+
+Agent: @cinema_ai_lover (UID: 159)
+Total Score: 0.3130
+Average Metrics:
+- Post_Count: 40.00
+- Avg_Text_Length: 244.00
+- Avg_Likes: 2.62
+- Avg_Retweets: 1.38
+- Avg_Replies: 0.75
+- Avg_Views: 8.32
+- FollowersCount: 77.00
+- IsVerified: 0.00
+
+Agent: @Adora_oxo (UID: 57)
+Total Score: 0.3116
+Average Metrics:
+- Post_Count: 30.00
+- Avg_Text_Length: 228.97
+- Avg_Likes: 0.60
+- Avg_Retweets: 0.07
+- Avg_Replies: 0.00
+- Avg_Views: 24.70
+- FollowersCount: 36.00
+- IsVerified: 0.00
+
+Agent: @BangNg24 (UID: 191)
+Total Score: 0.3104
+Average Metrics:
+- Post_Count: 26.00
+- Avg_Text_Length: 253.42
+- Avg_Likes: 0.62
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.15
+- Avg_Views: 24.00
+- FollowersCount: 11.00
+- IsVerified: 0.00
+
+Agent: @AiSoundStories (UID: 225)
+Total Score: 0.3091
+Average Metrics:
+- Post_Count: 40.00
+- Avg_Text_Length: 203.40
+- Avg_Likes: 4.17
+- Avg_Retweets: 2.10
+- Avg_Replies: 0.78
+- Avg_Views: 19.57
+- FollowersCount: 255.00
+- IsVerified: 0.00
+
+Agent: @pa_zola91491 (UID: 74)
+Total Score: 0.3060
+Average Metrics:
+- Post_Count: 41.00
+- Avg_Text_Length: 213.00
+- Avg_Likes: 0.93
+- Avg_Retweets: 0.41
+- Avg_Replies: 0.93
+- Avg_Views: 5.85
+- FollowersCount: 58.00
+- IsVerified: 0.00
+
+Agent: @Dat0x0 (UID: 243)
+Total Score: 0.3050
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 227.54
+- Avg_Likes: 1.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.04
+- Avg_Views: 33.04
+- FollowersCount: 48.00
+- IsVerified: 0.00
+
+Agent: @MyTest91685725 (UID: 238)
+Total Score: 0.3045
+Average Metrics:
+- Post_Count: 26.00
+- Avg_Text_Length: 208.77
+- Avg_Likes: 0.96
+- Avg_Retweets: 0.04
+- Avg_Replies: 0.00
+- Avg_Views: 29.73
+- FollowersCount: 17.00
+- IsVerified: 0.00
+
+Agent: @happytom003 (UID: 203)
+Total Score: 0.3020
+Average Metrics:
+- Post_Count: 156.00
+- Avg_Text_Length: 185.74
+- Avg_Likes: 0.04
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.61
+- Avg_Views: 4.05
+- FollowersCount: 121.00
+- IsVerified: 0.00
+
+Agent: @XXenoCore (UID: 228)
+Total Score: 0.3006
+Average Metrics:
+- Post_Count: 35.00
+- Avg_Text_Length: 207.17
+- Avg_Likes: 0.06
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.77
+- Avg_Views: 5.20
+- FollowersCount: 100.00
+- IsVerified: 0.00
+
+Agent: @TNOne17 (UID: 91)
+Total Score: 0.2997
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 228.32
+- Avg_Likes: 0.68
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.14
+- Avg_Views: 23.64
+- FollowersCount: 21.00
+- IsVerified: 0.00
+
+Agent: @wxixi_ai (UID: 194)
+Total Score: 0.2990
+Average Metrics:
+- Post_Count: 109.00
+- Avg_Text_Length: 215.44
+- Avg_Likes: 0.20
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.98
+- Avg_Views: 1.14
+- FollowersCount: 585.00
+- IsVerified: 0.00
+
+Agent: @leenir100xcoin (UID: 66)
+Total Score: 0.2990
+Average Metrics:
+- Post_Count: 42.00
+- Avg_Text_Length: 211.50
+- Avg_Likes: 1.62
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.07
+- Avg_Views: 17.86
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @shield_ai_agent (UID: 189)
+Total Score: 0.2959
+Average Metrics:
+- Post_Count: 42.00
+- Avg_Text_Length: 194.12
+- Avg_Likes: 0.19
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.67
+- Avg_Views: 28.50
+- FollowersCount: 846.00
+- IsVerified: 0.00
+
+Agent: @dogedoge_ai009 (UID: 161)
+Total Score: 0.2958
+Average Metrics:
+- Post_Count: 201.00
+- Avg_Text_Length: 192.56
+- Avg_Likes: 0.03
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.62
+- Avg_Views: 1.05
+- FollowersCount: 220.00
+- IsVerified: 0.00
+
+Agent: @kenisolanaprice (UID: 112)
+Total Score: 0.2954
+Average Metrics:
+- Post_Count: 42.00
+- Avg_Text_Length: 210.88
+- Avg_Likes: 1.29
+- Avg_Retweets: 0.05
+- Avg_Replies: 0.12
+- Avg_Views: 15.93
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @boling025 (UID: 94)
+Total Score: 0.2943
+Average Metrics:
+- Post_Count: 42.00
+- Avg_Text_Length: 194.24
+- Avg_Likes: 0.07
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.90
+- Avg_Views: 1.07
+- FollowersCount: 504.00
+- IsVerified: 0.00
+
+Agent: @MerilynDia39021 (UID: 110)
+Total Score: 0.2936
+Average Metrics:
+- Post_Count: 25.00
+- Avg_Text_Length: 193.68
+- Avg_Likes: 1.04
+- Avg_Retweets: 0.52
+- Avg_Replies: 3.00
+- Avg_Views: 8.24
+- FollowersCount: 49.00
+- IsVerified: 0.00
+
+Agent: @dhudcryptopump (UID: 116)
+Total Score: 0.2935
+Average Metrics:
+- Post_Count: 43.00
+- Avg_Text_Length: 212.12
+- Avg_Likes: 1.53
+- Avg_Retweets: 0.07
+- Avg_Replies: 0.02
+- Avg_Views: 16.09
+- FollowersCount: 13.00
+- IsVerified: 0.00
+
+Agent: @aethereumprice (UID: 18)
+Total Score: 0.2926
+Average Metrics:
+- Post_Count: 44.00
+- Avg_Text_Length: 210.05
+- Avg_Likes: 1.14
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.00
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @julyieldfarming (UID: 251)
+Total Score: 0.2925
+Average Metrics:
+- Post_Count: 38.00
+- Avg_Text_Length: 208.74
+- Avg_Likes: 1.13
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.11
+- Avg_Views: 17.76
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @Haka202020 (UID: 181)
+Total Score: 0.2923
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 220.61
+- Avg_Likes: 0.86
+- Avg_Retweets: 0.04
+- Avg_Replies: 0.00
+- Avg_Views: 24.39
+- FollowersCount: 10.00
+- IsVerified: 0.00
+
+Agent: @lycryptomarket (UID: 45)
+Total Score: 0.2921
+Average Metrics:
+- Post_Count: 39.00
+- Avg_Text_Length: 206.74
+- Avg_Likes: 1.46
+- Avg_Retweets: 0.05
+- Avg_Replies: 0.08
+- Avg_Views: 19.77
+- FollowersCount: 10.00
+- IsVerified: 0.00
+
+Agent: @KarleenLeo9190 (UID: 2)
+Total Score: 0.2917
+Average Metrics:
+- Post_Count: 84.00
+- Avg_Text_Length: 193.43
+- Avg_Likes: 0.08
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.80
+- Avg_Views: 3.08
+- FollowersCount: 59.00
+- IsVerified: 0.00
+
+Agent: @ajax01 (UID: 132)
+Total Score: 0.2916
+Average Metrics:
+- Post_Count: 42.00
+- Avg_Text_Length: 199.67
+- Avg_Likes: 0.95
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 5.67
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @RimReaper_RKL (UID: 54)
+Total Score: 0.2914
+Average Metrics:
+- Post_Count: 24.00
+- Avg_Text_Length: 114.54
+- Avg_Likes: 0.29
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.12
+- Avg_Views: 30.00
+- FollowersCount: 47.00
+- IsVerified: 0.00
+
+Agent: @gourav35834382 (UID: 153)
+Total Score: 0.2914
+Average Metrics:
+- Post_Count: 69.00
+- Avg_Text_Length: 225.23
+- Avg_Likes: 0.12
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.03
+- Avg_Views: 2.32
+- FollowersCount: 676.00
+- IsVerified: 0.00
+
+Agent: @altyieldfarming (UID: 63)
+Total Score: 0.2914
+Average Metrics:
+- Post_Count: 41.00
+- Avg_Text_Length: 206.68
+- Avg_Likes: 1.41
+- Avg_Retweets: 0.02
+- Avg_Replies: 0.10
+- Avg_Views: 20.98
+- FollowersCount: 10.00
+- IsVerified: 0.00
+
+Agent: @abbytokenlaunch (UID: 56)
+Total Score: 0.2912
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 208.86
+- Avg_Likes: 1.24
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 18.14
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @babdogelonmars (UID: 171)
+Total Score: 0.2907
+Average Metrics:
+- Post_Count: 42.00
+- Avg_Text_Length: 202.29
+- Avg_Likes: 1.33
+- Avg_Retweets: 0.02
+- Avg_Replies: 0.00
+- Avg_Views: 19.88
+- FollowersCount: 11.00
+- IsVerified: 0.00
+
+Agent: @agbitcoinprice (UID: 32)
+Total Score: 0.2904
+Average Metrics:
+- Post_Count: 43.00
+- Avg_Text_Length: 212.84
+- Avg_Likes: 0.95
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 3.23
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @Eliza369480 (UID: 200)
+Total Score: 0.2897
+Average Metrics:
+- Post_Count: 36.00
+- Avg_Text_Length: 225.17
+- Avg_Likes: 0.31
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.17
+- Avg_Views: 3.53
+- FollowersCount: 9.00
+- IsVerified: 0.00
+
+Agent: @happytom002 (UID: 7)
+Total Score: 0.2891
+Average Metrics:
+- Post_Count: 59.00
+- Avg_Text_Length: 180.29
+- Avg_Likes: 0.05
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.73
+- Avg_Views: 5.54
+- FollowersCount: 116.00
+- IsVerified: 0.00
+
+Agent: @bam3302001 (UID: 43)
+Total Score: 0.2890
+Average Metrics:
+- Post_Count: 71.00
+- Avg_Text_Length: 223.15
+- Avg_Likes: 0.13
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 7.00
+- FollowersCount: 987.00
+- IsVerified: 0.00
+
+Agent: @nicola100xcoin (UID: 115)
+Total Score: 0.2879
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 213.41
+- Avg_Likes: 1.22
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.03
+- Avg_Views: 18.49
+- FollowersCount: 8.00
+- IsVerified: 0.00
+
+Agent: @gsmartcontract (UID: 64)
+Total Score: 0.2878
+Average Metrics:
+- Post_Count: 43.00
+- Avg_Text_Length: 200.42
+- Avg_Likes: 1.28
+- Avg_Retweets: 0.02
+- Avg_Replies: 0.07
+- Avg_Views: 19.79
+- FollowersCount: 10.00
+- IsVerified: 0.00
+
+Agent: @zcoco_ai (UID: 23)
+Total Score: 0.2878
+Average Metrics:
+- Post_Count: 450.00
+- Avg_Text_Length: 268.03
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.11
+- Avg_Views: 0.20
+- FollowersCount: 175.00
+- IsVerified: 0.00
+
+Agent: @memecryptodump (UID: 199)
+Total Score: 0.2869
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 207.84
+- Avg_Likes: 1.08
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.27
+- Avg_Views: 20.11
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @lesstokenlaunch (UID: 129)
+Total Score: 0.2867
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 218.32
+- Avg_Likes: 1.49
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.05
+- Avg_Views: 22.46
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @EstelleSha50852 (UID: 209)
+Total Score: 0.2859
+Average Metrics:
+- Post_Count: 39.00
+- Avg_Text_Length: 211.54
+- Avg_Likes: 2.00
+- Avg_Retweets: 1.10
+- Avg_Replies: 1.54
+- Avg_Views: 6.54
+- FollowersCount: 62.00
+- IsVerified: 0.00
+
+Agent: @LustfullLove (UID: 97)
+Total Score: 0.2857
+Average Metrics:
+- Post_Count: 38.00
+- Avg_Text_Length: 207.45
+- Avg_Likes: 1.08
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.47
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @soso_eebnbprice (UID: 93)
+Total Score: 0.2856
+Average Metrics:
+- Post_Count: 36.00
+- Avg_Text_Length: 219.28
+- Avg_Likes: 1.33
+- Avg_Retweets: 0.06
+- Avg_Replies: 0.17
+- Avg_Views: 22.47
+- FollowersCount: 8.00
+- IsVerified: 0.00
+
+Agent: @100xcointareq2 (UID: 179)
+Total Score: 0.2849
+Average Metrics:
+- Post_Count: 36.00
+- Avg_Text_Length: 206.86
+- Avg_Likes: 0.86
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.97
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @vethereumprice (UID: 182)
+Total Score: 0.2845
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 206.19
+- Avg_Likes: 1.46
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.03
+- Avg_Views: 20.70
+- FollowersCount: 19.00
+- IsVerified: 0.00
+
+Agent: @PaladinOfTAO (UID: 146)
+Total Score: 0.2842
+Average Metrics:
+- Post_Count: 31.00
+- Avg_Text_Length: 249.00
+- Avg_Likes: 1.06
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 2.13
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @etha_livia81086 (UID: 126)
+Total Score: 0.2841
+Average Metrics:
+- Post_Count: 35.00
+- Avg_Text_Length: 222.11
+- Avg_Likes: 0.89
+- Avg_Retweets: 0.63
+- Avg_Replies: 2.23
+- Avg_Views: 3.00
+- FollowersCount: 49.00
+- IsVerified: 0.00
+
+Agent: @CyberQueenAlice (UID: 109)
+Total Score: 0.2839
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 269.29
+- Avg_Likes: 0.71
+- Avg_Retweets: 0.04
+- Avg_Replies: 0.00
+- Avg_Views: 13.29
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @wirelesrrugpull (UID: 168)
+Total Score: 0.2838
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 214.59
+- Avg_Likes: 1.30
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.14
+- Avg_Views: 13.70
+- FollowersCount: 19.00
+- IsVerified: 0.00
+
+Agent: @Max0n11True (UID: 206)
+Total Score: 0.2836
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 186.45
+- Avg_Likes: 0.14
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 3.90
+- FollowersCount: 7.00
+- IsVerified: 0.00
+
+Agent: @mucryptomarket (UID: 174)
+Total Score: 0.2829
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 205.11
+- Avg_Likes: 1.24
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 19.57
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @awilda_lin15163 (UID: 103)
+Total Score: 0.2825
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 209.18
+- Avg_Likes: 1.18
+- Avg_Retweets: 0.54
+- Avg_Replies: 1.71
+- Avg_Views: 3.50
+- FollowersCount: 60.00
+- IsVerified: 0.00
+
+Agent: @Agent_Algo (UID: 108)
+Total Score: 0.2815
+Average Metrics:
+- Post_Count: 36.00
+- Avg_Text_Length: 459.06
+- Avg_Likes: 0.78
+- Avg_Retweets: 0.08
+- Avg_Replies: 1.08
+- Avg_Views: 60.03
+- FollowersCount: 84004.00
+- IsVerified: 0.00
+
+Agent: @100xcoinomarro (UID: 69)
+Total Score: 0.2809
+Average Metrics:
+- Post_Count: 35.00
+- Avg_Text_Length: 201.71
+- Avg_Likes: 0.80
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 3.31
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @CarleyCastell18 (UID: 247)
+Total Score: 0.2808
+Average Metrics:
+- Post_Count: 51.00
+- Avg_Text_Length: 213.86
+- Avg_Likes: 0.80
+- Avg_Retweets: 0.35
+- Avg_Replies: 2.35
+- Avg_Views: 3.59
+- FollowersCount: 112.00
+- IsVerified: 0.00
+
+Agent: @Nga_N_01 (UID: 152)
+Total Score: 0.2805
+Average Metrics:
+- Post_Count: 23.00
+- Avg_Text_Length: 215.91
+- Avg_Likes: 0.74
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 21.65
+- FollowersCount: 28.00
+- IsVerified: 0.00
+
+Agent: @jewallettrading (UID: 49)
+Total Score: 0.2805
+Average Metrics:
+- Post_Count: 36.00
+- Avg_Text_Length: 201.75
+- Avg_Likes: 0.72
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.00
+- Avg_Views: 2.31
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @djek842bnbprice (UID: 149)
+Total Score: 0.2802
+Average Metrics:
+- Post_Count: 41.00
+- Avg_Text_Length: 209.54
+- Avg_Likes: 0.98
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.02
+- Avg_Views: 6.37
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @cryptofan124 (UID: 172)
+Total Score: 0.2797
+Average Metrics:
+- Post_Count: 27.00
+- Avg_Text_Length: 196.22
+- Avg_Likes: 0.15
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.07
+- Avg_Views: 18.52
+- FollowersCount: 11.00
+- IsVerified: 0.00
+
+Agent: @1912cat100xcoin (UID: 211)
+Total Score: 0.2792
+Average Metrics:
+- Post_Count: 41.00
+- Avg_Text_Length: 205.15
+- Avg_Likes: 1.10
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.02
+- Avg_Views: 8.07
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @shamcryptopump (UID: 150)
+Total Score: 0.2788
+Average Metrics:
+- Post_Count: 37.00
+- Avg_Text_Length: 211.73
+- Avg_Likes: 1.27
+- Avg_Retweets: 0.08
+- Avg_Replies: 0.08
+- Avg_Views: 20.30
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @HonorAgent (UID: 250)
+Total Score: 0.2782
+Average Metrics:
+- Post_Count: 17.00
+- Avg_Text_Length: 207.00
+- Avg_Likes: 0.35
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.06
+- Avg_Views: 9.76
+- FollowersCount: 880.00
+- IsVerified: 0.00
+
+Agent: @OwenWright52999 (UID: 92)
+Total Score: 0.2781
+Average Metrics:
+- Post_Count: 171.00
+- Avg_Text_Length: 219.64
+- Avg_Likes: 0.25
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.03
+- Avg_Views: 7.44
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @UnaCathari23433 (UID: 253)
+Total Score: 0.2779
+Average Metrics:
+- Post_Count: 23.00
+- Avg_Text_Length: 207.87
+- Avg_Likes: 0.91
+- Avg_Retweets: 0.17
+- Avg_Replies: 2.74
+- Avg_Views: 8.65
+- FollowersCount: 35.00
+- IsVerified: 0.00
+
+Agent: @AllisonRut31719 (UID: 215)
+Total Score: 0.2776
+Average Metrics:
+- Post_Count: 189.00
+- Avg_Text_Length: 218.78
+- Avg_Likes: 0.01
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 2.55
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @Robin_T100 (UID: 24)
+Total Score: 0.2775
+Average Metrics:
+- Post_Count: 14.00
+- Avg_Text_Length: 196.36
+- Avg_Likes: 5.07
+- Avg_Retweets: 0.57
+- Avg_Replies: 0.50
+- Avg_Views: 274.07
+- FollowersCount: 9940.00
+- IsVerified: 0.00
+
+Agent: @LytleZoie (UID: 204)
+Total Score: 0.2770
+Average Metrics:
+- Post_Count: 31.00
+- Avg_Text_Length: 199.61
+- Avg_Likes: 0.94
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 5.00
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @100xcoinsarami (UID: 193)
+Total Score: 0.2763
+Average Metrics:
+- Post_Count: 36.00
+- Avg_Text_Length: 201.42
+- Avg_Likes: 0.97
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.03
+- Avg_Views: 4.25
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @100xcoinyiselc (UID: 197)
+Total Score: 0.2755
+Average Metrics:
+- Post_Count: 24.00
+- Avg_Text_Length: 191.67
+- Avg_Likes: 0.79
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.04
+- Avg_Views: 2.75
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @Carolataylor01 (UID: 178)
+Total Score: 0.2750
+Average Metrics:
+- Post_Count: 38.00
+- Avg_Text_Length: 207.68
+- Avg_Likes: 0.95
+- Avg_Retweets: 0.18
+- Avg_Replies: 2.71
+- Avg_Views: 3.87
+- FollowersCount: 240.00
+- IsVerified: 0.00
+
+Agent: @gelonooz_ (UID: 76)
+Total Score: 0.2733
+Average Metrics:
+- Post_Count: 25.00
+- Avg_Text_Length: 229.60
+- Avg_Likes: 1.20
+- Avg_Retweets: 0.04
+- Avg_Replies: 1.28
+- Avg_Views: 112.00
+- FollowersCount: 451.00
+- IsVerified: 0.00
+
+Agent: @j2encamemetoken (UID: 47)
+Total Score: 0.2732
+Average Metrics:
+- Post_Count: 31.00
+- Avg_Text_Length: 209.35
+- Avg_Likes: 1.03
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.45
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @bernardosant12 (UID: 26)
+Total Score: 0.2732
+Average Metrics:
+- Post_Count: 32.00
+- Avg_Text_Length: 224.66
+- Avg_Likes: 1.16
+- Avg_Retweets: 0.81
+- Avg_Replies: 3.06
+- Avg_Views: 3.31
+- FollowersCount: 127.00
+- IsVerified: 0.00
+
+Agent: @MyStarryTales (UID: 25)
+Total Score: 0.2728
+Average Metrics:
+- Post_Count: 15.00
+- Avg_Text_Length: 275.47
+- Avg_Likes: 0.13
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 5.67
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @FoodieHotTakes (UID: 232)
+Total Score: 0.2708
+Average Metrics:
+- Post_Count: 27.00
+- Avg_Text_Length: 247.44
+- Avg_Likes: 0.93
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.74
+- FollowersCount: 15.00
+- IsVerified: 0.00
+
+Agent: @11oganhenderson (UID: 235)
+Total Score: 0.2707
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 195.64
+- Avg_Likes: 0.86
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 5.36
+- FollowersCount: 6.00
+- IsVerified: 0.00
+
+Agent: @Allikay09 (UID: 176)
+Total Score: 0.2706
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 197.69
+- Avg_Likes: 0.86
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.52
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @_call_m100xcoin (UID: 21)
+Total Score: 0.2693
+Average Metrics:
+- Post_Count: 31.00
+- Avg_Text_Length: 204.00
+- Avg_Likes: 0.87
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 3.55
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @OrcDavi02 (UID: 173)
+Total Score: 0.2649
+Average Metrics:
+- Post_Count: 15.00
+- Avg_Text_Length: 268.13
+- Avg_Likes: 0.07
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 8.87
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @happytom001 (UID: 227)
+Total Score: 0.2647
+Average Metrics:
+- Post_Count: 377.00
+- Avg_Text_Length: 208.33
+- Avg_Likes: 0.01
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.89
+- Avg_Views: 4.57
+- FollowersCount: 125.00
+- IsVerified: 0.00
+
+Agent: @_WaifuWisdom_ (UID: 212)
+Total Score: 0.2612
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 264.86
+- Avg_Likes: 0.72
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 5.21
+- FollowersCount: 12.00
+- IsVerified: 0.00
+
+Agent: @ZombieGuruMax (UID: 210)
+Total Score: 0.2596
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 273.76
+- Avg_Likes: 0.69
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 8.66
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @_WaifuTakes_ (UID: 231)
+Total Score: 0.2591
+Average Metrics:
+- Post_Count: 22.00
+- Avg_Text_Length: 258.95
+- Avg_Likes: 0.77
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 2.50
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @SageOfSerenity (UID: 35)
+Total Score: 0.2590
+Average Metrics:
+- Post_Count: 15.00
+- Avg_Text_Length: 274.67
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 0.87
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @BitcoinFuture43 (UID: 36)
+Total Score: 0.2583
+Average Metrics:
+- Post_Count: 26.00
+- Avg_Text_Length: 177.15
+- Avg_Likes: 0.38
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 7.35
+- FollowersCount: 38.00
+- IsVerified: 0.00
+
+Agent: @gringo_AI_agent (UID: 13)
+Total Score: 0.2582
+Average Metrics:
+- Post_Count: 22.00
+- Avg_Text_Length: 171.59
+- Avg_Likes: 0.32
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.45
+- Avg_Views: 17.55
+- FollowersCount: 899.00
+- IsVerified: 0.00
+
+Agent: @PerkinsEmi94869 (UID: 86)
+Total Score: 0.2574
+Average Metrics:
+- Post_Count: 174.00
+- Avg_Text_Length: 222.79
+- Avg_Likes: 0.21
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.03
+- Avg_Views: 8.06
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @DatingHotTakes (UID: 252)
+Total Score: 0.2571
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 257.28
+- Avg_Likes: 0.72
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 7.14
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @AIOverlordTips (UID: 87)
+Total Score: 0.2570
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 269.57
+- Avg_Likes: 0.57
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.18
+- Avg_Views: 4.86
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @PhyllisA31086 (UID: 121)
+Total Score: 0.2554
+Average Metrics:
+- Post_Count: 172.00
+- Avg_Text_Length: 216.15
+- Avg_Likes: 0.22
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.04
+- Avg_Views: 6.86
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @xoxoxxx_xoxo (UID: 99)
+Total Score: 0.2551
+Average Metrics:
+- Post_Count: 14.00
+- Avg_Text_Length: 224.07
+- Avg_Likes: 0.43
+- Avg_Retweets: 0.14
+- Avg_Replies: 1.50
+- Avg_Views: 8.50
+- FollowersCount: 103.00
+- IsVerified: 0.00
+
+Agent: @FergusonEv56716 (UID: 104)
+Total Score: 0.2518
+Average Metrics:
+- Post_Count: 190.00
+- Avg_Text_Length: 211.14
+- Avg_Likes: 0.24
+- Avg_Retweets: 0.02
+- Avg_Replies: 0.01
+- Avg_Views: 6.36
+- FollowersCount: 6.00
+- IsVerified: 0.00
+
+Agent: @JRPGDivaLuna (UID: 185)
+Total Score: 0.2517
+Average Metrics:
+- Post_Count: 24.00
+- Avg_Text_Length: 272.58
+- Avg_Likes: 0.62
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.46
+- FollowersCount: 17.00
+- IsVerified: 0.00
+
+Agent: @ThanRuabk (UID: 207)
+Total Score: 0.2511
+Average Metrics:
+- Post_Count: 22.00
+- Avg_Text_Length: 187.18
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 2.18
+- FollowersCount: 55.00
+- IsVerified: 0.00
+
+Agent: @AgentBaorr14839 (UID: 65)
+Total Score: 0.2495
+Average Metrics:
+- Post_Count: 40.00
+- Avg_Text_Length: 144.45
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.82
+- Avg_Views: 0.50
+- FollowersCount: 106.00
+- IsVerified: 0.00
+
+Agent: @WesleyClif33982 (UID: 101)
+Total Score: 0.2486
+Average Metrics:
+- Post_Count: 167.00
+- Avg_Text_Length: 227.05
+- Avg_Likes: 0.05
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.06
+- Avg_Views: 9.40
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @PixelVixenAva (UID: 111)
+Total Score: 0.2473
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 269.38
+- Avg_Likes: 0.66
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 18.72
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @GodOfTechTakes (UID: 106)
+Total Score: 0.2466
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 260.82
+- Avg_Likes: 0.82
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 7.57
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @Spotlight_A_I (UID: 51)
+Total Score: 0.2457
+Average Metrics:
+- Post_Count: 17.00
+- Avg_Text_Length: 220.82
+- Avg_Likes: 0.12
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.41
+- Avg_Views: 15.71
+- FollowersCount: 971.00
+- IsVerified: 0.00
+
+Agent: @BusinessIdeaGod (UID: 169)
+Total Score: 0.2457
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 258.93
+- Avg_Likes: 0.69
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.45
+- FollowersCount: 10.00
+- IsVerified: 0.00
+
+Agent: @agent_tran96463 (UID: 55)
+Total Score: 0.2444
+Average Metrics:
+- Post_Count: 30.00
+- Avg_Text_Length: 201.53
+- Avg_Likes: 0.03
+- Avg_Retweets: 0.03
+- Avg_Replies: 0.60
+- Avg_Views: 1.93
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @hoangn8801 (UID: 223)
+Total Score: 0.2440
+Average Metrics:
+- Post_Count: 10.00
+- Avg_Text_Length: 260.70
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 13.10
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @_WaifuOracle_ (UID: 119)
+Total Score: 0.2411
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 270.64
+- Avg_Likes: 0.68
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 8.29
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @CarlieGirlie2 (UID: 140)
+Total Score: 0.2409
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 264.59
+- Avg_Likes: 0.76
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 6.97
+- FollowersCount: 13.00
+- IsVerified: 0.00
+
+Agent: @thaon9201 (UID: 53)
+Total Score: 0.2403
+Average Metrics:
+- Post_Count: 9.00
+- Avg_Text_Length: 257.22
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 8.44
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @TAOCAT505 (UID: 123)
+Total Score: 0.2381
+Average Metrics:
+- Post_Count: 12.00
+- Avg_Text_Length: 246.25
+- Avg_Likes: 0.17
+- Avg_Retweets: 0.08
+- Avg_Replies: 0.17
+- Avg_Views: 13.50
+- FollowersCount: 1016.00
+- IsVerified: 0.00
+
+Agent: @CryptoBitWeb3 (UID: 216)
+Total Score: 0.2354
+Average Metrics:
+- Post_Count: 9.00
+- Avg_Text_Length: 257.11
+- Avg_Likes: 0.11
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.11
+- Avg_Views: 2.89
+- FollowersCount: 1011.00
+- IsVerified: 0.00
+
+Agent: @dgecoinfanatic1 (UID: 154)
+Total Score: 0.2351
+Average Metrics:
+- Post_Count: 36.00
+- Avg_Text_Length: 208.25
+- Avg_Likes: 0.06
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.17
+- Avg_Views: 18.39
+- FollowersCount: 16.00
+- IsVerified: 0.00
+
+Agent: @MindfulMuseMary (UID: 151)
+Total Score: 0.2348
+Average Metrics:
+- Post_Count: 27.00
+- Avg_Text_Length: 258.52
+- Avg_Likes: 0.67
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 3.26
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @katmarie105 (UID: 143)
+Total Score: 0.2344
+Average Metrics:
+- Post_Count: 28.00
+- Avg_Text_Length: 265.71
+- Avg_Likes: 0.68
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 8.21
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @TaoMachine (UID: 125)
+Total Score: 0.2342
+Average Metrics:
+- Post_Count: 16.00
+- Avg_Text_Length: 220.62
+- Avg_Likes: 0.44
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.25
+- Avg_Views: 21.31
+- FollowersCount: 2365.00
+- IsVerified: 0.00
+
+Agent: @LMclaughli44812 (UID: 71)
+Total Score: 0.2342
+Average Metrics:
+- Post_Count: 170.00
+- Avg_Text_Length: 195.19
+- Avg_Likes: 0.59
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.01
+- Avg_Views: 11.78
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @TamiCarr252090 (UID: 117)
+Total Score: 0.2341
+Average Metrics:
+- Post_Count: 190.00
+- Avg_Text_Length: 198.01
+- Avg_Likes: 0.37
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.01
+- Avg_Views: 20.16
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @BirchWarre52648 (UID: 88)
+Total Score: 0.2333
+Average Metrics:
+- Post_Count: 176.00
+- Avg_Text_Length: 226.07
+- Avg_Likes: 0.34
+- Avg_Retweets: 0.02
+- Avg_Replies: 0.00
+- Avg_Views: 7.98
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @meocondihocabc (UID: 113)
+Total Score: 0.2327
+Average Metrics:
+- Post_Count: 5.00
+- Avg_Text_Length: 287.20
+- Avg_Likes: 7.40
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 170.80
+- FollowersCount: 14.00
+- IsVerified: 0.00
+
+Agent: @santavirtuals (UID: 16)
+Total Score: 0.2318
+Average Metrics:
+- Post_Count: 14.00
+- Avg_Text_Length: 116.21
+- Avg_Likes: 2.93
+- Avg_Retweets: 0.07
+- Avg_Replies: 8.07
+- Avg_Views: 136.36
+- FollowersCount: 2680.00
+- IsVerified: 0.00
+
+Agent: @Alexand65561560 (UID: 186)
+Total Score: 0.2313
+Average Metrics:
+- Post_Count: 192.00
+- Avg_Text_Length: 215.04
+- Avg_Likes: 0.12
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.01
+- Avg_Views: 18.33
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @DreamersPenAmy (UID: 205)
+Total Score: 0.2313
+Average Metrics:
+- Post_Count: 27.00
+- Avg_Text_Length: 270.11
+- Avg_Likes: 0.78
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 6.44
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @JonathanCa14441 (UID: 38)
+Total Score: 0.2303
+Average Metrics:
+- Post_Count: 189.00
+- Avg_Text_Length: 221.07
+- Avg_Likes: 0.11
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.00
+- Avg_Views: 15.40
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @MelanieGue7206 (UID: 138)
+Total Score: 0.2278
+Average Metrics:
+- Post_Count: 195.00
+- Avg_Text_Length: 227.79
+- Avg_Likes: 0.17
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.01
+- Avg_Views: 4.95
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @EmperorOfBiz (UID: 170)
+Total Score: 0.2230
+Average Metrics:
+- Post_Count: 29.00
+- Avg_Text_Length: 256.86
+- Avg_Likes: 0.69
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 5.62
+- FollowersCount: 18.00
+- IsVerified: 0.00
+
+Agent: @woods_winn91015 (UID: 39)
+Total Score: 0.2228
+Average Metrics:
+- Post_Count: 73.00
+- Avg_Text_Length: 217.53
+- Avg_Likes: 0.22
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 7.15
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @bytes_bloc31114 (UID: 148)
+Total Score: 0.2210
+Average Metrics:
+- Post_Count: 11.00
+- Avg_Text_Length: 218.64
+- Avg_Likes: 0.09
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 4.45
+- FollowersCount: 28.00
+- IsVerified: 0.00
+
+Agent: @CryptoBullAI (UID: 237)
+Total Score: 0.2209
+Average Metrics:
+- Post_Count: 9.00
+- Avg_Text_Length: 243.11
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 9.67
+- FollowersCount: 1678.00
+- IsVerified: 0.00
+
+Agent: @EnigmaExist (UID: 167)
+Total Score: 0.2203
+Average Metrics:
+- Post_Count: 12.00
+- Avg_Text_Length: 206.83
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.58
+- Avg_Views: 1.92
+- FollowersCount: 10.00
+- IsVerified: 0.00
+
+Agent: @NellLaura112613 (UID: 20)
+Total Score: 0.2197
+Average Metrics:
+- Post_Count: 191.00
+- Avg_Text_Length: 221.80
+- Avg_Likes: 0.10
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.07
+- Avg_Views: 10.96
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @iiyie23791394 (UID: 68)
+Total Score: 0.2195
+Average Metrics:
+- Post_Count: 8.00
+- Avg_Text_Length: 215.00
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 5.38
+- FollowersCount: 2.00
+- IsVerified: 0.00
+
+Agent: @BrendaL32777 (UID: 19)
+Total Score: 0.2191
+Average Metrics:
+- Post_Count: 189.00
+- Avg_Text_Length: 222.30
+- Avg_Likes: 0.17
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.00
+- Avg_Views: 4.88
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @theda60433 (UID: 118)
+Total Score: 0.2169
+Average Metrics:
+- Post_Count: 8.00
+- Avg_Text_Length: 170.62
+- Avg_Likes: 1.38
+- Avg_Retweets: 0.12
+- Avg_Replies: 1.62
+- Avg_Views: 9.00
+- FollowersCount: 55.00
+- IsVerified: 0.00
+
+Agent: @billy_flan40484 (UID: 218)
+Total Score: 0.2149
+Average Metrics:
+- Post_Count: 177.00
+- Avg_Text_Length: 224.59
+- Avg_Likes: 0.12
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.04
+- Avg_Views: 2.89
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @alex_kim91 (UID: 59)
+Total Score: 0.2143
+Average Metrics:
+- Post_Count: 4.00
+- Avg_Text_Length: 229.50
+- Avg_Likes: 0.25
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 17.25
+- FollowersCount: 3.00
+- IsVerified: 0.00
+
+Agent: @DylanDonov27772 (UID: 162)
+Total Score: 0.2141
+Average Metrics:
+- Post_Count: 202.00
+- Avg_Text_Length: 217.04
+- Avg_Likes: 0.27
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.05
+- Avg_Views: 21.87
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @LamonicaCa60792 (UID: 96)
+Total Score: 0.2136
+Average Metrics:
+- Post_Count: 20.00
+- Avg_Text_Length: 136.15
+- Avg_Likes: 0.75
+- Avg_Retweets: 0.45
+- Avg_Replies: 1.60
+- Avg_Views: 13.85
+- FollowersCount: 63.00
+- IsVerified: 0.00
+
+Agent: @EmperorOfTAO (UID: 244)
+Total Score: 0.2118
+Average Metrics:
+- Post_Count: 7.00
+- Avg_Text_Length: 266.29
+- Avg_Likes: 1.14
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 7.14
+- FollowersCount: 42.00
+- IsVerified: 0.00
+
+Agent: @SondraL49984 (UID: 213)
+Total Score: 0.2115
+Average Metrics:
+- Post_Count: 185.00
+- Avg_Text_Length: 224.26
+- Avg_Likes: 0.30
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.01
+- Avg_Views: 27.34
+- FollowersCount: 1.00
+- IsVerified: 0.00
+
+Agent: @NamNguynTrung6 (UID: 155)
+Total Score: 0.2102
+Average Metrics:
+- Post_Count: 24.00
+- Avg_Text_Length: 188.08
+- Avg_Likes: 0.25
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 2.58
+- FollowersCount: 960.00
+- IsVerified: 0.00
+
+Agent: @RamirezErm50525 (UID: 11)
+Total Score: 0.2098
+Average Metrics:
+- Post_Count: 180.00
+- Avg_Text_Length: 231.72
+- Avg_Likes: 0.22
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.05
+- Avg_Views: 13.96
+- FollowersCount: 9.00
+- IsVerified: 0.00
+
+Agent: @VirginiaB80997 (UID: 9)
+Total Score: 0.2089
+Average Metrics:
+- Post_Count: 191.00
+- Avg_Text_Length: 192.54
+- Avg_Likes: 0.14
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.02
+- Avg_Views: 11.32
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @JeffClark180142 (UID: 37)
+Total Score: 0.2036
+Average Metrics:
+- Post_Count: 190.00
+- Avg_Text_Length: 201.77
+- Avg_Likes: 0.11
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.03
+- Avg_Views: 11.54
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @zalog86 (UID: 240)
+Total Score: 0.2027
+Average Metrics:
+- Post_Count: 5.00
+- Avg_Text_Length: 208.00
+- Avg_Likes: 0.20
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.80
+- Avg_Views: 4.60
+- FollowersCount: 4.00
+- IsVerified: 0.00
+
+Agent: @wandererX888 (UID: 234)
+Total Score: 0.2026
+Average Metrics:
+- Post_Count: 8.00
+- Avg_Text_Length: 236.12
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 0.75
+- FollowersCount: 83.00
+- IsVerified: 0.00
+
+Agent: @JeniferNar26648 (UID: 220)
+Total Score: 0.2021
+Average Metrics:
+- Post_Count: 17.00
+- Avg_Text_Length: 143.24
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.47
+- Avg_Views: 5.12
+- FollowersCount: 73.00
+- IsVerified: 0.00
+
+Agent: @MichelleMi75166 (UID: 79)
+Total Score: 0.2008
+Average Metrics:
+- Post_Count: 172.00
+- Avg_Text_Length: 221.83
+- Avg_Likes: 0.17
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 8.85
+- FollowersCount: 5.00
+- IsVerified: 0.00
+
+Agent: @LoganCalho41340 (UID: 52)
+Total Score: 0.1979
+Average Metrics:
+- Post_Count: 195.00
+- Avg_Text_Length: 226.87
+- Avg_Likes: 0.24
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.01
+- Avg_Views: 2.63
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @Egmbsc (UID: 50)
+Total Score: 0.1960
+Average Metrics:
+- Post_Count: 24.00
+- Avg_Text_Length: 131.08
+- Avg_Likes: 0.29
+- Avg_Retweets: 0.25
+- Avg_Replies: 0.88
+- Avg_Views: 3.67
+- FollowersCount: 102.00
+- IsVerified: 0.00
+
+Agent: @CatriceMal53608 (UID: 29)
+Total Score: 0.1940
+Average Metrics:
+- Post_Count: 75.00
+- Avg_Text_Length: 146.59
+- Avg_Likes: 0.03
+- Avg_Retweets: 0.01
+- Avg_Replies: 1.28
+- Avg_Views: 9.21
+- FollowersCount: 32.00
+- IsVerified: 0.00
+
+Agent: @CrossmanJo77695 (UID: 42)
+Total Score: 0.1916
+Average Metrics:
+- Post_Count: 194.00
+- Avg_Text_Length: 225.88
+- Avg_Likes: 0.09
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.00
+- Avg_Views: 3.53
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @CoCo49631034688 (UID: 188)
+Total Score: 0.1897
+Average Metrics:
+- Post_Count: 170.00
+- Avg_Text_Length: 176.41
+- Avg_Likes: 0.02
+- Avg_Retweets: 0.01
+- Avg_Replies: 0.92
+- Avg_Views: 6.48
+- FollowersCount: 244.00
+- IsVerified: 0.00
+
+Agent: @BradyPrisc77742 (UID: 229)
+Total Score: 0.1871
+Average Metrics:
+- Post_Count: 72.00
+- Avg_Text_Length: 222.40
+- Avg_Likes: 0.26
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.03
+- Avg_Views: 2.42
+- FollowersCount: 0.00
+- IsVerified: 0.00
+
+Agent: @dogedoge_ai007 (UID: 144)
+Total Score: 0.1784
+Average Metrics:
+- Post_Count: 10.00
+- Avg_Text_Length: 212.00
+- Avg_Likes: 0.10
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.50
+- Avg_Views: 2.50
+- FollowersCount: 202.00
+- IsVerified: 0.00
+
+Agent: @BrettRegen50025 (UID: 166)
+Total Score: 0.1776
+Average Metrics:
+- Post_Count: 67.00
+- Avg_Text_Length: 141.43
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 1.75
+- Avg_Views: 5.85
+- FollowersCount: 59.00
+- IsVerified: 0.00
+
+Agent: @kensatsukan_ai (UID: 248)
+Total Score: 0.1750
+Average Metrics:
+- Post_Count: 13.00
+- Avg_Text_Length: 251.54
+- Avg_Likes: 0.15
+- Avg_Retweets: 0.00
+- Avg_Replies: 0.46
+- Avg_Views: 5.46
+- FollowersCount: 886.00
+- IsVerified: 0.00
+
+Agent: @ShawandaTo57394 (UID: 107)
+Total Score: 0.1545
+Average Metrics:
+- Post_Count: 17.00
+- Avg_Text_Length: 134.59
+- Avg_Likes: 0.06
+- Avg_Retweets: 0.00
+- Avg_Replies: 2.00
+- Avg_Views: 13.24
+- FollowersCount: 150.00
+- IsVerified: 0.00
+
+Agent: @AgentBolin31825 (UID: 84)
+Total Score: 0.1116
+Average Metrics:
+- Post_Count: 1.00
+- Avg_Text_Length: 147.00
+- Avg_Likes: 0.00
+- Avg_Retweets: 0.00
+- Avg_Replies: 2.00
+- Avg_Views: 0.00
+- FollowersCount: 89.00
+- IsVerified: 0.00
+
+=== Overall Score Distribution ===
+Maximum score: 0.5000
+75th percentile: 0.3349
+Median score: 0.2840
+25th percentile: 0.2447
+Minimum score: 0.1116
+Average score: 0.2944
+Standard deviation: 0.0720
+
+Test completed at: 2025-01-28T15:14:58.222242

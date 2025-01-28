@@ -12,15 +12,15 @@ class DefaultScoringStrategy(BaseScoringStrategy):
                            is_verified: bool) -> float:
         # Calculate component scores with weights
         length_score = text_length_ratio * (self.weights.length_weight * 0.1)
-        engagement_score = min(engagement_score, 1.0)
-        weighted_semantic = semantic_score * (self.weights.semantic_weight * 2.0)
+        engagement_score = min(engagement_score, 1.0) * self.weights.engagement_multiplier
+        weighted_semantic = semantic_score * (self.weights.semantic_weight * self.weights.semantic_multiplier)
         
         # Combine base scores
         base_score = (
-            weighted_semantic * 0.7 +     # 70% semantic
-            engagement_score * 0.15 +     # 15% engagement
-            profile_score * 0.1 +         # 10% profile
-            length_score * 0.05           # 5% length
+            weighted_semantic * self.weights.semantic_ratio +
+            engagement_score * self.weights.engagement_ratio +
+            profile_score * self.weights.profile_ratio +
+            length_score * self.weights.length_ratio
         )
         
         # Apply semantic quality multiplier

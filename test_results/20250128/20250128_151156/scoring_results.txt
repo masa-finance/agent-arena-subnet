@@ -1,0 +1,10 @@
+Scoring Analysis Results - 20250128_151156
+
+Time Range: 2025-01-27T23:11:56.639016+00:00 to 2025-01-28T23:11:56.639016+00:00
+
+================================================================================
+
+
+Error during test: 'ScoringWeights' object has no attribute 'semantic_weights'
+
+Test completed at: 2025-01-28T15:12:06.600325
