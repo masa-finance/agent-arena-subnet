@@ -7,10 +7,29 @@ from interfaces.types import Tweet
 logger = get_logger(__name__)
 
 class ProfileScorer(BaseScorer):
-    """Profile scorer that evaluates X/Twitter profiles"""
+    """Profile scorer that evaluates X/Twitter profiles based on key metrics.
+    
+    This scorer evaluates user profiles based on two main components:
+    1. Follower count (normalized on a logarithmic scale)
+    2. Verification status
+    
+    The final score is a weighted combination of these components, with
+    configurable weights and dampening factors to prevent extreme scores.
+    """
     
     def _normalize_followers(self, followers_count: int) -> float:
-        """Normalize followers count using log scale with configured thresholds"""
+        """Normalize followers count using log scale with configured thresholds.
+        
+        Applies logarithmic scaling to handle the wide range of follower counts
+        and dampens the result to prevent oversized influence from mega-accounts.
+
+        Args:
+            followers_count (int): Raw count of followers
+
+        Returns:
+            float: Normalized score between 0.0 and 1.0, dampened according to
+                configured weights
+        """
         if followers_count <= 0:
             return 0.0
             
@@ -19,7 +38,19 @@ class ProfileScorer(BaseScorer):
         return normalized * self.weights.followers_dampening
     
     def calculate_score(self, post: Tweet, **kwargs: Any) -> float:
-        """Calculate profile score from post data"""
+        """Calculate profile score from post data.
+
+        Combines normalized follower count and verification status into a
+        weighted profile score.
+
+        Args:
+            post (Tweet): Post object containing author profile information
+            **kwargs: Additional arguments (unused)
+
+        Returns:
+            float: Combined profile score between 0.0 and 1.0. Returns 0.0
+                if an error occurs during calculation.
+        """
         try:
             followers_count = post.get("FollowersCount", 0)
             is_verified = post.get("IsVerified", False)
@@ -41,7 +72,23 @@ class ProfileScorer(BaseScorer):
             return 0.0
 
     def get_score_components(self, followers_count: int, is_verified: bool) -> Dict:
-        """Get detailed breakdown of score components"""
+        """Get detailed breakdown of score components.
+
+        Provides transparency into the scoring process by returning detailed
+        information about each component's contribution to the final score.
+
+        Args:
+            followers_count (int): Number of followers
+            is_verified (bool): Whether the profile is verified
+
+        Returns:
+            Dict: Detailed breakdown containing:
+                - Raw and normalized follower scores
+                - Verification status and score
+                - Component weights
+                - Weighted scores for each component
+                - Total combined score
+        """
         followers_score = self._normalize_followers(followers_count)
         verified_score = float(is_verified)
         

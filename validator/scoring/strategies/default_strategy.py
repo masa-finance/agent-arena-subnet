@@ -3,13 +3,32 @@ import numpy as np
 from validator.scoring.strategies.base_strategy import BaseScoringStrategy
 
 class DefaultScoringStrategy(BaseScoringStrategy):
-    """Default implementation of scoring strategy"""
+    """Default implementation of scoring strategy.
+    
+    This strategy calculates post scores based on multiple weighted factors including
+    semantic relevance, engagement metrics, profile strength, and text length.
+    It also provides score normalization using kurtosis-based distribution.
+    """
     def calculate_post_score(self,
                            semantic_score: float,
                            engagement_score: float,
                            profile_score: float,
                            text_length_ratio: float,
                            is_verified: bool) -> float:
+        """Calculate the final score for a post based on multiple weighted factors.
+
+        Args:
+            semantic_score (float): The semantic relevance score (0.0-1.0)
+            engagement_score (float): The engagement metrics score
+            profile_score (float): The profile strength score (0.0-1.0)
+            text_length_ratio (float): The ratio of text length to ideal length
+            is_verified (bool): Whether the post author is verified
+
+        Returns:
+            float: The calculated post score:
+                - For verified users: scaled between 0.1-1.0
+                - For unverified users: scaled between 0.0-0.1
+        """
         # Calculate component scores with weights
         length_score = text_length_ratio * (self.weights.length_weight * 0.1)
         engagement_score = min(engagement_score, 1.0) * self.weights.engagement_multiplier
@@ -34,7 +53,19 @@ class DefaultScoringStrategy(BaseScoringStrategy):
             return initial_score * 0.1  # Scale to 0-0.1
 
     def normalize_scores(self, scores: Dict[int, float]) -> Dict[int, float]:
-        """Apply kurtosis-based normalization to scores"""
+        """Apply kurtosis-based normalization to a dictionary of scores.
+
+        Normalizes the score distribution using a sigmoid function with kurtosis
+        factor to create a more balanced distribution of scores.
+
+        Args:
+            scores (Dict[int, float]): Dictionary mapping user IDs to raw scores
+
+        Returns:
+            Dict[int, float]: Dictionary of normalized scores maintaining the same
+                ID mapping but with adjusted score values. Returns original scores
+                if the input is empty or all scores are identical.
+        """
         if not scores:
             return scores
             
