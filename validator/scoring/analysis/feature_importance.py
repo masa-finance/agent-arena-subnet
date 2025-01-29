@@ -8,6 +8,10 @@ from time import time
 from interfaces.types import Tweet
 from validator.config.hardware_config import HardwareConfig
 from validator.config.scoring_config import ScoringWeights
+from validator.scoring.scorers.engagement_scorer import EngagementScorer
+from validator.scoring.scorers.follower_scorer import FollowerScorer
+from validator.scoring.scorers.verification_scorer import VerificationScorer
+from validator.scoring.strategies.default_strategy import DefaultScoringStrategy
 
 if TYPE_CHECKING:
     from validator.scoring.agent_scorer import AgentScorer
@@ -15,6 +19,18 @@ if TYPE_CHECKING:
 
 class FeatureImportanceCalculator:
     """Calculates feature importance using SHAP values"""
+    
+    # Core features definition at class level for consistency
+    CORE_FEATURES = [
+        'text_length_ratio', 
+        'semantic_score', 
+        'follower_score', 
+        'is_verified',
+        'engagement_replies', 
+        'engagement_likes', 
+        'engagement_retweets', 
+        'engagement_views'
+    ]
 
     def __init__(self, 
                  config: HardwareConfig, 
@@ -23,6 +39,10 @@ class FeatureImportanceCalculator:
         self.config = config
         self.weights = weights
         self.semantic_scorer = semantic_scorer
+        self.engagement_scorer = EngagementScorer(self.weights)
+        self.follower_scorer = FollowerScorer(self.weights)
+        self.verification_scorer = VerificationScorer(self.weights)
+        self.scoring_strategy = DefaultScoringStrategy(self.weights)
         self.device = torch.device(self.config.device_type)
 
     def _prepare_features(self, posts: List[Tweet]) -> pd.DataFrame:
@@ -31,21 +51,17 @@ class FeatureImportanceCalculator:
         texts = [str(post.get('Text', '')) for post in posts]
         semantic_scores = self.semantic_scorer.calculate_scores(texts)
         
-        # Prepare features without applying weights yet
+        # Prepare features using dedicated scorers
         features = []
         for post, semantic_score in zip(posts, semantic_scores):
-            # Calculate engagement components
+            # Use dedicated scorers for each component
+            follower_score = self.follower_scorer.calculate_score(post)
+            
+            # Calculate engagement components using engagement scorer
             engagement_components = {
                 f"engagement_{key.lower()}": post.get(key, 0) * weight
                 for key, weight in self.weights.engagement_weights.items()
             }
-            
-            # Calculate follower score with dampening
-            followers = post.get('FollowersCount', 0)
-            follower_score = min(
-                np.log1p(max(followers, 0)) / self.weights.followers_cap,
-                1.0
-            ) ** self.weights.followers_dampening
             
             # Basic features
             feature_dict = {
@@ -57,35 +73,31 @@ class FeatureImportanceCalculator:
             }
             features.append(feature_dict)
         
-        return pd.DataFrame(features)
+        # Ensure features are ordered according to CORE_FEATURES
+        df = pd.DataFrame(features)
+        return df[self.CORE_FEATURES]  # Enforce consistent column order
 
     def _score_function(self, X: np.ndarray) -> np.ndarray:
-        """Score function for SHAP explainer - apply weights here"""
-        df = pd.DataFrame(X, columns=[
-            'text_length_ratio', 'semantic_score', 'follower_score', 'is_verified',
-            'engagement_replies', 'engagement_likes', 'engagement_retweets', 'engagement_views'
-        ])
+        """Score function for SHAP explainer - use default scoring strategy"""
+        # Use consistent feature ordering
+        df = pd.DataFrame(X, columns=self.CORE_FEATURES)
         
-        # Calculate combined engagement score
-        engagement_score = df[[c for c in df.columns if c.startswith('engagement_')]].sum(axis=1)
-        
-        # Apply weights and scaling
-        scores = (
-            df['text_length_ratio'] * (self.weights.length_weight * self.weights.length_ratio) +
-            np.power(df['semantic_score'], 0.75) * (self.weights.semantic_weight * self.weights.semantic_ratio) +
-            df['follower_score'] * self.weights.follower_ratio +
-            engagement_score * self.weights.engagement_ratio
-        )
-        
-        # Apply semantic quality multiplier
-        scores = scores * (1.0 + (df['semantic_score'] * 0.5))
-        
-        # Apply verification scaling
-        verified_mask = df['is_verified'] > 0.5
-        scores[verified_mask] = 0.1 + (scores[verified_mask] * 0.9)  # Scale to 0.1-1.0
-        scores[~verified_mask] = scores[~verified_mask] * 0.1  # Scale to 0-0.1
-        
-        return scores
+        # Calculate scores using the same strategy as agent_scorer
+        scores = []
+        for _, row in df.iterrows():
+            score = self.scoring_strategy.calculate_post_score(
+                semantic_score=row['semantic_score'],
+                engagement_score=sum(
+                    row[f'engagement_{key.lower()}'] 
+                    for key in self.weights.engagement_weights.keys()
+                ),
+                follower_score=row['follower_score'],
+                text_length_ratio=row['text_length_ratio'],
+                is_verified=bool(row['is_verified'] > 0.5)
+            )
+            scores.append(score)
+            
+        return np.array(scores)
 
     def calculate(self, posts: List[Tweet], progress_bar: Optional[tqdm] = None) -> Dict[str, float]:
         """Calculate feature importance using SHAP values"""
@@ -120,4 +132,4 @@ class FeatureImportanceCalculator:
             for i, feature in enumerate(df.columns)
         }
         
-        return importance_values 
+        return importance_values

@@ -208,10 +208,10 @@ async def test_live_scoring_with_registered_agents():
             write_to_file("Feature Importance Breakdown (by category):")
             write_to_file("=" * 80 + "\n")
             
-            # Group features by category
+            # Group features by category - simplified to just Core features
             categories = {
-                'Core': ['text_length_ratio', 'semantic_score', 'follower_score', 'is_verified'],
-                'Engagement': ['engagement_replies', 'engagement_likes', 'engagement_retweets', 'engagement_views']
+                'Core': ['text_length_ratio', 'semantic_score', 'follower_score', 'is_verified',
+                        'engagement_replies', 'engagement_likes', 'engagement_retweets', 'engagement_views']
             }
             
             for category, features in categories.items():
