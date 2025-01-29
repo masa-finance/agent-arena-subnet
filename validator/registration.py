@@ -107,12 +107,10 @@ class ValidatorRegistration:
                 await self.fetch_registered_agents()
             else:
                 message = f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
-                logger.warning(message)
                 raise Exception(message)
         except Exception as e:
-            message = f"Exception occurred during agent registration: {str(e)}"
-            logger.error(message)
-            raise Exception(message)
+            logger.warning(e)
+            raise Exception(e)
 
     async def deregister_agent(self, agent: RegisteredAgentResponse) -> bool:
         """Deregister agent with the API
