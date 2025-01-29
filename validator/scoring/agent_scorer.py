@@ -10,7 +10,7 @@ from validator.config.scoring_config import ScoringWeights
 from validator.config.progress_config import ScoringProgressConfig, ShapProgressConfig
 from validator.scoring.scorers.semantic_scorer import SemanticScorer
 from validator.scoring.scorers.engagement_scorer import EngagementScorer
-from validator.scoring.scorers.feature_importance import FeatureImportanceCalculator
+from validator.scoring.analysis.feature_importance import FeatureImportanceCalculator
 from validator.scoring.scorers.profile_scorer import ProfileScorer
 from time import time
 from validator.scoring.strategies.base_strategy import BaseScoringStrategy
@@ -41,11 +41,13 @@ class AgentScorer:
         self.engagement_scorer = EngagementScorer(self.weights)
         self.profile_scorer = ProfileScorer()
         self.verification_scorer = VerificationScorer(self.weights)
-        self.feature_calculator = FeatureImportanceCalculator(
-            config=self.shap_config,
-            weights=self.weights,
-            semantic_scorer=self.semantic_scorer
-        )
+        self.feature_calculator = None
+        if shap_hardware_config:
+            self.feature_calculator = FeatureImportanceCalculator(
+                config=self.shap_config,
+                weights=self.weights,
+                semantic_scorer=self.semantic_scorer
+            )
         
         # Initialize scoring strategy
         self.scoring_strategy = scoring_strategy or DefaultScoringStrategy(self.weights)
@@ -92,11 +94,11 @@ class AgentScorer:
             is_verified=is_verified
         )
 
-    def calculate_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Dict[str, float]]:
-        """Calculate agent scores from posts."""
+    def calculate_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Optional[Dict[str, float]]]:
+        """Calculate scores and optionally run feature importance analysis"""
         if not posts:
             logger.warning("No posts provided for scoring")
-            return {}, {}
+            return {}, None
             
         try:
             # Step 1: Filter posts
@@ -140,14 +142,19 @@ class AgentScorer:
                 # Combine scores
                 final_scores = {**verified_scores, **unverified_scores}
                 
-                # Calculate feature importance
-                shap_config = ShapProgressConfig(total_samples=self.shap_config.shap_background_samples)
-                with shap_config.create_progress_bar() as shap_pbar:
-                    feature_importance = self.feature_calculator.calculate(
-                        filtered_posts, 
-                        progress_bar=shap_pbar
-                    )
-                    
+                # Only run feature importance if calculator is configured
+                feature_importance = None
+                if self.feature_calculator and len(filtered_posts) > 0:
+                    with tqdm(
+                        total=self.shap_config.shap_background_samples,
+                        desc="Calculating feature importance",
+                        **ShapProgressConfig.get_config()
+                    ) as shap_pbar:
+                        feature_importance = self.feature_calculator.calculate(
+                            filtered_posts, 
+                            progress_bar=shap_pbar
+                        )
+                        
                 return final_scores, feature_importance
                 
         except Exception as e:
