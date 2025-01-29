@@ -202,39 +202,48 @@ async def test_live_scoring_with_registered_agents():
                 )
             ])
             feature_importance_df.to_csv(feature_importance_csv, index=False)
-
-            # Now process SHAP values sequentially
-            write_to_file("\n=== Agent SHAP Analysis ===\n")
-            write_to_file("SHAP Values by Agent (showing relative feature contributions):")
-            write_to_file("=" * 80)
-
-            # Group posts by agent UID
-            posts_by_uid = {}
-            user_id_to_uid = {
-                agent.UserID: int(agent.UID)
-                for agent in validator.registered_agents.values()
+            
+            # Add detailed SHAP analysis to scoring_results.txt
+            write_to_file("\n=== SHAP Feature Importance Analysis ===\n")
+            write_to_file("Feature Importance Breakdown (by category):")
+            write_to_file("=" * 80 + "\n")
+            
+            # Group features by category
+            categories = {
+                'Core': ['text_length_ratio', 'semantic_score', 'follower_score', 'is_verified'],
+                'Engagement': ['engagement_replies', 'engagement_likes', 'engagement_retweets', 'engagement_views']
             }
             
-            for post in posts:
-                user_id = post.get("UserID")
-                if not user_id or user_id not in user_id_to_uid:
-                    continue
-                uid = user_id_to_uid[user_id]
-                if uid not in posts_by_uid:
-                    posts_by_uid[uid] = []
-                posts_by_uid[uid].append(post)
+            for category, features in categories.items():
+                write_to_file(f"\n{category} Features:")
+                write_to_file("-" * 40)
+                category_features = {
+                    f: v for f, v in feature_importance.items() 
+                    if f in features
+                }
+                if category_features:
+                    total_importance = sum(category_features.values())
+                    for feature, importance in sorted(
+                        category_features.items(),
+                        key=lambda x: x[1],
+                        reverse=True
+                    ):
+                        percentage = (importance / sum(feature_importance.values())) * 100
+                        category_percentage = (importance / total_importance) * 100
+                        bar_length = int((importance / max(feature_importance.values())) * 40)
+                        bar = "█" * bar_length
+                        write_to_file(
+                            f"{feature:<20} {importance:>8.4f} "
+                            f"({percentage:>5.1f}% global, {category_percentage:>5.1f}% in category) {bar}"
+                        )
+                write_to_file("")
             
-            # Save text summary of feature importance
-            write_to_file("\n=== Feature Importance Analysis ===\n")
-            write_to_file("Feature Importance Breakdown:")
-            write_to_file("=" * 80)
-            write_to_file(f"{'Feature':<15} {'Importance':<12} {'Percentage':<12} {'Visualization'}")
-            write_to_file("=" * 80)
-            
-            for _, row in feature_importance_df.iterrows():
-                bar_length = int((row['Importance'] / feature_importance_df['Importance'].max()) * 40)
-                bar = "█" * bar_length
-                write_to_file(f"{row['Feature']:<15} {row['Importance']:>10.4f}   {row['Percentage']:>8.2f}%   {bar}")
+            # Add summary statistics
+            write_to_file("\nSummary Statistics:")
+            write_to_file("-" * 40)
+            write_to_file(f"Total Features Analyzed: {len(feature_importance)}")
+            write_to_file(f"Most Important Feature: {max(feature_importance.items(), key=lambda x: x[1])[0]}")
+            write_to_file(f"Least Important Feature: {min(feature_importance.items(), key=lambda x: x[1])[0]}")
             
             # Continue with text summary for readability
             write_to_file("\n=== Agent Analysis ===\n")

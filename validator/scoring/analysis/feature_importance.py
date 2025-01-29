@@ -32,27 +32,60 @@ class FeatureImportanceCalculator:
         semantic_scores = self.semantic_scorer.calculate_scores(texts)
         
         # Prepare features without applying weights yet
-        features = [{
-            'text_length': len(str(post.get('Text', ''))),
-            'semantic_score': semantic_score,
-            'engagement_score': (
-                post.get('Likes', 0) * self.weights.engagement_weights['Likes'] +
-                post.get('Retweets', 0) * self.weights.engagement_weights['Retweets'] +
-                post.get('Replies', 0) * self.weights.engagement_weights['Replies'] +
-                post.get('Views', 0) * self.weights.engagement_weights['Views']
-            )
-        } for post, semantic_score in zip(posts, semantic_scores)]
+        features = []
+        for post, semantic_score in zip(posts, semantic_scores):
+            # Calculate engagement components
+            engagement_components = {
+                f"engagement_{key.lower()}": post.get(key, 0) * weight
+                for key, weight in self.weights.engagement_weights.items()
+            }
+            
+            # Calculate follower score with dampening
+            followers = post.get('FollowersCount', 0)
+            follower_score = min(
+                np.log1p(max(followers, 0)) / self.weights.followers_cap,
+                1.0
+            ) ** self.weights.followers_dampening
+            
+            # Basic features
+            feature_dict = {
+                'text_length_ratio': min(len(str(post.get('Text', ''))), 280) / 280,
+                'semantic_score': semantic_score,
+                'follower_score': follower_score,
+                'is_verified': float(post.get('IsVerified', False)),
+                **engagement_components
+            }
+            features.append(feature_dict)
         
         return pd.DataFrame(features)
 
     def _score_function(self, X: np.ndarray) -> np.ndarray:
         """Score function for SHAP explainer - apply weights here"""
-        df = pd.DataFrame(X, columns=['text_length', 'semantic_score', 'engagement_score'])
-        return np.array([np.log1p(
-            (row['text_length'] / 280) * (self.weights.length_weight * 0.1 * 0.05) +
-            np.power(row['semantic_score'], 0.75) * (self.weights.semantic_weight * 2.0 * 0.8) +
-            row['engagement_score'] * 0.15
-        ) * (1.0 + (row['semantic_score'] * 0.5)) for _, row in df.iterrows()])
+        df = pd.DataFrame(X, columns=[
+            'text_length_ratio', 'semantic_score', 'follower_score', 'is_verified',
+            'engagement_replies', 'engagement_likes', 'engagement_retweets', 'engagement_views'
+        ])
+        
+        # Calculate combined engagement score
+        engagement_score = df[[c for c in df.columns if c.startswith('engagement_')]].sum(axis=1)
+        
+        # Apply weights and scaling
+        scores = (
+            df['text_length_ratio'] * (self.weights.length_weight * self.weights.length_ratio) +
+            np.power(df['semantic_score'], 0.75) * (self.weights.semantic_weight * self.weights.semantic_ratio) +
+            df['follower_score'] * self.weights.follower_ratio +
+            engagement_score * self.weights.engagement_ratio
+        )
+        
+        # Apply semantic quality multiplier
+        scores = scores * (1.0 + (df['semantic_score'] * 0.5))
+        
+        # Apply verification scaling
+        verified_mask = df['is_verified'] > 0.5
+        scores[verified_mask] = 0.1 + (scores[verified_mask] * 0.9)  # Scale to 0.1-1.0
+        scores[~verified_mask] = scores[~verified_mask] * 0.1  # Scale to 0-0.1
+        
+        return scores
 
     def calculate(self, posts: List[Tweet], progress_bar: Optional[tqdm] = None) -> Dict[str, float]:
         """Calculate feature importance using SHAP values"""
@@ -66,7 +99,7 @@ class FeatureImportanceCalculator:
         explainer = shap.KernelExplainer(
             self._score_function,
             shap.sample(df, self.config.shap_background_samples).astype(np.float32),
-            l1_reg='num_features(3)'  # Explicitly set to match our 3 features
+            l1_reg=f'num_features({len(df.columns)})'
         )
         
         shap_values = explainer.shap_values(
@@ -78,7 +111,7 @@ class FeatureImportanceCalculator:
             progress_bar.update(self.config.shap_background_samples)
             progress_bar.set_postfix({
                 "samples": f"{self.config.shap_background_samples}/{self.config.shap_background_samples}",
-                "features": "text_length,semantic_score,engagement_score"
+                "features": ",".join(df.columns)
             })
 
         # Calculate absolute mean SHAP values
