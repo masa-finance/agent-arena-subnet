@@ -106,11 +106,13 @@ class ValidatorRegistration:
                 logger.info("Successfully registered agent!")
                 await self.fetch_registered_agents()
             else:
-                logger.error(
-                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
-                )
+                message = f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
+                logger.warning(message)
+                raise Exception(message)
         except Exception as e:
-            logger.error(f"Exception occurred during agent registration: {str(e)}")
+            message = f"Exception occurred during agent registration: {str(e)}"
+            logger.error(message)
+            raise Exception(message)
 
     async def deregister_agent(self, agent: RegisteredAgentResponse) -> bool:
         """Deregister agent with the API
@@ -238,15 +240,21 @@ class ValidatorRegistration:
     async def check_agents_registration(self) -> None:
         unregistered_nodes = []
         try:
-            # Iterate over each registered node to check if it has a registered agent
+            # Iterate over each connected node to check if it has a registered agent
             for hotkey in self.validator.connected_nodes:
-                if hotkey not in self.validator.registered_agents:
+                if (
+                    hotkey not in self.validator.registered_agents
+                    and hotkey in self.validator.metagraph.nodes
+                ):
                     unregistered_nodes.append(hotkey)
+                else:
+                    # hotkey has a registered agent, or doesn't exist on the metagraph (and will get deleted by sync metagraph process), continue
+                    continue
 
             # Log the unregistered nodes
             if unregistered_nodes:
                 logger.info(
-                    "Unregistered nodes found: %s",
+                    "Nodes without registered agents found: %s",
                     ", ".join(node for node in unregistered_nodes),
                 )
             else:
