@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 import numpy as np
 import pandas as pd
 import torch
@@ -8,12 +8,18 @@ from time import time
 from interfaces.types import Tweet
 from validator.config.hardware_config import HardwareConfig
 from validator.config.scoring_config import ScoringWeights
-from validator.scoring.scorers.semantic_scorer import SemanticScorer
+
+if TYPE_CHECKING:
+    from validator.scoring.agent_scorer import AgentScorer
+    from validator.scoring.scorers.semantic_scorer import SemanticScorer
 
 class FeatureImportanceCalculator:
     """Calculates feature importance using SHAP values"""
 
-    def __init__(self, config: HardwareConfig, weights: ScoringWeights, semantic_scorer: SemanticScorer):
+    def __init__(self, 
+                 config: HardwareConfig, 
+                 weights: ScoringWeights, 
+                 semantic_scorer: "SemanticScorer"):
         self.config = config
         self.weights = weights
         self.semantic_scorer = semantic_scorer

@@ -28,7 +28,7 @@ class BaseScoringStrategy(ABC):
     def calculate_post_score(self,
                            semantic_score: float,
                            engagement_score: float,
-                           profile_score: float,
+                           follower_score: float,
                            text_length_ratio: float,
                            is_verified: bool) -> float:
         """Calculate individual post score based on component scores.
@@ -36,7 +36,7 @@ class BaseScoringStrategy(ABC):
         Args:
             semantic_score (float): Score representing semantic relevance (0.0-1.0)
             engagement_score (float): Score based on post engagement metrics
-            profile_score (float): Score based on user profile strength (0.0-1.0)
+            follower_score (float): Score based on user follower metrics
             text_length_ratio (float): Ratio of actual to ideal text length
             is_verified (bool): Whether the post author is verified
 

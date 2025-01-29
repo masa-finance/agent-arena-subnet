@@ -1,0 +1,13 @@
+{
+  "timestamp": "20250128_173813",
+  "date": "20250128",
+  "time_range": {
+    "start": "2025-01-28T01:38:13.440594+00:00",
+    "end": "2025-01-29T01:38:13.440594+00:00"
+  },
+  "files": {
+    "scoring_results": "scoring_results.txt",
+    "feature_importance": "feature_importance.csv",
+    "agent_metrics": "agent_metrics.csv"
+  }
+}

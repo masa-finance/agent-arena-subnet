@@ -11,11 +11,11 @@ from validator.config.progress_config import ScoringProgressConfig, ShapProgress
 from validator.scoring.scorers.semantic_scorer import SemanticScorer
 from validator.scoring.scorers.engagement_scorer import EngagementScorer
 from validator.scoring.analysis.feature_importance import FeatureImportanceCalculator
-from validator.scoring.scorers.profile_scorer import ProfileScorer
+from validator.scoring.scorers.follower_scorer import FollowerScorer
+from validator.scoring.scorers.verification_scorer import VerificationScorer
 from time import time
 from validator.scoring.strategies.base_strategy import BaseScoringStrategy
 from validator.scoring.strategies.default_strategy import DefaultScoringStrategy
-from validator.scoring.scorers.verification_scorer import VerificationScorer
 
 logger = get_logger(__name__)
 
@@ -39,7 +39,7 @@ class AgentScorer:
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.semantic_scorer = SemanticScorer(self.scoring_config)
         self.engagement_scorer = EngagementScorer(self.weights)
-        self.profile_scorer = ProfileScorer()
+        self.follower_scorer = FollowerScorer(self.weights)
         self.verification_scorer = VerificationScorer(self.weights)
         self.feature_calculator = None
         if shap_hardware_config:
@@ -81,15 +81,15 @@ class AgentScorer:
             )
             is_verified = bool(agent and agent.IsVerified)
         
-        # Calculate component scores
-        profile_score = self.profile_scorer.calculate_score(post)
+        # Calculate component scores using new scorers
+        follower_score = self.follower_scorer.calculate_score(post)
         text_length_ratio = min(len(str(text)), 280) / 280
         engagement_score = self.engagement_scorer.calculate_score(post)
         
         return self.scoring_strategy.calculate_post_score(
             semantic_score=semantic_score,
             engagement_score=engagement_score,
-            profile_score=profile_score,
+            follower_score=follower_score,
             text_length_ratio=text_length_ratio,
             is_verified=is_verified
         )
@@ -148,7 +148,8 @@ class AgentScorer:
                     with tqdm(
                         total=self.shap_config.shap_background_samples,
                         desc="Calculating feature importance",
-                        **ShapProgressConfig.get_config()
+                        position=1,
+                        leave=True
                     ) as shap_pbar:
                         feature_importance = self.feature_calculator.calculate(
                             filtered_posts, 

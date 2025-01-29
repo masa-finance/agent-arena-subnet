@@ -15,10 +15,11 @@ class ScoringWeights:
     Centralizes all weights, ratios, and thresholds used across different scorers.
     """
     # === Base Component Ratios ===
-    semantic_ratio: float = 0.7     # 70% semantic analysis
-    engagement_ratio: float = 0.15  # 15% engagement
-    profile_ratio: float = 0.1      # 10% profile features
-    length_ratio: float = 0.05      # 5% text length
+    semantic_ratio: float = 0.7     
+    engagement_ratio: float = 0.15  
+    follower_ratio: float = 0.05    # Split profile ratio between followers/verification
+    verification_ratio: float = 0.05 
+    length_ratio: float = 0.05      
 
     # === Semantic Scoring ===
     semantic_weight: float = 0.6
@@ -32,8 +33,7 @@ class ScoringWeights:
     healthy_reply_ratio_max: float = 2.0   # Max ratio for healthy replies/likes
     healthy_conversation_bonus: float = 1.2  # Bonus multiplier for healthy conversations
     
-    # === Profile Scoring ===
-    profile_weights: Dict[str, float] = field(default_factory=lambda: None)
+    # === Follower Scoring ===
     followers_cap: float = 11.5  # ln(100000) - cap at 100k followers
     followers_dampening: float = 0.6  # Dampening factor for followers
     
@@ -65,23 +65,15 @@ class ScoringWeights:
                 "Views": 0.1
             }
 
-        # Set default profile weights
-        if self.profile_weights is None:
-            self.profile_weights = {
-                "followers_weight": 0.6,
-                "verified_weight": 0.4
-            }
-
-        self._validate_weights()
-
-    def _validate_weights(self):
-        """Validate all weights and ratios"""
         # Validate base ratios sum to 1.0
         total_ratio = (self.semantic_ratio + self.engagement_ratio + 
-                      self.profile_ratio + self.length_ratio)
+                      self.follower_ratio + self.verification_ratio + 
+                      self.length_ratio)
         if not abs(total_ratio - 1.0) < 1e-10:
             raise ValueError(f"Score ratios must sum to 1.0, got {total_ratio}")
 
+    def _validate_weights(self):
+        """Validate all weights and ratios"""
         # Validate engagement weights sum to 1.0
         total_engagement = sum(self.engagement_weights.values())
         if not abs(total_engagement - 1.0) < 1e-10:
@@ -94,11 +86,6 @@ class ScoringWeights:
         )
         if not abs(total_semantic - 1.0) < 1e-10:
             raise ValueError(f"Semantic weights must sum to 1.0, got {total_semantic}")
-
-        # Validate profile weights sum to 1.0
-        total_profile = sum(self.profile_weights.values())
-        if not abs(total_profile - 1.0) < 1e-10:
-            raise ValueError(f"Profile weights must sum to 1.0, got {total_profile}")
 
     def scale_verification_scores(self, 
                                 verified_scores: Dict[int, float], 

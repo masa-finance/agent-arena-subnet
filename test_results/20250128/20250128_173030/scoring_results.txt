@@ -1,0 +1,10 @@
+Scoring Analysis Results - 20250128_173030
+
+Time Range: 2025-01-28T01:30:30.927116+00:00 to 2025-01-29T01:30:30.927116+00:00
+
+================================================================================
+
+
+Error during test: type object 'ShapProgressConfig' has no attribute 'get_config'
+
+Test completed at: 2025-01-28T17:31:33.259757

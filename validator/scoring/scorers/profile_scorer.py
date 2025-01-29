@@ -1,75 +1,58 @@
+"""DEPRECATED: This module is being replaced by separate FollowerScorer and VerificationScorer modules."""
 from typing import Any, Dict
 from fiber.logging_utils import get_logger
 import numpy as np
 from validator.scoring.scorers.base_scorer import BaseScorer
 from interfaces.types import Tweet
+import warnings
 
 logger = get_logger(__name__)
 
 class ProfileScorer(BaseScorer):
-    """Profile scorer that evaluates X/Twitter profiles based on key metrics.
+    """DEPRECATED: Use FollowerScorer and VerificationScorer instead.
     
-    This scorer evaluates user profiles based on two main components:
-    1. Follower count (normalized on a logarithmic scale)
-    2. Verification status
-    
-    The final score is a weighted combination of these components, with
-    configurable weights and dampening factors to prevent extreme scores.
+    This class is maintained for backward compatibility but will be removed in a future version.
+    Please migrate to using the separate scorer components.
     """
     
-    def _normalize_followers(self, followers_count: int) -> float:
-        """Normalize followers count using log scale with configured thresholds.
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "ProfileScorer is deprecated. Use FollowerScorer and VerificationScorer instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        super().__init__(*args, **kwargs)
+    
+    def calculate_score(self, post: Tweet, **kwargs: Any) -> float:
+        """DEPRECATED: Calculate combined profile score.
         
-        Applies logarithmic scaling to handle the wide range of follower counts
-        and dampens the result to prevent oversized influence from mega-accounts.
-
-        Args:
-            followers_count (int): Raw count of followers
-
-        Returns:
-            float: Normalized score between 0.0 and 1.0, dampened according to
-                configured weights
+        This method maintains backward compatibility by calculating scores using
+        the old weighting system. New code should use separate scorers.
         """
+        try:
+            followers_count = post.get("FollowersCount", 0)
+            is_verified = post.get("IsVerified", False)
+            
+            # Calculate using follower cap and dampening from new config
+            followers_score = self._normalize_followers(followers_count)
+            verified_score = float(is_verified)
+            
+            # Use fixed weights for backward compatibility
+            final_score = (followers_score * 0.6) + (verified_score * 0.4)
+            return min(1.0, max(0.0, final_score))
+            
+        except Exception as e:
+            logger.error(f"Error calculating profile score: {str(e)}")
+            return 0.0
+
+    def _normalize_followers(self, followers_count: int) -> float:
+        """DEPRECATED: Use FollowerScorer.calculate_score() instead."""
         if followers_count <= 0:
             return 0.0
             
         log_followers = np.log1p(followers_count)
         normalized = min(1.0, log_followers / self.weights.followers_cap)
         return normalized * self.weights.followers_dampening
-    
-    def calculate_score(self, post: Tweet, **kwargs: Any) -> float:
-        """Calculate profile score from post data.
-
-        Combines normalized follower count and verification status into a
-        weighted profile score.
-
-        Args:
-            post (Tweet): Post object containing author profile information
-            **kwargs: Additional arguments (unused)
-
-        Returns:
-            float: Combined profile score between 0.0 and 1.0. Returns 0.0
-                if an error occurs during calculation.
-        """
-        try:
-            followers_count = post.get("FollowersCount", 0)
-            is_verified = post.get("IsVerified", False)
-            
-            # Calculate component scores
-            followers_score = self._normalize_followers(followers_count)
-            verified_score = float(is_verified)
-            
-            # Calculate weighted score
-            final_score = (
-                followers_score * self.weights.profile_weights["followers_weight"] +
-                verified_score * self.weights.profile_weights["verified_weight"]
-            )
-            
-            return min(1.0, max(0.0, final_score))
-            
-        except Exception as e:
-            logger.error(f"Error calculating profile score: {str(e)}")
-            return 0.0
 
     def get_score_components(self, followers_count: int, is_verified: bool) -> Dict:
         """Get detailed breakdown of score components.
