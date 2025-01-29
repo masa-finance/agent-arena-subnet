@@ -22,3 +22,4 @@ notebooks/.DS_Store
 
 *.pyc
 *.pyc
+/test_results
