@@ -15,6 +15,7 @@ from validator.scoring.scorers.profile_scorer import ProfileScorer
 from time import time
 from validator.scoring.strategies.base_strategy import BaseScoringStrategy
 from validator.scoring.strategies.default_strategy import DefaultScoringStrategy
+from validator.scoring.scorers.verification_scorer import VerificationScorer
 
 logger = get_logger(__name__)
 
@@ -39,6 +40,7 @@ class AgentScorer:
         self.semantic_scorer = SemanticScorer(self.scoring_config)
         self.engagement_scorer = EngagementScorer(self.weights)
         self.profile_scorer = ProfileScorer()
+        self.verification_scorer = VerificationScorer(self.weights)
         self.feature_calculator = FeatureImportanceCalculator(
             config=self.shap_config,
             weights=self.weights,
@@ -130,14 +132,10 @@ class AgentScorer:
                 verified_scores = self._calculate_agent_scores(verified_posts_by_uid, main_pbar)
                 unverified_scores = self._calculate_agent_scores(unverified_posts_by_uid, main_pbar)
                 
-                # Find the minimum verified score (if any verified accounts exist)
-                min_verified_score = min(verified_scores.values()) if verified_scores else 1.0
-                
-                # Scale unverified scores to be strictly less than minimum verified score
-                max_unverified = max(unverified_scores.values()) if unverified_scores else 0.0
-                if max_unverified > 0:
-                    scale_factor = (min_verified_score * 0.5) / max_unverified  # Ensure unverified scores are at most half of min verified
-                    unverified_scores = {uid: score * scale_factor for uid, score in unverified_scores.items()}
+                # Apply verification scaling using dedicated scorer
+                verified_scores, unverified_scores = self.verification_scorer.scale_scores(
+                    verified_scores, unverified_scores
+                )
                 
                 # Combine scores
                 final_scores = {**verified_scores, **unverified_scores}

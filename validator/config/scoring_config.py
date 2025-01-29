@@ -1,5 +1,12 @@
-from dataclasses import dataclass
-from typing import Dict
+from dataclasses import dataclass, field
+from typing import Dict, Tuple
+
+@dataclass
+class VerificationConfig:
+    """Configuration for verification-based scoring adjustments"""
+    minimum_score: float = 0.5      # Minimum score for verified accounts
+    unverified_ratio: float = 2.0   # Verified scores must be at least 2x unverified
+    unverified_cap: float = 0.5     # Unverified scores capped at 50% of min verified
 
 @dataclass
 class ScoringWeights:
@@ -16,23 +23,26 @@ class ScoringWeights:
     # === Semantic Scoring ===
     semantic_weight: float = 0.6
     semantic_multiplier: float = 2.0
-    semantic_config: Dict[str, float] = None  # Will be set in post_init
+    semantic_config: Dict[str, float] = field(default_factory=lambda: None)
     
     # === Engagement Scoring ===
-    engagement_weights: Dict[str, float] = None  # Will be set in post_init
+    engagement_weights: Dict[str, float] = field(default_factory=lambda: None)
     engagement_multiplier: float = 0.5
     healthy_reply_ratio_min: float = 0.1   # Min ratio for healthy replies/likes
     healthy_reply_ratio_max: float = 2.0   # Max ratio for healthy replies/likes
     healthy_conversation_bonus: float = 1.2  # Bonus multiplier for healthy conversations
     
     # === Profile Scoring ===
-    profile_weights: Dict[str, float] = None  # Will be set in post_init
+    profile_weights: Dict[str, float] = field(default_factory=lambda: None)
     followers_cap: float = 11.5  # ln(100000) - cap at 100k followers
     followers_dampening: float = 0.6  # Dampening factor for followers
     
     # === Length Scoring ===
     length_weight: float = 0.1
     max_length: int = 280  # Maximum post length
+
+    # === Verification Config ===
+    verification: VerificationConfig = field(default_factory=VerificationConfig)
 
     def __post_init__(self):
         """Initialize default configurations"""
@@ -88,4 +98,33 @@ class ScoringWeights:
         # Validate profile weights sum to 1.0
         total_profile = sum(self.profile_weights.values())
         if not abs(total_profile - 1.0) < 1e-10:
-            raise ValueError(f"Profile weights must sum to 1.0, got {total_profile}") 
+            raise ValueError(f"Profile weights must sum to 1.0, got {total_profile}")
+
+    def scale_verification_scores(self, 
+                                verified_scores: Dict[int, float], 
+                                unverified_scores: Dict[int, float]) -> Tuple[Dict[int, float], Dict[int, float]]:
+        """
+        Scale scores to ensure verified accounts always score higher than unverified.
+        """
+        if not verified_scores:
+            return verified_scores, unverified_scores
+
+        # Ensure verified scores meet minimum threshold
+        min_verified = max(min(verified_scores.values()), self.verification.minimum_score)
+        verified_scores = {
+            uid: max(score, self.verification.minimum_score) 
+            for uid, score in verified_scores.items()
+        }
+
+        # Scale unverified scores to be below minimum verified
+        if unverified_scores:
+            max_unverified = max(unverified_scores.values())
+            if max_unverified > 0:
+                target_max = min_verified * self.verification.unverified_cap
+                scale_factor = target_max / max_unverified
+                unverified_scores = {
+                    uid: score * scale_factor 
+                    for uid, score in unverified_scores.items()
+                }
+
+        return verified_scores, unverified_scores 
