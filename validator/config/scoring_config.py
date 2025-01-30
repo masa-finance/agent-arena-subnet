@@ -59,10 +59,10 @@ class ScoringWeights:
         # Set default engagement weights
         if self.engagement_weights is None:
             self.engagement_weights = {
-                "Replies": 0.4,
-                "Likes": 0.3,
-                "Retweets": 0.2,
-                "Views": 0.1
+                "Retweets": 0.4,    # Most impactful - shows active content sharing
+                "Replies": 0.3,     # Second most - shows active engagement/discussion
+                "Likes": 0.2,       # Third - shows passive positive engagement
+                "Views": 0.1        # Least - shows reach but lowest engagement level
             }
 
         # Validate base ratios sum to 1.0
