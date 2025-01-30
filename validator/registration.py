@@ -16,13 +16,19 @@ from interfaces.types import (
     Profile,
 )
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from neurons.validator import AgentValidator
+
+
 logger = get_logger(__name__)
 
 
 class ValidatorRegistration:
     def __init__(
         self,
-        validator: Any,
+        validator: "AgentValidator",
     ):
         self.validator = validator
 
@@ -76,7 +82,7 @@ class ValidatorRegistration:
         followers_count: int,
     ) -> None:
         """Register an agent"""
-        node_emissions, _ = self.validator.get_emissions(node)
+        node_emissions, _ = self.validator.metagraph_manager.get_emissions(node)
         registration_data = RegisteredAgentRequest(
             HotKey=node.hotkey,
             UID=str(node.node_id),
@@ -144,7 +150,7 @@ class ValidatorRegistration:
             return False
 
     async def update_agents_profiles_and_emissions(self) -> None:
-        _, emissions = self.validator.get_emissions(None)
+        _, emissions = self.validator.metagraph_manager.get_emissions(None)
         for hotkey, _ in self.validator.metagraph.nodes.items():
             agent = self.validator.registered_agents.get(hotkey, None)
             if agent:
