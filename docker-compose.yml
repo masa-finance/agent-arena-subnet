@@ -1,0 +1,146 @@
+services:
+  validator:
+    image: masa-bittensor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    deploy:
+      replicas: ${VALIDATOR_COUNT:-2}
+    volumes:
+      - ~/.bittensor/wallets:/root/.bittensor/wallets
+      - ~/.bt-masa:/root/.bt-masa
+      - ./startup:/app/startup
+      - ./masa:/app/masa
+      - ./neurons:/app/neurons
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./config.json:/app/config.json
+    user: root
+    environment:
+      - BT_LOGGING_LOGGING_DIR=/root/.bt-masa
+      - COLDKEY_MNEMONIC=${COLDKEY_MNEMONIC}
+      - WALLET_NAME=${WALLET_NAME:-default}
+      - REPLICA_NUM={{.Task.Slot}}
+      - NETWORK=${NETWORK}
+      - DEVICE=cpu
+      - VALIDATOR_PORT=8091
+      - VALIDATOR_METRICS_PORT=9100
+      - ROLE=validator
+      - PYTHONUNBUFFERED=1
+      - LOGGING_DEBUG=${LOGGING_DEBUG}
+      - SERVICE_NAME=validator
+    ports:
+      - "8091-8100:8091"
+      - "9100-9109:9100"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  miner:
+    image: masa-bittensor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    deploy:
+      replicas: ${MINER_COUNT:-3}
+    volumes:
+      - ~/.bittensor/wallets:/root/.bittensor/wallets
+      - ~/.bt-masa:/root/.bt-masa
+      - ./startup:/app/startup
+      - ./masa:/app/masa
+      - ./neurons:/app/neurons
+      - ./pyproject.toml:/app/pyproject.toml
+    user: root
+    environment:
+      - BT_LOGGING_LOGGING_DIR=/root/.bt-masa
+      - WALLET_NAME=${WALLET_NAME:-default}
+      - NETWORK=${NETWORK}
+      - DEVICE=cpu
+      - MINER_PORT=8155
+      - MINER_METRICS_PORT=9164
+      - ROLE=miner
+      - PYTHONUNBUFFERED=1
+      - LOGGING_DEBUG=${LOGGING_DEBUG}
+      - SERVICE_NAME=miner
+      - REPLICA_NUM={{.Task.Slot}}
+    ports:
+      - "8155-8165:8155"
+      - "9164-9174:9164"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8155/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    depends_on:
+      - validator
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: masa_portainer
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    ports:
+      - "9000:9000"
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  subnet_wallets:
+  prometheus_data:
+  grafana_data:
+  portainer_data:
