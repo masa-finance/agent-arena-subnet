@@ -3,6 +3,7 @@ from interfaces.types import Tweet
 from validator.scoring.scorers.base_scorer import BaseScorer
 import numpy as np
 from fiber.logging_utils import get_logger
+import logging
 
 logger = get_logger(__name__)
 
@@ -50,47 +51,50 @@ class EngagementScorer(BaseScorer):
             self._max_metrics = {}
 
     def calculate_score(self, post: Tweet) -> float:
-        """Calculate normalized engagement score using weights from scoring_config.py.
-
-        The score is computed by:
-        1. Getting each metric's value from the post
-        2. Applying logarithmic transformation (np.log1p)
-        3. Normalizing against the maximum value for that metric
-        4. Multiplying by the corresponding weight
-        5. Summing all weighted values
-
-        Args:
-            post (Tweet): The post object containing engagement metrics:
-                - Retweets: Number of times the post was shared
-                - Replies: Number of responses to the post
-                - Likes: Number of likes/favorites
-                - Views: Number of times the post was viewed
-
-        Returns:
-            float: The normalized engagement score between 0.0 and 1.0
-                  A score of 1.0 indicates maximum engagement across all metrics
-                  A score of 0.0 indicates no engagement
+        """Calculate normalized engagement score for a single post.
+        
+        The score is calculated by:
+        1. For each metric (Retweets, Replies, Likes, Views):
+           - Normalize the value using log1p relative to max value
+           - Multiply by the metric's weight
+        2. Sum all weighted normalized values
+        3. Return final score between 0.0 and 1.0
+        
+        Example:
+            Post with: Retweets=10, Replies=20, Likes=50, Views=1000
+            Max values: Retweets=45, Replies=433, Likes=261, Views=64440
+            
+            Calculations:
+            Retweets: (log1p(10)/log1p(45)) * 0.4 = 0.731 * 0.4 = 0.292
+            Replies: (log1p(20)/log1p(433)) * 0.3 = 0.511 * 0.3 = 0.153
+            Likes: (log1p(50)/log1p(261)) * 0.2 = 0.674 * 0.2 = 0.135
+            Views: (log1p(1000)/log1p(64440)) * 0.1 = 0.556 * 0.1 = 0.056
+            
+            Final Score = 0.636 (sum of all components)
         """
-        if not self._max_metrics:
-            logger.warning("EngagementScorer not initialized. Call initialize_scorer first.")
+        if not self._validate_initialization():
             return 0.0
 
         try:
-            score = 0
+            total_score = 0.0
             
-            # Calculate weighted engagement metrics
             for metric, weight in self.weights.engagement_weights.items():
-                value = post.get(metric, 0)
-                if value > 0 and self._max_metrics[metric] > 0:
-                    # Normalize using log transformation
-                    normalized_value = (np.log1p(value) / 
-                                     np.log1p(self._max_metrics[metric]))
-                    score += normalized_value * weight
+                value = float(post.get(metric, 0))
+                max_value = float(self._max_metrics.get(metric, 1))  # Avoid div by zero
                 
-            return min(1.0, max(0.0, score))
+                if value > 0 and max_value > 0:
+                    # Log transform and normalize
+                    normalized = np.log1p(value) / np.log1p(max_value)
+                    weighted = normalized * weight
+                    total_score += weighted
+                    
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug(f"{metric}: {value}/{max_value} -> {normalized:.3f} * {weight} = {weighted:.3f}")
+
+            return min(1.0, max(0.0, total_score))
             
         except Exception as e:
-            logger.error(f"Error calculating engagement score: {str(e)}")
+            logger.error(f"Error calculating score: {str(e)}")
             return 0.0
 
     def _validate_initialization(self) -> bool:
