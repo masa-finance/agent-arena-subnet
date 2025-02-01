@@ -10,10 +10,15 @@ ENV PIP_NO_CACHE_DIR=1 \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
-        git \
         && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies from pyproject.toml
+# Set up workspace
+WORKDIR /app
+
+# Copy local files
+COPY . /app/
+
+# Install Python dependencies
 RUN pip install --no-cache-dir \
     "bittensor==8.2.0" \
     "loguru==0.7.2" \
@@ -25,8 +30,7 @@ RUN pip install --no-cache-dir \
     "pytest-asyncio==0.21.0" \
     "requests==2.32.3"
 
-# Set up workspace and environment
-WORKDIR /app
+# Set environment variables
 ENV CONFIG_PATH=/app/subnet-config.json \
     ROLE=validator \
     NETWORK=test \
