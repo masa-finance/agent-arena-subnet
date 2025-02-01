@@ -186,12 +186,35 @@ class WalletManager:
         """Register wallet with subnet, retrying indefinitely on failure."""
         while True:
             try:
-                # This handles both registration attempt and getting UID if already registered
-                uid = self.subtensor.register(wallet=self.wallet, netuid=self.netuid)
-                if uid is not None:
-                    self.logger.info(f"Registration successful - UID: {uid}")
-                    self.update_hotkey_mappings(uid)
-                    return uid
+                # For miners, use pow registration
+                self.logger.info("Starting POW registration for miner hotkey...")
+                success = self.subtensor.pow_register_extrinsic(
+                    wallet=self.wallet,
+                    netuid=self.netuid,
+                    wait_for_inclusion=True,
+                    wait_for_finalization=True,
+                )
+
+                if success:
+                    # Check registration and get UID
+                    is_registered = self.subtensor.is_hotkey_registered(
+                        netuid=self.netuid,
+                        hotkey_ss58=self.wallet.hotkey.ss58_address,
+                    )
+                    if is_registered:
+                        uid = self.subtensor.get_uid_for_hotkey_on_subnet(
+                            hotkey_ss58=self.wallet.hotkey.ss58_address,
+                            netuid=self.netuid,
+                        )
+                        self.logger.info(f"Registration successful - UID: {uid}")
+                        self.update_hotkey_mappings(uid)
+                        return uid
+                    else:
+                        self.logger.warning(
+                            "Registration appeared to succeed but hotkey is not registered"
+                        )
+                else:
+                    self.logger.warning("Registration failed")
             except Exception as e:
                 self.logger.warning(f"Registration failed: {str(e)}")
                 time.sleep(10)
