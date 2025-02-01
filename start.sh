@@ -45,6 +45,17 @@ validate_env() {
     source .env
     set +a
     
+    # Check for COLDKEY_MNEMONIC and prompt if not set
+    if [ -z "$COLDKEY_MNEMONIC" ]; then
+        echo -e "${YELLOW}Please enter your coldkey mnemonic (12 or 24 words):${NC}"
+        read -r COLDKEY_MNEMONIC
+        if [ -z "$COLDKEY_MNEMONIC" ]; then
+            echo -e "${RED}Error: COLDKEY_MNEMONIC is required${NC}"
+            return 1
+        fi
+        export COLDKEY_MNEMONIC
+    fi
+    
     return 0
 }
 
