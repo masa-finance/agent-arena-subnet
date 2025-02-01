@@ -7,7 +7,7 @@
 # netuid:249
 
 x-neuron-base: &neuron-base
-  image: masaengineering/agent-arena:${TAG:-latest}
+  image: masaengineering/agent-arena-subnet:${TAG:-latest}
   environment: &env-base
     NETWORK: ${NETWORK:-test}
     COLDKEY_MNEMONIC: ${COLDKEY_MNEMONIC}
