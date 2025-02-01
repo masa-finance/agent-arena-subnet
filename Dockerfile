@@ -25,4 +25,4 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 # Command to run the application
-CMD ["python", "-m", "startup.main"]
+CMD ["python", "-m", "startup"]

@@ -3,12 +3,13 @@ import logging
 from startup.wallet_manager import WalletManager
 from startup.registration_manager import RegistrationManager
 from startup.process_manager import ProcessManager
+from startup.config import get_netuid
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def print_status_report(role, uid, hotkey, registered, network, port):
+def print_status_report(role, uid, hotkey, registered, network, netuid, port):
     """Print a formatted status report."""
     icon = "🔍" if role == "validator" else "⛏️ "
     role_title = role.capitalize()
@@ -19,6 +20,7 @@ def print_status_report(role, uid, hotkey, registered, network, port):
         f"""
 • {role_title} {uid or 'Unknown UID'}
   ├─ Network: {network}
+  ├─ Subnet: {netuid}
   ├─ Status: {'✅ Running' if uid else '❌ Not Running'}
   ├─ Registration: {'✅ Registered' if registered else '❌ Not Registered'}
   ├─ Port: {port}
@@ -41,10 +43,19 @@ def main():
     replica_num = os.environ.get("REPLICA_NUM", "1")
     network = os.environ.get("NETWORK", "test")
     port = os.environ.get(f"{role.upper()}_PORT", "unknown")
-    logger.info(f"Service: {role}, Replica: {replica_num}")
+
+    # Get subnet ID from config
+    netuid = get_netuid(network)
+    logger.info(
+        f"Service: {role}, Replica: {replica_num}, Network: {network}, Subnet: {netuid}"
+    )
 
     # Initialize managers
-    wallet_manager = WalletManager()
+    wallet_manager = WalletManager(
+        role=role,
+        network=network,
+        netuid=netuid,
+    )
     registration_manager = RegistrationManager(wallet_manager)
     process_manager = ProcessManager()
 
@@ -56,6 +67,7 @@ def main():
             hotkey=registration_manager.hotkey_ss58,
             registered=registration_manager.is_registered,
             network=network,
+            netuid=netuid,
             port=port,
         )
 
