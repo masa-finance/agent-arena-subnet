@@ -1,4 +1,4 @@
-name: 'Build and Publish Agent Arena Images to Docker Hub'
+name: 'Build and Publish Agent Arena Subnet Images to Docker Hub'
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: masaengineering/agent-arena
+          images: masaengineering/agent-arena-subnet
           tags: |
             # Always push latest
             type=raw,value=latest
@@ -79,6 +79,6 @@ jobs:
       - name: Announce Release
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          echo "🎉 Released Agent Arena version ${GITHUB_REF#refs/tags/v}"
+          echo "🎉 Released Agent Arena Subnet version ${GITHUB_REF#refs/tags/v}"
           echo "Published tags:"
           echo "${{ steps.meta.outputs.tags }}"
