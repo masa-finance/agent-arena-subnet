@@ -1,8 +1,8 @@
 import os
+import json
 import logging
 import bittensor as bt
 from contextlib import redirect_stdout
-from startup.config import get_chain_endpoint, get_netuid
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ class WalletManager:
         self.network = network
         self.netuid = netuid
         self.logger = logging.getLogger(__name__)
+        self.subtensor = None
 
         # Initialize wallet
         self.wallet = self.load_wallet()
@@ -32,9 +33,10 @@ class WalletManager:
         Returns:
             Loaded wallet
         """
-        # Configure network endpoint
-        chain_endpoint = get_chain_endpoint(self.network)
-        bt.subtensor.set_network_endpoint(chain_endpoint)
+        # Initialize subtensor - only specify network if it's test
+        self.subtensor = (
+            bt.subtensor(network="test") if self.network == "test" else bt.subtensor()
+        )
 
         # Get wallet name from env or use default
         wallet_name = os.getenv("BT_WALLET_NAME", "default")
