@@ -1,140 +1,144 @@
 import logging
 import bittensor as bt
-import time
+from startup.wallet_manager import WalletManager
+
+logger = logging.getLogger(__name__)
 
 
 class RegistrationManager:
-    """Manages registration operations for validators and miners."""
+    """Manages registration of nodes on the network."""
 
-    def __init__(self, subtensor: bt.subtensor):
-        """Initialize the registration manager.
-
-        Args:
-            subtensor: Initialized subtensor connection
-        """
-        self.subtensor = subtensor
+    def __init__(self, wallet_manager: WalletManager):
+        """Initialize the registration manager."""
+        self.wallet_manager = wallet_manager
         self.logger = logging.getLogger(__name__)
+        self.uid = None
+        self.hotkey_ss58 = None
+        self.is_registered = False
 
     def check_registration(self, wallet: bt.wallet, netuid: int) -> tuple[bool, int]:
-        """Check if a wallet's hotkey is registered.
+        """Check if a wallet is registered on the network.
 
         Args:
-            wallet: The wallet to check
+            wallet: Wallet to check registration for
             netuid: Network UID to check registration on
 
         Returns:
-            tuple: (is_registered, uid if registered else None)
+            Tuple of (is_registered, uid)
         """
-        is_registered = self.subtensor.is_hotkey_registered(
+        subtensor = bt.subtensor()
+        is_registered = subtensor.is_hotkey_registered(
             netuid=netuid,
             hotkey_ss58=wallet.hotkey.ss58_address,
         )
+        uid = None
 
         if is_registered:
-            uid = self.subtensor.get_uid_for_hotkey_on_subnet(
+            uid = subtensor.get_uid_for_hotkey_on_subnet(
                 hotkey_ss58=wallet.hotkey.ss58_address,
                 netuid=netuid,
             )
             self.logger.info(f"Hotkey is registered with UID {uid}")
-            return True, uid
+            self.uid = uid
+            self.hotkey_ss58 = wallet.hotkey.ss58_address
+            self.is_registered = True
 
-        self.logger.info("Hotkey is not registered")
-        return False, None
+        return is_registered, uid
 
     def register_if_needed(
         self, wallet: bt.wallet, netuid: int, is_validator: bool = False
     ) -> tuple[bool, int]:
-        """Register the wallet if not already registered.
+        """Register a wallet if it's not already registered.
 
         Args:
-            wallet: The wallet to register
+            wallet: Wallet to register
             netuid: Network UID to register on
             is_validator: Whether this is a validator registration
 
         Returns:
-            tuple: (success, uid if successful else None)
+            Tuple of (success, uid)
         """
-        # First check current registration status
         is_registered, uid = self.check_registration(wallet, netuid)
+
         if is_registered:
+            self.logger.info("Already registered with UID %s", uid)
             return True, uid
 
-        # Debug info
-        self.logger.info(f"Bittensor version: {bt.__version__}")
-        self.logger.info(f"Available subtensor methods: {dir(self.subtensor)}")
+        if is_validator:
+            # For validators, use burned registration
+            self.logger.info(
+                "Starting burned registration process for validator hotkey"
+            )
 
-        # Perform registration with retries
-        max_retries = 10
-        retry_count = 0
-        while retry_count < max_retries:
-            try:
-                success = self.subtensor.burned_register_extrinsic(
-                    wallet=wallet,
-                    netuid=netuid,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True,
+            # Check current balance
+            subtensor = bt.subtensor()
+            balance = subtensor.get_balance(wallet.coldkeypub.ss58_address)
+            self.logger.info(f"Current balance: {balance} TAO")
+
+            # Get registration cost
+            cost = subtensor.recycle(netuid)
+            self.logger.info(f"Registration cost: {cost} TAO")
+
+            if balance < cost:
+                raise Exception(
+                    f"Insufficient balance ({balance} TAO) for registration. Need {cost} TAO"
                 )
 
-                if success:
-                    break
-                else:
-                    retry_count += 1
-                    self.logger.warning(
-                        f"Registration attempt {retry_count} failed, retrying in 10 seconds..."
-                    )
-                    time.sleep(10)
-
-            except Exception as e:
-                error_str = str(e)
-                if "Priority is too low" in error_str:
-                    retry_count += 1
-                    self.logger.warning(
-                        f"Got priority error on attempt {retry_count}, retrying in 10 seconds..."
-                    )
-                    time.sleep(10)
-                else:
-                    role = "validator" if is_validator else "miner"
-                    raise Exception(f"Failed to register {role} hotkey - {str(e)}")
-
-        if retry_count >= max_retries:
-            role = "validator" if is_validator else "miner"
-            raise Exception(
-                f"Failed to register {role} hotkey after {max_retries} attempts"
-            )
-
-        # Verify registration and get UID
-        is_registered, uid = self.check_registration(wallet, netuid)
-        if is_registered:
-            new_balance = self.subtensor.get_balance(wallet.coldkeypub.ss58_address)
-            self.logger.info(f"Successfully registered hotkey with UID {uid}")
+            self.logger.info("Balance sufficient for registration, proceeding...")
             self.logger.info(
-                f"New balance after registration: {new_balance} TAO (burned {balance - new_balance} TAO)"
+                f"This process will burn {cost} TAO from your balance of {balance} TAO"
             )
-            return True, uid
+            self.logger.info("Starting registration (this may take a few minutes)")
+
+            # First check if registration is still needed
+            is_registered, uid = self.check_registration(wallet, netuid)
+            if is_registered:
+                self.logger.info("Already registered with UID %s", uid)
+                return True, uid
+
+            success = subtensor.burned_register(
+                wallet=wallet,
+                netuid=netuid,
+            )
+
+            if success:
+                self.logger.info("Registration successful")
+                return self.check_registration(wallet, netuid)
+            else:
+                raise Exception("Registration failed")
         else:
-            raise Exception(
-                "Registration appeared to succeed but hotkey is not registered"
+            # For miners, use pow registration
+            self.logger.info("Starting POW registration for miner hotkey")
+            success = subtensor.register(
+                wallet=wallet,
+                netuid=netuid,
             )
+
+            if success:
+                self.logger.info("Registration successful")
+                return self.check_registration(wallet, netuid)
+            else:
+                raise Exception("Registration failed")
 
     def verify_registration_status(self, wallet: bt.wallet, netuid: int):
-        """Perform detailed registration status verification.
+        """Verify registration status and log details.
 
         Args:
-            wallet: The wallet to verify
+            wallet: Wallet to verify
             netuid: Network UID to check
         """
         self.logger.info("Double checking registration status:")
         self.logger.info(f"Checking netuid {netuid}")
         self.logger.info(f"Hotkey address: {wallet.hotkey.ss58_address}")
 
+        subtensor = bt.subtensor()
+
         # Check registration on any subnet
-        any_subnet = self.subtensor.is_hotkey_registered_any(wallet.hotkey.ss58_address)
+        any_subnet = subtensor.is_hotkey_registered_any(wallet.hotkey.ss58_address)
         self.logger.info(f"Is registered on any subnet: {any_subnet}")
 
-        # Check specific subnet registration
-        subnet_check = self.subtensor.is_hotkey_registered_on_subnet(
+        # Check specific subnet registration again
+        subnet_check = subtensor.is_hotkey_registered_on_subnet(
             wallet.hotkey.ss58_address, netuid
         )
         self.logger.info(f"Is registered on subnet {netuid}: {subnet_check}")
-
-        return subnet_check
