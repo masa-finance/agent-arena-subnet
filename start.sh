@@ -70,7 +70,7 @@ check_service_health() {
 # Always pull latest image before starting services
 pull_latest_image() {
     echo -e "${BLUE}Pulling latest image from Docker Hub...${NC}"
-    docker pull masaengineering/masa-bittensor:latest || {
+    docker pull masaengineering/agent-arena:latest || {
         echo -e "${RED}Failed to pull latest image${NC}"
         return 1
     }

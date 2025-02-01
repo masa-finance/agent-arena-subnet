@@ -7,10 +7,12 @@
 # netuid:249
 
 x-neuron-base: &neuron-base
-  image: masaengineering/masa-bittensor:${TAG:-latest}
+  image: masaengineering/agent-arena:${TAG:-latest}
   environment: &env-base
     NETWORK: ${NETWORK:-test}
     COLDKEY_MNEMONIC: ${COLDKEY_MNEMONIC}
+    # Set NETUID based on network type - 249 for testnet, 59 for mainnet
+    NETUID: ${NETUID:-249}
   volumes:
     - neuron_data:/root/.bittensor
     - ./startup:/app/startup
@@ -22,8 +24,7 @@ services:
   validator:
     <<: *neuron-base
     environment:
-      NETWORK: ${NETWORK:-test}
-      COLDKEY_MNEMONIC: ${COLDKEY_MNEMONIC}
+      <<: *env-base
       ROLE: validator
     ports:
       - target: 8092
@@ -41,8 +42,7 @@ services:
   miner:
     <<: *neuron-base
     environment:
-      NETWORK: ${NETWORK:-test}
-      COLDKEY_MNEMONIC: ${COLDKEY_MNEMONIC}
+      <<: *env-base
       ROLE: miner
     ports:
       - target: 8093
