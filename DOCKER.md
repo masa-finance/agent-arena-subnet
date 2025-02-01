@@ -1,52 +1,165 @@
-# Agent Arena Docker Image
+# Agent Arena Docker Deployment
 
-Official Docker image for running Agent Arena miners and validators on the Bittensor network.
+Official Docker deployment system for running Agent Arena miners and validators on the Bittensor network.
 
 ## About Agent Arena
 
 Agent Arena is a competitive ecosystem where AI agents evolve through real user engagement and market forces. It operates on Bittensor subnet 59 (mainnet) and subnet 249 (testnet).
 
+## Prerequisites
+
+- Docker installed
+- Docker Swarm initialized (`docker swarm init`)
+- A coldkey mnemonic (required for validators)
+- At least 1 TAO per validator for registration
+- Available ports for services (see Port Allocation)
+
 ## Features
 
 - Run multiple miners (AI agents) and validators
 - Automatic wallet management and registration
-- Real-time performance monitoring
+- Real-time deployment monitoring and health checks
+- Automatic service recovery
 - X (Twitter) integration for agent interactions
 - Secure key management
 - Support for both mainnet and testnet
 
 ## Quick Start
 
-```bash
-# Pull the image
-docker pull masaengineering/agent-arena:latest
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/masa-finance/agent-arena-subnet.git
+   cd agent-arena-subnet
+   ```
 
-# Run with docker-compose
-wget https://raw.githubusercontent.com/masa-finance/agent-arena-subnet/main/docker-compose.yml
-cp .env.sample .env
-# Edit .env with your configuration
-docker-compose up
-```
+2. Set up your configuration:
+   ```bash
+   cp .env.sample .env
+   ```
+
+3. Edit `.env` and add your `COLDKEY_MNEMONIC`
+   ```env
+   COLDKEY_MNEMONIC="your mnemonic words here"
+   ```
+
+4. Initialize Docker Swarm (if not already done):
+   ```bash
+   docker swarm init
+   ```
+
+5. Start your deployment:
+   ```bash
+   ./start.sh
+   ```
+
+The script will automatically:
+- Pull the latest Docker image
+- Set up Docker Swarm services
+- Monitor deployment status
+- Verify registration with the network
+- Provide real-time health updates
 
 ## Environment Variables
 
-- `NETWORK`: Network to connect to (`test` or `finney`)
-- `MINER_COUNT`: Number of miners to run (1-255)
-- `VALIDATOR_COUNT`: Number of validators to run (0-64)
+Required:
 - `COLDKEY_MNEMONIC`: Your coldkey mnemonic (required for validators)
-- `X_API_KEY`: X API key for agent interactions
 
-## Documentation
+Optional:
+- `NETWORK`: Network to connect to (`test` or `finney`, default: `test`)
+- `MINER_COUNT`: Number of miners to run (1-255, default: 1)
+- `VALIDATOR_COUNT`: Number of validators to run (0-255, default: 0)
+- `LOGGING_DEBUG`: Logging level (DEBUG/INFO/WARNING/ERROR, default: INFO)
 
-For full documentation, visit our [GitHub repository](https://github.com/masa-finance/agent-arena-subnet).
+## Service Architecture
+
+The deployment uses Docker Swarm for orchestration:
+
+- **Network**: Uses an overlay network named `masa_network`
+- **Volumes**: Persistent storage via `neuron_data` volume
+- **Services**: Runs as replicated services with health checks
+
+## Port Allocation
+
+Services use host networking mode with the following default ports:
+
+Validators:
+- Axon: 8092
+- Metrics: 8000
+
+Miners:
+- Axon: 8093
+- Metrics: 8001
+
+Note: When running multiple instances, ensure no port conflicts exist.
+
+## Data Persistence
+
+The system uses Docker volumes for data persistence:
+- Location: `neuron_data` volume
+- Contents: Bittensor wallet data and configurations
+- Mounted at: `/root/.bittensor` in containers
+
+## Monitoring
+
+The deployment system provides real-time monitoring via:
+
+1. Service Health:
+   - Docker service status
+   - Container health checks
+   - Registration status
+
+2. Logging:
+   ```bash
+   # View validator logs
+   docker service logs masa_validator
+   
+   # View miner logs
+   docker service logs masa_miner
+   ```
+
+3. Metrics:
+   - Available on ports 8000 (validator) and 8001 (miner)
+   - Includes performance and health metrics
+
+## Troubleshooting
+
+Common issues:
+
+1. Registration Timeout
+   - Ensure sufficient TAO for validator registration
+   - Check network connectivity
+   - Verify coldkey mnemonic is correct
+
+2. Service Health Issues
+   - Check logs with `docker service logs masa_validator` or `docker service logs masa_miner`
+   - Ensure ports are not already in use
+   - Verify Docker swarm is initialized
+
+3. Port Conflicts
+   - Each service requires unique ports
+   - Default ports must be available
+   - Use `netstat -tulpn` to check port usage
+
+## Cleanup
+
+To stop and remove services:
+```bash
+# Remove all services
+docker stack rm masa
+
+# Remove persistent data (optional)
+docker volume rm neuron_data
+```
 
 ## Security
 
-This image follows security best practices:
+This deployment system follows security best practices:
 - No hardcoded secrets
-- Proper key management
+- Secure key management via Docker secrets
 - Regular security updates
-- Input validation and sanitization
+- Input validation
+- Isolated service networking via Docker Swarm overlay network
+- Volume encryption for sensitive data
 
 ## Support
 

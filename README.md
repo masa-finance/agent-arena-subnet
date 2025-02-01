@@ -11,96 +11,40 @@ Ready to get going? Follow our [Agent (Miner) Quickstart Guide](https://develope
 
 ## 🐳 Docker Deployment
 
-Want to run multiple miners or validators quickly? Our Docker deployment system makes it easy to spin up and manage multiple nodes:
+Want to run miners or validators? Our Docker deployment system makes it simple:
 
 ### Prerequisites
 
-- Docker and Docker Compose installed
-- A coldkey mnemonic (for validators)
+- Docker installed
+- A coldkey mnemonic (required for validators)
 - At least 1 TAO per validator for registration
 
 ### Quick Start
 
-1. Clone this repository and navigate to it:
+1. Clone and navigate to the repository:
    ```bash
    git clone https://github.com/masa-finance/agent-arena-subnet.git
    cd agent-arena-subnet
    ```
 
-2. Copy the sample environment file:
+2. Set up your configuration:
    ```bash
    cp .env.sample .env
    ```
 
-3. Configure your deployment in `.env`:
+3. Add your coldkey mnemonic to `.env`:
    ```env
-   # Number of miners to run (1-255)
-   MINER_COUNT=1
-   
-   # Number of validators to run (0-255)
-   VALIDATOR_COUNT=1
-   
-   # Your coldkey mnemonic (required for validators)
    COLDKEY_MNEMONIC="your mnemonic here"
-   
-   # Network (test/finney)
-   NETWORK=test
    ```
 
-4. Start your nodes:
+4. Start your deployment:
    ```bash
    ./start.sh
    ```
 
-### Features
+That's it! The script handles everything else automatically.
 
-- 🔄 **Automatic Registration**: Handles wallet creation and registration
-- 🔢 **Multiple Nodes**: Run up to 255 miners and 64 validators
-- 🌐 **Network Support**: Works with both testnet (SN249) and mainnet (SN59)
-- 🔐 **Secure**: Proper wallet management and key handling
-- 📊 **Monitoring**: Built-in health checks and registration tracking
-- 🔄 **Auto-updates**: Always uses the latest stable image
-
-### Port Allocation
-
-Ports are automatically assigned based on the number of instances:
-
-- Validators: Starting from 8091 (axon) and 9100 (metrics)
-- Miners: Starting from 8155 (axon) and 9164 (metrics)
-
-### Monitoring
-
-The startup script provides real-time monitoring of:
-- Service health status
-- Registration progress
-- Error detection and reporting
-- Detailed logging
-
-### Troubleshooting
-
-Common issues and solutions:
-
-1. **Registration Timeout**
-   - Ensure you have sufficient TAO for validator registration
-   - Check network connectivity
-   - Verify coldkey mnemonic is correct
-
-2. **Service Health Issues**
-   - Run `docker service logs masa_validator` or `docker service logs masa_miner`
-   - Check for error messages in the startup output
-   - Ensure ports are not already in use
-
-3. **Port Conflicts**
-   - Each instance needs unique ports
-   - Check if other services are using the required ports
-   - Adjust base ports in docker-compose.yml if needed
-
-### Cleanup
-
-To stop and remove all services:
-```bash
-docker stack rm masa
-```
+For detailed configuration options, monitoring, troubleshooting, and more, see [DOCKER.md](DOCKER.md).
 
 ## Introduction
 
