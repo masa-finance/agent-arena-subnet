@@ -1,8 +1,9 @@
 import os
-import json
 import logging
 import bittensor as bt
 from contextlib import redirect_stdout
+import json
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,13 @@ class WalletManager:
         self.logger = logging.getLogger(__name__)
         self.subtensor = None
 
+        # Get replica number from env
+        self.replica_num = os.environ.get("REPLICA_NUM", "1")
+
+        # Set wallet name based on subnet and hotkey based on role/replica
+        self.wallet_name = f"subnet_{netuid}"
+        self.hotkey_name = f"{role}_{self.replica_num}"
+
         # Initialize wallet
         self.wallet = self.load_wallet()
 
@@ -38,28 +46,82 @@ class WalletManager:
             bt.subtensor(network="test") if self.network == "test" else bt.subtensor()
         )
 
-        # Get wallet name from env or use default
-        wallet_name = os.getenv("BT_WALLET_NAME", "default")
-        self.logger.info(f"Using wallet: {wallet_name}")
+        print(f"\n=== Wallet Setup ===")
+        print(f"Using wallet: {self.wallet_name}")
+        self.logger.info(f"Using wallet: {self.wallet_name}")
 
-        # Load or create wallet
-        wallet = bt.wallet(name=wallet_name)
+        # First just load/create wallet without hotkey
+        self.wallet = bt.wallet(name=self.wallet_name)
 
-        # Ensure keys exist
-        if not wallet.coldkeypub_file.exists_on_device():
-            self.logger.error("No coldkey found. Please create a wallet first.")
-            raise Exception("No coldkey found")
+        # Check for coldkey and regenerate if needed
+        coldkey_path = os.path.join(
+            "/root/.bittensor/wallets", self.wallet_name, "coldkey"
+        )
+        if os.path.exists(coldkey_path):
+            print(f"Found existing coldkey at {coldkey_path}")
+            self.logger.info(f"Found existing coldkey at {coldkey_path}")
+        else:
+            print(f"No coldkey found at {coldkey_path}")
+            self.logger.info(f"No coldkey found at {coldkey_path}")
+            mnemonic = os.environ.get("COLDKEY_MNEMONIC")
+            if not mnemonic:
+                print("ERROR: COLDKEY_MNEMONIC environment variable is required")
+                self.logger.error("COLDKEY_MNEMONIC environment variable is required")
+                raise Exception("COLDKEY_MNEMONIC not provided")
 
-        if not wallet.hotkey_file.exists_on_device():
-            self.logger.error("No hotkey found. Please create a wallet first.")
-            raise Exception("No hotkey found")
+            print("Attempting to regenerate coldkey from mnemonic...")
+            self.logger.info("Attempting to regenerate coldkey from mnemonic")
+            try:
+                self.wallet.regenerate_coldkey(
+                    mnemonic=mnemonic, use_password=False, overwrite=True
+                )
+                print("Successfully regenerated coldkey")
+                self.logger.info("Successfully regenerated coldkey")
+            except Exception as e:
+                print(f"Failed to regenerate coldkey: {str(e)}")
+                self.logger.error(f"Failed to regenerate coldkey: {str(e)}")
+                raise
 
-        # Log wallet info
-        self.logger.info(f"Loaded wallet: {wallet}")
-        self.logger.info(f"Coldkey: {wallet.coldkeypub.ss58_address}")
-        self.logger.info(f"Hotkey: {wallet.hotkey.ss58_address}")
+        # Now that we have a coldkey, set up the hotkey
+        self.setup_hotkey()
 
-        return wallet
+        # Check registration status
+        is_registered = self.subtensor.is_hotkey_registered(
+            netuid=self.netuid,
+            hotkey_ss58=self.wallet.hotkey.ss58_address,
+        )
+
+        if not is_registered:
+            print(
+                f"Hotkey {self.hotkey_name} is not registered, attempting registration..."
+            )
+            self.logger.info(
+                f"Hotkey {self.hotkey_name} is not registered, attempting registration..."
+            )
+            uid = self.register()
+            if uid is not None:
+                print(
+                    f"Successfully registered hotkey {self.hotkey_name} with UID {uid}"
+                )
+                self.logger.info(
+                    f"Successfully registered hotkey {self.hotkey_name} with UID {uid}"
+                )
+            else:
+                print(f"Failed to register hotkey {self.hotkey_name}")
+                self.logger.error(f"Failed to register hotkey {self.hotkey_name}")
+                raise Exception("Failed to register hotkey")
+        else:
+            uid = self.subtensor.get_uid_for_hotkey_on_subnet(
+                hotkey_ss58=self.wallet.hotkey.ss58_address,
+                netuid=self.netuid,
+            )
+            print(f"Hotkey {self.hotkey_name} is already registered with UID {uid}")
+            self.logger.info(
+                f"Hotkey {self.hotkey_name} is already registered with UID {uid}"
+            )
+            self.update_hotkey_mappings(uid)
+
+        return self.wallet
 
     def get_wallet(self) -> bt.wallet:
         """Get the loaded wallet.
@@ -69,91 +131,31 @@ class WalletManager:
         """
         return self.wallet
 
-    def setup_wallet_directories(self):
-        """Create wallet directories with proper permissions."""
-        wallet_dir = os.path.expanduser(f"~/.bittensor/wallets/{self.wallet.name}")
-        os.makedirs(wallet_dir, mode=0o700, exist_ok=True)
-        os.makedirs(os.path.join(wallet_dir, "hotkeys"), mode=0o700, exist_ok=True)
+    def setup_hotkey(self):
+        """Set up hotkey after coldkey is established."""
+        self.logger.info(f"Setting up hotkey {self.hotkey_name}")
 
-    def initialize_wallet(
-        self, coldkey_mnemonic: str = None, is_validator: bool = False
-    ):
-        """Initialize wallet with coldkey and hotkey.
-
-        Args:
-            coldkey_mnemonic: Optional mnemonic for coldkey regeneration
-            is_validator: Whether this is a validator wallet
-
-        Returns:
-            bt.wallet: Initialized wallet object
-        """
-        wallet = bt.wallet(
-            name=self.wallet.name,
-            hotkey=self.wallet.hotkey,
-            path=os.path.expanduser("~/.bittensor/wallets/"),
+        # First create the wallet with the hotkey name we want and explicit path
+        self.wallet = bt.wallet(
+            name=self.wallet_name,
+            hotkey=self.hotkey_name,
+            path="/root/.bittensor/wallets/",
         )
 
-        # Handle coldkey
-        coldkey_path = os.path.join(wallet.path, self.wallet.name, "coldkey")
-        if not os.path.exists(coldkey_path):
-            if is_validator and not coldkey_mnemonic:
-                raise Exception(
-                    "No coldkey found and COLDKEY_MNEMONIC not provided for validator"
-                )
-            if coldkey_mnemonic:
-                self._regenerate_coldkey(wallet, coldkey_mnemonic)
-
-        # Handle hotkey
         hotkey_path = os.path.join(
-            wallet.path, self.wallet.name, "hotkeys", self.wallet.hotkey
+            "/root/.bittensor/wallets", self.wallet_name, "hotkeys", self.hotkey_name
         )
         if not os.path.exists(hotkey_path):
-            self._create_hotkey(wallet)
+            self.logger.info(f"Creating new hotkey {self.hotkey_name}")
+            self.wallet.create_new_hotkey(use_password=False, overwrite=False)
+        else:
+            self.logger.info(f"Found existing hotkey {self.hotkey_name}")
 
-        return wallet
-
-    def _regenerate_coldkey(self, wallet, mnemonic):
-        """Regenerate coldkey from mnemonic."""
-        self.logger.info("Regenerating coldkey from mnemonic")
-        with open(os.devnull, "w") as devnull:
-            with redirect_stdout(devnull):
-                try:
-                    wallet.regenerate_coldkey(
-                        mnemonic=mnemonic,
-                        use_password=False,
-                        overwrite=False,
-                    )
-                except Exception as e:
-                    if "already exists" in str(e):
-                        self.logger.info(
-                            "Coldkey already exists, skipping regeneration"
-                        )
-                    else:
-                        raise
-
-    def _create_hotkey(self, wallet):
-        """Create new hotkey."""
-        self.logger.info(f"Creating new hotkey {self.wallet.hotkey}")
-        with open(os.devnull, "w") as devnull:
-            with redirect_stdout(devnull):
-                try:
-                    wallet.create_new_hotkey(
-                        use_password=False,
-                        overwrite=False,
-                    )
-                except Exception as e:
-                    if "already exists" in str(e):
-                        self.logger.info("Hotkey already exists, skipping creation")
-                    else:
-                        raise
-
-    def update_hotkey_mappings(self, wallet, uid: int, role: str):
+    def update_hotkey_mappings(self, uid: int):
         """Update hotkey mappings file with current hotkey info.
 
         Args:
-            wallet: Initialized wallet object
             uid: UID assigned to the hotkey
-            role: Role of the node (validator/miner)
         """
         mappings_file = os.path.expanduser("~/.bt-masa/hotkey_mappings.json")
         os.makedirs(os.path.dirname(mappings_file), mode=0o700, exist_ok=True)
@@ -168,14 +170,28 @@ class WalletManager:
                     "Could not parse existing mappings file, starting fresh"
                 )
 
-        mappings[wallet.hotkey.ss58_address] = {
+        mappings[self.wallet.hotkey.ss58_address] = {
             "uid": uid,
-            "role": role,
+            "role": self.role,
             "netuid": self.netuid,
             "wallet_name": self.wallet.name,
-            "hotkey_name": self.wallet.hotkey,
+            "hotkey_name": self.hotkey_name,
         }
 
         with open(mappings_file, "w") as f:
             json.dump(mappings, f, indent=2)
         self.logger.info("Updated hotkey mappings in %s", mappings_file)
+
+    def register(self):
+        """Register wallet with subnet, retrying indefinitely on failure."""
+        while True:
+            try:
+                # This handles both registration attempt and getting UID if already registered
+                uid = self.subtensor.register(wallet=self.wallet, netuid=self.netuid)
+                if uid is not None:
+                    self.logger.info(f"Registration successful - UID: {uid}")
+                    self.update_hotkey_mappings(uid)
+                    return uid
+            except Exception as e:
+                self.logger.warning(f"Registration failed: {str(e)}")
+                time.sleep(10)

@@ -59,42 +59,36 @@ class ProcessManager:
 
     def build_miner_command(
         self,
-        netuid: int,
-        network: str,
         wallet_name: str,
         wallet_hotkey: str,
-        axon_port: int,
-        prometheus_port: int,
+        netuid: int,
+        network: str,
+        logging_dir: str,
     ) -> List[str]:
-        """Build the miner command with all necessary arguments."""
-        wallet_path = os.path.expanduser("~/.bittensor/wallets/")
-        state_path = self.prepare_directories()
+        """Build the miner command with all necessary arguments.
 
-        chain_endpoint = (
-            "wss://test.finney.opentensor.ai:443" if network == "test" else None
-        )
+        Args:
+            wallet_name: Name of the wallet to use
+            wallet_hotkey: Name of the hotkey to use
+            netuid: Network UID to connect to
+            network: Network to connect to (test/main)
+            logging_dir: Directory to store logs
 
+        Returns:
+            Complete command as a list of arguments
+        """
         command = [
-            "python",
-            "neurons/miner.py",
+            "python3",
+            "-m",
+            "neurons.miner",
             f"--netuid={netuid}",
             f"--wallet.name={wallet_name}",
             f"--wallet.hotkey={wallet_hotkey}",
-            f"--wallet.path={wallet_path}",
-            f"--logging.logging_dir={state_path}",
-            f"--axon.port={axon_port}",
-            f"--prometheus.port={prometheus_port}",
-            "--logging.debug",
-            "--blacklist.force_validator_permit",
+            f"--logging.directory={logging_dir}",
         ]
 
         if network == "test":
-            command.extend(
-                [
-                    "--subtensor.network=test",
-                    f"--subtensor.chain_endpoint={chain_endpoint}",
-                ]
-            )
+            command.append("--subtensor.network=test")
 
         return command
 
@@ -115,5 +109,5 @@ class ProcessManager:
             command: Complete command as a list of arguments
         """
         self.logger.info(f"Executing miner command: {' '.join(command)}")
-        # Use subprocess.run for miners
-        subprocess.run(command)
+        # Use execvp to replace the current process like we do for validators
+        os.execvp(command[0], command)
