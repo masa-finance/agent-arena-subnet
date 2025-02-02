@@ -10,6 +10,7 @@ x-neuron-base: &neuron-base
   image: masaengineering/agent-arena-subnet:${TAG:-latest}
   environment:
     SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
+    PATH: /app/venv/bin:${PATH}
   volumes:
     - ./.bittensor:/root/.bittensor
     - ./startup:/app/startup
@@ -25,7 +26,7 @@ services:
       SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
       PYTHONUNBUFFERED: 1
       LOGLEVEL: DEBUG
-    command: python3 -m startup
+    command: make run-validator
     ports:
       - target: ${VALIDATOR_AXON_PORT}
         published: ${VALIDATOR_AXON_PORT}
