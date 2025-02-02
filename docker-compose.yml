@@ -8,9 +8,8 @@
 
 x-neuron-base: &neuron-base
   image: masaengineering/agent-arena-subnet:${TAG:-latest}
-  environment: &env-base
+  environment:
     SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
-    ROLE: validator
   volumes:
     - ./.bittensor:/root/.bittensor
     - ./startup:/app/startup
@@ -21,42 +20,67 @@ x-neuron-base: &neuron-base
 services:
   validator:
     <<: *neuron-base
+    environment:
+      ROLE: validator
+      SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
+      PYTHONUNBUFFERED: 1
+      LOGLEVEL: DEBUG
+    command: python3 -m startup
     ports:
-      - target: ${VALIDATOR_AXON_PORT:-8092}
-        published: ${VALIDATOR_AXON_PORT:-8092}
+      - target: ${VALIDATOR_AXON_PORT}
+        published: ${VALIDATOR_AXON_PORT}
         protocol: tcp
         mode: ingress
-      - target: ${VALIDATOR_METRICS_PORT:-9000}
-        published: ${VALIDATOR_METRICS_PORT:-9000}
+      - target: ${VALIDATOR_METRICS_PORT}
+        published: ${VALIDATOR_METRICS_PORT}
+      - target: ${VALIDATOR_GRAFANA_PORT}
+        published: ${VALIDATOR_GRAFANA_PORT}
         protocol: tcp
         mode: ingress
     deploy:
       mode: replicated
       replicas: ${VALIDATOR_COUNT:-0}
+      restart_policy:
+        condition: any
+        delay: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   miner:
     <<: *neuron-base
     environment:
-      <<: *env-base
       ROLE: miner
+      SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
+      PYTHONUNBUFFERED: 1
+      LOGLEVEL: DEBUG
+    command: python3 -m startup
     ports:
-      - target: ${MINER_AXON_PORT:-8192}
-        published: ${MINER_AXON_PORT:-8192}
+      - target: ${MINER_AXON_PORT}
+        published: ${MINER_AXON_PORT}
         protocol: tcp
         mode: ingress
-      - target: ${MINER_METRICS_PORT:-9100}
-        published: ${MINER_METRICS_PORT:-9100}
+      - target: ${MINER_METRICS_PORT}
+        published: ${MINER_METRICS_PORT}
         protocol: tcp
         mode: ingress
-      - target: ${MINER_GRAFANA_PORT:-3000}
-        published: ${MINER_GRAFANA_PORT:-3000}
+      - target: ${MINER_GRAFANA_PORT}
+        published: ${MINER_GRAFANA_PORT}
         protocol: tcp
         mode: ingress
     deploy:
       mode: replicated
-      replicas: ${MINER_COUNT:-0}
+      replicas: ${MINER_COUNT}
       restart_policy:
-        condition: none
+        condition: any
+        delay: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   neuron_data:

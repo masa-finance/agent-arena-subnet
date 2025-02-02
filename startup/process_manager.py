@@ -12,9 +12,10 @@ class ProcessManager:
 
     def prepare_directories(self):
         """Prepare necessary directories for process execution."""
-        state_path = os.path.expanduser("./.bittensor/states")
-        os.makedirs(state_path, mode=0o700, exist_ok=True)
-        return state_path
+        base_dir = "/root/.bittensor"
+        os.makedirs(os.path.join(base_dir, "logs"), mode=0o700, exist_ok=True)
+        os.makedirs(os.path.join(base_dir, "wallets"), mode=0o700, exist_ok=True)
+        return base_dir
 
     def build_validator_command(
         self,
@@ -22,22 +23,24 @@ class ProcessManager:
         network: str,
         wallet_name: str,
         wallet_hotkey: str,
+        logging_dir: str,
         axon_port: int,
         prometheus_port: int,
         grafana_port: int,
     ) -> List[str]:
         """Build the validator command with all necessary arguments."""
-        wallet_path = os.path.expanduser("./.bittensor/wallets/")
-        state_path = self.prepare_directories()
+        base_dir = self.prepare_directories()
+        wallet_path = os.path.join(base_dir, "wallets")
 
         command = [
-            "python",
-            "neurons/validator.py",
+            "python3",
+            "scripts/run_validator.py",
             f"--netuid={netuid}",
             f"--wallet.name={wallet_name}",
             f"--wallet.hotkey={wallet_hotkey}",
             f"--wallet.path={wallet_path}",
-            f"--logging.logging_dir={state_path}",
+            f"--logging.directory={os.path.join(base_dir, 'logs')}",
+            f"--logging.logging_dir={os.path.join(base_dir, 'logs')}",
             f"--axon.port={axon_port}",
             f"--prometheus.port={prometheus_port}",
             f"--grafana.port={grafana_port}",
@@ -45,7 +48,7 @@ class ProcessManager:
         ]
 
         if network == "test":
-            command.extend(["--subtensor.network=test"])
+            command.append("--subtensor.network=test")
 
         return command
 
@@ -60,28 +63,19 @@ class ProcessManager:
         prometheus_port: int,
         grafana_port: int,
     ) -> List[str]:
-        """Build the miner command with all necessary arguments.
+        """Build the miner command with all necessary arguments."""
+        base_dir = self.prepare_directories()
+        wallet_path = os.path.join(base_dir, "wallets")
 
-        Args:
-            wallet_name: Name of the wallet to use
-            wallet_hotkey: Name of the hotkey to use
-            netuid: Network UID to connect to
-            network: Network to connect to (test/main)
-            logging_dir: Directory to store logs
-            axon_port: Port for the axon server
-            prometheus_port: Port for prometheus metrics
-            grafana_port: Port for grafana
-        Returns:
-            Complete command as a list of arguments
-        """
         command = [
             "python3",
-            "-m",
-            "neurons.miner",
+            "scripts/run_miner.py",
             f"--netuid={netuid}",
             f"--wallet.name={wallet_name}",
             f"--wallet.hotkey={wallet_hotkey}",
-            f"--logging.directory={logging_dir}",
+            f"--wallet.path={wallet_path}",
+            f"--logging.directory={os.path.join(base_dir, 'logs')}",
+            f"--logging.logging_dir={os.path.join(base_dir, 'logs')}",
             f"--axon.port={axon_port}",
             f"--prometheus.port={prometheus_port}",
             f"--grafana.port={grafana_port}",

@@ -1,7 +1,6 @@
 import os
 import logging
-from startup.wallet_manager import WalletManager
-from startup.process_manager import ProcessManager
+from startup import WalletManager, ProcessManager
 import bittensor as bt
 
 logging.basicConfig(level=logging.INFO)
@@ -48,17 +47,17 @@ def main():
         # Get environment variables
         role = os.getenv("ROLE", "validator").lower()
         network = os.getenv("SUBTENSOR_NETWORK", "test").lower()
-        netuid = int(os.getenv("NETUID", "42"))  # Default to subnet 42
+        netuid = int(os.getenv("NETUID"))
 
         # Get correct ports based on role
         if role == "validator":
-            published_axon_port = int(os.getenv("VALIDATOR_AXON_PORT", "8092"))
-            published_metrics_port = int(os.getenv("VALIDATOR_METRICS_PORT", "9000"))
-            published_grafana_port = int(os.getenv("VALIDATOR_GRAFANA_PORT", "3000"))
+            published_axon_port = int(os.getenv("VALIDATOR_AXON_PORT"))
+            published_metrics_port = int(os.getenv("VALIDATOR_METRICS_PORT"))
+            published_grafana_port = int(os.getenv("VALIDATOR_GRAFANA_PORT"))
         else:
-            published_axon_port = int(os.getenv("MINER_AXON_PORT", "8192"))
-            published_metrics_port = int(os.getenv("MINER_METRICS_PORT", "9100"))
-            published_grafana_port = int(os.getenv("MINER_GRAFANA_PORT", "3100"))
+            published_axon_port = int(os.getenv("MINER_AXON_PORT"))
+            published_metrics_port = int(os.getenv("MINER_METRICS_PORT"))
+            published_grafana_port = int(os.getenv("MINER_GRAFANA_PORT"))
 
         # Initialize managers
         wallet_manager = WalletManager(role=role, network=network, netuid=netuid)
@@ -87,16 +86,23 @@ def main():
             grafana_port=published_grafana_port,
         )
 
+        # Calculate wallet and hotkey names
+        wallet_name = f"subnet_{netuid}"
+        hotkey_name = f"{role}_{os.environ.get('REPLICA_NUM', '1')}"
+
         # Set environment variables for the miner/validator process
         os.environ["AXON_PORT"] = str(published_axon_port)
+        os.environ["WALLET_NAME"] = wallet_name
+        os.environ["HOTKEY_NAME"] = hotkey_name
+
         # Build and execute command
         if role == "validator":
             command = process_manager.build_validator_command(
                 netuid=netuid,
                 network=network,
-                wallet_name=wallet.name,
-                wallet_hotkey=wallet_manager.hotkey_name,
-                logging_dir="logs/validator",
+                wallet_name=wallet_name,
+                wallet_hotkey=hotkey_name,
+                logging_dir="/root/.bittensor/logs",
                 axon_port=published_axon_port,
                 prometheus_port=published_metrics_port,
                 grafana_port=published_grafana_port,
@@ -104,11 +110,11 @@ def main():
             process_manager.execute_validator(command)
         else:
             command = process_manager.build_miner_command(
-                wallet_name=wallet.name,
-                wallet_hotkey=wallet_manager.hotkey_name,
+                wallet_name=wallet_name,
+                wallet_hotkey=hotkey_name,
                 netuid=netuid,
                 network=network,
-                logging_dir="logs/miner",
+                logging_dir="/root/.bittensor/logs",
                 axon_port=published_axon_port,
                 prometheus_port=published_metrics_port,
                 grafana_port=published_grafana_port,

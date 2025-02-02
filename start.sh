@@ -4,13 +4,24 @@ set -e
 # Source .env if it exists
 [ -f .env ] && source .env
 
-# Basic setup
-NETWORK=${NETWORK:-test}
-NETUID=${NETWORK:-test}
-[ "$NETWORK" = "test" ] && NETUID="249" || NETUID="59"
+# Export port variables explicitly
+export MINER_AXON_PORT MINER_METRICS_PORT MINER_GRAFANA_PORT
+export VALIDATOR_AXON_PORT VALIDATOR_METRICS_PORT VALIDATOR_GRAFANA_PORT
 
-echo "Starting miner for network: $NETWORK (subnet $NETUID)"
+# Basic setup
+SUBTENSOR_NETWORK=${SUBTENSOR_NETWORK:-test}
+NETUID=${SUBTENSOR_NETWORK:-test}
+[ "$SUBTENSOR_NETWORK" = "test" ] && NETUID="249" || NETUID="59"
+
+echo "Starting miner for network: $SUBTENSOR_NETWORK (subnet $NETUID)"
 echo "Miner count: ${MINER_COUNT:-1}"
+
+# Debug: Print port values
+echo "Port values:"
+echo "MINER_GRAFANA_PORT: $MINER_GRAFANA_PORT"
+echo "VALIDATOR_GRAFANA_PORT: $VALIDATOR_GRAFANA_PORT"
+echo "MINER_AXON_PORT: $MINER_AXON_PORT"
+echo "VALIDATOR_AXON_PORT: $VALIDATOR_AXON_PORT"
 
 # Clean up stack (this will also remove the network)
 echo "Cleaning up old stack..."

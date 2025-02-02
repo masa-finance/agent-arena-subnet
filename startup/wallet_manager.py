@@ -2,8 +2,6 @@ import logging
 import os
 import json
 import bittensor as bt
-from contextlib import redirect_stdout
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +158,7 @@ class WalletManager:
         Args:
             uid: UID assigned to the hotkey
         """
-        mappings_file = os.path.expanduser("~/.bt-masa/hotkey_mappings.json")
+        mappings_file = os.path.expanduser("./.bt-masa/hotkey_mappings.json")
         os.makedirs(os.path.dirname(mappings_file), mode=0o700, exist_ok=True)
 
         mappings = {}
