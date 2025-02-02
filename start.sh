@@ -12,12 +12,10 @@ NETUID=${NETWORK:-test}
 echo "Starting miner for network: $NETWORK (subnet $NETUID)"
 echo "Miner count: ${MINER_COUNT:-1}"
 
-# Check for running services
-if docker service ls | grep -q "masa_"; then
-    echo "Cleaning up old services..."
-    docker stack rm masa
-    sleep 5
-fi
+# Clean up stack (this will also remove the network)
+echo "Cleaning up old stack..."
+docker stack rm masa 2>/dev/null || true
+sleep 2
 
 # Pull latest image
 echo "Pulling latest image..."

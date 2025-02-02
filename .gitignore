@@ -19,4 +19,4 @@ data/*
 /protocol/data_processing/__pycache__
 *.pyc
 notebooks/.DS_Store
-
+/.bittensor

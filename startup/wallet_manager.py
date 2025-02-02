@@ -1,8 +1,8 @@
-import os
 import logging
+import os
+import json
 import bittensor as bt
 from contextlib import redirect_stdout
-import json
 import time
 
 logger = logging.getLogger(__name__)
@@ -46,9 +46,9 @@ class WalletManager:
             bt.subtensor(network="test") if self.network == "test" else bt.subtensor()
         )
 
-        print(f"\n=== Wallet Setup ===")
+        print("=== Wallet Setup ===")
         print(f"Using wallet: {self.wallet_name}")
-        self.logger.info(f"Using wallet: {self.wallet_name}")
+        self.logger.info("Using wallet: %s", self.wallet_name)
 
         # First just load/create wallet without hotkey
         self.wallet = bt.wallet(name=self.wallet_name)
@@ -59,10 +59,10 @@ class WalletManager:
         )
         if os.path.exists(coldkey_path):
             print(f"Found existing coldkey at {coldkey_path}")
-            self.logger.info(f"Found existing coldkey at {coldkey_path}")
+            self.logger.info("Found existing coldkey at %s", coldkey_path)
         else:
             print(f"No coldkey found at {coldkey_path}")
-            self.logger.info(f"No coldkey found at {coldkey_path}")
+            self.logger.info("No coldkey found at %s", coldkey_path)
             mnemonic = os.environ.get("COLDKEY_MNEMONIC")
             if not mnemonic:
                 print("ERROR: COLDKEY_MNEMONIC environment variable is required")
@@ -79,7 +79,7 @@ class WalletManager:
                 self.logger.info("Successfully regenerated coldkey")
             except Exception as e:
                 print(f"Failed to regenerate coldkey: {str(e)}")
-                self.logger.error(f"Failed to regenerate coldkey: {str(e)}")
+                self.logger.error("Failed to regenerate coldkey: %s", str(e))
                 raise
 
         # Now that we have a coldkey, set up the hotkey
@@ -96,7 +96,8 @@ class WalletManager:
                 f"Hotkey {self.hotkey_name} is not registered, attempting registration..."
             )
             self.logger.info(
-                f"Hotkey {self.hotkey_name} is not registered, attempting registration..."
+                "Hotkey %s is not registered, attempting registration...",
+                self.hotkey_name,
             )
             uid = self.register()
             if uid is not None:
@@ -104,11 +105,13 @@ class WalletManager:
                     f"Successfully registered hotkey {self.hotkey_name} with UID {uid}"
                 )
                 self.logger.info(
-                    f"Successfully registered hotkey {self.hotkey_name} with UID {uid}"
+                    "Successfully registered hotkey %s with UID %d",
+                    self.hotkey_name,
+                    uid,
                 )
             else:
                 print(f"Failed to register hotkey {self.hotkey_name}")
-                self.logger.error(f"Failed to register hotkey {self.hotkey_name}")
+                self.logger.error("Failed to register hotkey %s", self.hotkey_name)
                 raise Exception("Failed to register hotkey")
         else:
             uid = self.subtensor.get_uid_for_hotkey_on_subnet(
@@ -117,7 +120,7 @@ class WalletManager:
             )
             print(f"Hotkey {self.hotkey_name} is already registered with UID {uid}")
             self.logger.info(
-                f"Hotkey {self.hotkey_name} is already registered with UID {uid}"
+                "Hotkey %s is already registered with UID %d", self.hotkey_name, uid
             )
             self.update_hotkey_mappings(uid)
 
@@ -133,7 +136,7 @@ class WalletManager:
 
     def setup_hotkey(self):
         """Set up hotkey after coldkey is established."""
-        self.logger.info(f"Setting up hotkey {self.hotkey_name}")
+        self.logger.info("Setting up hotkey %s", self.hotkey_name)
 
         # First create the wallet with the hotkey name we want and explicit path
         self.wallet = bt.wallet(
@@ -146,10 +149,10 @@ class WalletManager:
             "/root/.bittensor/wallets", self.wallet_name, "hotkeys", self.hotkey_name
         )
         if not os.path.exists(hotkey_path):
-            self.logger.info(f"Creating new hotkey {self.hotkey_name}")
+            self.logger.info("Creating new hotkey %s", self.hotkey_name)
             self.wallet.create_new_hotkey(use_password=False, overwrite=False)
         else:
-            self.logger.info(f"Found existing hotkey {self.hotkey_name}")
+            self.logger.info("Found existing hotkey %s", self.hotkey_name)
 
     def update_hotkey_mappings(self, uid: int):
         """Update hotkey mappings file with current hotkey info.
@@ -183,38 +186,28 @@ class WalletManager:
         self.logger.info("Updated hotkey mappings in %s", mappings_file)
 
     def register(self):
-        """Register wallet with subnet, retrying indefinitely on failure."""
-        while True:
-            try:
-                # For miners, use pow registration
-                self.logger.info("Starting POW registration for miner hotkey...")
-                success = self.subtensor.pow_register_extrinsic(
-                    wallet=self.wallet,
-                    netuid=self.netuid,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True,
-                )
+        """Register wallet with subnet."""
+        self.logger.info("Starting registration for hotkey %s", self.hotkey_name)
 
-                if success:
-                    # Check registration and get UID
-                    is_registered = self.subtensor.is_hotkey_registered(
-                        netuid=self.netuid,
-                        hotkey_ss58=self.wallet.hotkey.ss58_address,
-                    )
-                    if is_registered:
-                        uid = self.subtensor.get_uid_for_hotkey_on_subnet(
-                            hotkey_ss58=self.wallet.hotkey.ss58_address,
-                            netuid=self.netuid,
-                        )
-                        self.logger.info(f"Registration successful - UID: {uid}")
-                        self.update_hotkey_mappings(uid)
-                        return uid
-                    else:
-                        self.logger.warning(
-                            "Registration appeared to succeed but hotkey is not registered"
-                        )
-                else:
-                    self.logger.warning("Registration failed")
-            except Exception as e:
-                self.logger.warning(f"Registration failed: {str(e)}")
-                time.sleep(10)
+        # Just register - no checks, no verification, no polling
+        success = self.subtensor.burned_register(
+            wallet=self.wallet,
+            netuid=self.netuid,
+        )
+
+        if success:
+            # Get the UID after successful registration
+            uid = self.subtensor.get_uid_for_hotkey_on_subnet(
+                hotkey_ss58=self.wallet.hotkey.ss58_address,
+                netuid=self.netuid,
+            )
+            self.update_hotkey_mappings(uid)
+            print("\n=== REGISTRATION SUCCESSFUL ===")
+            print(f"Hotkey: {self.hotkey_name}")
+            print(f"UID: {uid}")
+            print(f"Network: {self.network}")
+            print(f"Netuid: {self.netuid}")
+            print("===============================\n")
+            return uid
+
+        return None

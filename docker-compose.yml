@@ -9,32 +9,27 @@
 x-neuron-base: &neuron-base
   image: masaengineering/agent-arena-subnet:${TAG:-latest}
   environment: &env-base
-    NETWORK: ${NETWORK:-test}
-    COLDKEY_MNEMONIC: ${COLDKEY_MNEMONIC}
-    # Set NETUID based on network type - 249 for testnet, 59 for mainnet
-    NETUID: ${NETUID:-249}
+    SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
+    ROLE: validator
   volumes:
-    - neuron_data:/root/.bittensor
+    - ./.bittensor:/root/.bittensor
     - ./startup:/app/startup
-    - ./masa:/app/masa
+    - ./.env:/app/.env
   networks:
-    - masa_network
+    - subnet
 
 services:
   validator:
     <<: *neuron-base
-    environment:
-      <<: *env-base
-      ROLE: validator
     ports:
-      - target: 8092
-        published: ${AXON_PORT:-8092}
+      - target: ${VALIDATOR_AXON_PORT:-8092}
+        published: ${VALIDATOR_AXON_PORT:-8092}
         protocol: tcp
-        mode: host
-      - target: 8000
-        published: ${METRICS_PORT:-8000}
+        mode: ingress
+      - target: ${VALIDATOR_METRICS_PORT:-9000}
+        published: ${VALIDATOR_METRICS_PORT:-9000}
         protocol: tcp
-        mode: host
+        mode: ingress
     deploy:
       mode: replicated
       replicas: ${VALIDATOR_COUNT:-0}
@@ -45,21 +40,27 @@ services:
       <<: *env-base
       ROLE: miner
     ports:
-      - target: 8093
-        published: ${AXON_PORT:-8093}
+      - target: ${MINER_AXON_PORT:-8192}
+        published: ${MINER_AXON_PORT:-8192}
         protocol: tcp
-        mode: host
-      - target: 8001
-        published: ${METRICS_PORT:-8001}
+        mode: ingress
+      - target: ${MINER_METRICS_PORT:-9100}
+        published: ${MINER_METRICS_PORT:-9100}
         protocol: tcp
-        mode: host
+        mode: ingress
+      - target: ${MINER_GRAFANA_PORT:-3000}
+        published: ${MINER_GRAFANA_PORT:-3000}
+        protocol: tcp
+        mode: ingress
     deploy:
       mode: replicated
-      replicas: ${MINER_COUNT:-1}
+      replicas: ${MINER_COUNT:-0}
+      restart_policy:
+        condition: none
 
 volumes:
   neuron_data:
 
 networks:
-  masa_network:
+  subnet:
     driver: overlay

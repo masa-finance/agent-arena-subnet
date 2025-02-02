@@ -58,10 +58,14 @@ class RegistrationManager:
         Returns:
             Tuple of (success, uid)
         """
+        # Ensure hotkey is set up before checking registration
+        self.wallet_manager.setup_hotkey()
+
         is_registered, uid = self.check_registration(wallet, netuid)
 
         if is_registered:
             self.logger.info("Already registered with UID %s", uid)
+            self.wallet_manager.update_hotkey_mappings(uid)
             return True, uid
 
         if is_validator:
@@ -103,7 +107,10 @@ class RegistrationManager:
 
             if success:
                 self.logger.info("Registration successful")
-                return self.check_registration(wallet, netuid)
+                is_registered, uid = self.check_registration(wallet, netuid)
+                if is_registered:
+                    self.wallet_manager.update_hotkey_mappings(uid)
+                return is_registered, uid
             else:
                 raise Exception("Registration failed")
         else:
@@ -116,7 +123,10 @@ class RegistrationManager:
 
             if success:
                 self.logger.info("Registration successful")
-                return self.check_registration(wallet, netuid)
+                is_registered, uid = self.check_registration(wallet, netuid)
+                if is_registered:
+                    self.wallet_manager.update_hotkey_mappings(uid)
+                return is_registered, uid
             else:
                 raise Exception("Registration failed")
 

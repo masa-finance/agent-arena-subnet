@@ -1,9 +1,9 @@
 import os
 import logging
 from startup.wallet_manager import WalletManager
-from startup.registration_manager import RegistrationManager
 from startup.process_manager import ProcessManager
 from startup.config import get_netuid
+import bittensor as bt
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def print_status_report(role, uid, hotkey, registered, network, netuid, port):
     print("-" * 50)
     print(
         f"""
-• {role_title} {uid or 'Unknown UID'}
+• {role_title} {uid}
   ├─ Network: {network}
   ├─ Subnet: {netuid}
   ├─ Status: {'✅ Running' if uid else '❌ Not Running'}
@@ -32,50 +32,80 @@ Starting {role} process...
 
 
 def main():
-    # Print environment variables for debugging
-    logger.info("=== PYTHON ENVIRONMENT VARIABLES ===")
-    for key, value in sorted(os.environ.items()):
-        logger.info(f"{key}={value}")
-    logger.info("==================================")
-
-    # Get role and replica number
-    role = os.environ.get("ROLE", "unknown")
-    replica_num = os.environ.get("REPLICA_NUM", "1")
-    network = os.environ.get("NETWORK", "test")
-    port = os.environ.get(f"{role.upper()}_PORT", "unknown")
-
-    # Get subnet ID from config
-    netuid = get_netuid(network)
-    logger.info(
-        f"Service: {role}, Replica: {replica_num}, Network: {network}, Subnet: {netuid}"
-    )
-
-    # Initialize managers
-    wallet_manager = WalletManager(
-        role=role,
-        network=network,
-        netuid=netuid,
-    )
-    registration_manager = RegistrationManager(wallet_manager)
-    process_manager = ProcessManager()
-
+    """Main entry point."""
     try:
-        # Print status report
-        print_status_report(
-            role=role,
-            uid=registration_manager.uid,
-            hotkey=registration_manager.hotkey_ss58,
-            registered=registration_manager.is_registered,
-            network=network,
+        # Get environment variables
+        role = os.getenv("ROLE", "validator").lower()
+        network = os.getenv("SUBTENSOR_NETWORK", "test").lower()
+        netuid = get_netuid(network)
+
+        # Get correct ports based on role
+        if role == "validator":
+            published_axon_port = int(os.getenv("VALIDATOR_AXON_PORT", "8092"))
+            published_metrics_port = int(os.getenv("VALIDATOR_METRICS_PORT", "9000"))
+            published_grafana_port = int(os.getenv("VALIDATOR_GRAFANA_PORT", "3100"))
+        else:
+            published_axon_port = int(os.getenv("MINER_AXON_PORT", "8192"))
+            published_metrics_port = int(os.getenv("MINER_METRICS_PORT", "9100"))
+            published_grafana_port = int(os.getenv("MINER_GRAFANA_PORT", "3000"))
+
+        # Initialize managers
+        wallet_manager = WalletManager(role=role, network=network, netuid=netuid)
+        process_manager = ProcessManager()
+
+        # Load wallet - this also checks registration
+        wallet = wallet_manager.load_wallet()
+
+        # Get UID from subtensor
+        subtensor = bt.subtensor(network="test" if network == "test" else None)
+        uid = subtensor.get_uid_for_hotkey_on_subnet(
+            hotkey_ss58=wallet.hotkey.ss58_address,
             netuid=netuid,
-            port=port,
         )
 
-        # Start the process
-        process_manager.start()
+        # Print status before starting
+        print_status_report(
+            role=role,
+            uid=uid,
+            hotkey=wallet_manager.hotkey_name,
+            registered=True,  # We know it's registered since we got the UID
+            network=network,
+            netuid=netuid,
+            port=published_axon_port,
+            grafana_port=published_grafana_port,
+        )
+
+        # Set environment variables for the miner/validator process
+        os.environ["AXON_PORT"] = str(published_axon_port)
+
+        # Build and execute command
+        if role == "validator":
+            command = process_manager.build_validator_command(
+                netuid=netuid,
+                network=network,
+                wallet_name=wallet.name,
+                wallet_hotkey=wallet_manager.hotkey_name,
+                logging_dir="logs/validator",
+                axon_port=published_axon_port,
+                prometheus_port=published_metrics_port,
+                grafana_port=published_grafana_port,
+            )
+            process_manager.execute_validator(command)
+        else:
+            command = process_manager.build_miner_command(
+                wallet_name=wallet.name,
+                wallet_hotkey=wallet_manager.hotkey_name,
+                netuid=netuid,
+                network=network,
+                logging_dir="logs/miner",
+                axon_port=published_axon_port,
+                prometheus_port=published_metrics_port,
+                grafana_port=published_grafana_port,
+            )
+            process_manager.execute_miner(command)
 
     except Exception as e:
-        logger.error(f"Error during startup: {str(e)}")
+        logger.error(f"Failed to start {role}: {str(e)}")
         raise
 
 
