@@ -11,6 +11,8 @@ x-neuron-base: &neuron-base
   environment:
     SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
     PATH: /app/venv/bin:${PATH}
+    NETUID: ${NETUID}
+    REPLICA_NUM: ${REPLICA_NUM}
   volumes:
     - ./.bittensor:/root/.bittensor
     - ./startup:/app/startup
@@ -26,7 +28,8 @@ services:
       SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
       PYTHONUNBUFFERED: 1
       LOGLEVEL: DEBUG
-    command: make run-validator
+      REPLICA_NUM: "{{.Task.Slot}}"
+    command: python3 -m startup
     ports:
       - target: ${VALIDATOR_AXON_PORT}
         published: ${VALIDATOR_AXON_PORT}
@@ -57,6 +60,7 @@ services:
       SUBTENSOR_NETWORK: ${SUBTENSOR_NETWORK:-test}
       PYTHONUNBUFFERED: 1
       LOGLEVEL: DEBUG
+      REPLICA_NUM: "{{.Task.Slot}}"
     command: python3 -m startup
     ports:
       - target: ${MINER_AXON_PORT}

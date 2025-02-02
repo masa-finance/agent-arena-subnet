@@ -2,6 +2,8 @@ import logging
 import os
 import json
 import bittensor as bt
+import time
+from substrateinterface.exceptions import SubstrateRequestException
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,11 @@ class WalletManager:
         # Set wallet name based on subnet and hotkey based on role/replica
         self.wallet_name = f"subnet_{netuid}"
         self.hotkey_name = f"{role}_{self.replica_num}"
+
+        # Set validator-specific environment variables if this is a validator
+        if role == "validator":
+            os.environ["VALIDATOR_WALLET_NAME"] = self.wallet_name
+            os.environ["VALIDATOR_HOTKEY_NAME"] = self.hotkey_name
 
         # Initialize wallet
         self.wallet = self.load_wallet()
@@ -179,33 +186,54 @@ class WalletManager:
             "hotkey_name": self.hotkey_name,
         }
 
-        with open(mappings_file, "w") as f:
-            json.dump(mappings, f, indent=2)
-        self.logger.info("Updated hotkey mappings in %s", mappings_file)
-
     def register(self):
         """Register wallet with subnet."""
         self.logger.info("Starting registration for hotkey %s", self.hotkey_name)
 
-        # Just register - no checks, no verification, no polling
-        success = self.subtensor.burned_register(
-            wallet=self.wallet,
-            netuid=self.netuid,
-        )
+        while True:
+            try:
+                # Attempt registration
+                success = self.subtensor.burned_register(
+                    wallet=self.wallet,
+                    netuid=self.netuid,
+                )
 
-        if success:
-            # Get the UID after successful registration
-            uid = self.subtensor.get_uid_for_hotkey_on_subnet(
-                hotkey_ss58=self.wallet.hotkey.ss58_address,
-                netuid=self.netuid,
-            )
-            self.update_hotkey_mappings(uid)
-            print("\n=== REGISTRATION SUCCESSFUL ===")
-            print(f"Hotkey: {self.hotkey_name}")
-            print(f"UID: {uid}")
-            print(f"Network: {self.network}")
-            print(f"Netuid: {self.netuid}")
-            print("===============================\n")
-            return uid
+                if success:
+                    # Get the UID after successful registration
+                    uid = self.subtensor.get_uid_for_hotkey_on_subnet(
+                        hotkey_ss58=self.wallet.hotkey.ss58_address,
+                        netuid=self.netuid,
+                    )
+                    self.update_hotkey_mappings(uid)
+                    print("\n=== REGISTRATION SUCCESSFUL ===")
+                    print(f"Hotkey: {self.hotkey_name}")
+                    print(f"UID: {uid}")
+                    print(f"Network: {self.network}")
+                    print(f"Netuid: {self.netuid}")
+                    print("===============================\n")
+                    return uid
 
-        return None
+                self.logger.warning(
+                    "Registration attempt failed, retrying in 10 seconds..."
+                )
+                time.sleep(10)
+
+            except SubstrateRequestException as e:
+                error_msg = str(e)
+                if "Priority is too low" in error_msg:
+                    self.logger.warning(
+                        "Registration queued, retrying in 10 seconds... (Priority is too low)"
+                    )
+                    time.sleep(10)
+                elif "Invalid Transaction" in error_msg:
+                    self.logger.warning(
+                        "Registration blocked, retrying in 10 seconds... (Invalid Transaction)"
+                    )
+                    time.sleep(10)
+                else:
+                    self.logger.error(
+                        "Unexpected registration error, retrying in 10 seconds..."
+                    )
+                    time.sleep(10)
+            except Exception:
+                self.logger.warning("Registration failed, retrying in 10 seconds...")
