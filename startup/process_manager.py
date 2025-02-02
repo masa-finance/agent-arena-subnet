@@ -12,7 +12,7 @@ class ProcessManager:
 
     def prepare_directories(self):
         """Prepare necessary directories for process execution."""
-        state_path = os.path.expanduser(".bittensor/states")
+        state_path = os.path.expanduser("./.bittensor/states")
         os.makedirs(state_path, mode=0o700, exist_ok=True)
         return state_path
 
@@ -24,14 +24,11 @@ class ProcessManager:
         wallet_hotkey: str,
         axon_port: int,
         prometheus_port: int,
+        grafana_port: int,
     ) -> List[str]:
         """Build the validator command with all necessary arguments."""
-        wallet_path = os.path.expanduser(".bittensor/wallets/")
+        wallet_path = os.path.expanduser("./.bittensor/wallets/")
         state_path = self.prepare_directories()
-
-        chain_endpoint = (
-            "wss://test.finney.opentensor.ai:443" if network == "test" else None
-        )
 
         command = [
             "python",
@@ -48,12 +45,7 @@ class ProcessManager:
         ]
 
         if network == "test":
-            command.extend(
-                [
-                    "--subtensor.network=test",
-                    f"--subtensor.chain_endpoint={chain_endpoint}",
-                ]
-            )
+            command.extend(["--subtensor.network=test"])
 
         return command
 
