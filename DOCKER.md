@@ -17,9 +17,38 @@ We keep it simple:
 - Each miner/validator gets its own hotkey automatically
 - No manual key management needed
 
-## Quick Start (Single Miner)
+## Quick Start with Docker Compose
 
-Want to run just one miner? It's super simple:
+Want to run just one node? Use Docker Compose:
+
+1. Clone and copy `.env.sample`:
+   ```bash
+   git clone https://github.com/masa-finance/agent-arena-subnet.git
+   cd agent-arena-subnet
+   cp .env.sample .env
+   ```
+
+2. Edit `.env` with your configuration:
+   ```env
+   COLDKEY_MNEMONIC="your mnemonic here"
+   NETUID=249  # for testnet
+   ```
+
+3. Start a miner:
+   ```bash
+   docker-compose up
+   ```
+
+   Or start a validator:
+   ```bash
+   ROLE=validator docker-compose up
+   ```
+
+That's it! Your node will run with the default ports.
+
+## Quick Start (Single Miner with start.sh)
+
+Alternatively, use our start.sh script:
 
 1. Clone and copy `.env.sample`:
    ```bash
@@ -44,7 +73,7 @@ That's it! Your miner will run on port 8242.
 
 ## Running Multiple Instances
 
-Need more miners or validators? Just adjust the counts:
+Need more miners or validators? Use start.sh and adjust the counts:
 
 ```env
 COLDKEY_MNEMONIC="your mnemonic here"
@@ -85,6 +114,9 @@ btcli subnet metagraph --netuid 249 --network test
 # Stop and remove containers
 docker ps -a | grep 'masa_' | awk '{print $1}' | xargs -r docker stop
 docker ps -a | grep 'masa_' | awk '{print $1}' | xargs -r docker rm
+
+# Or if using Docker Compose:
+docker-compose down
 ```
 
 ## Security
