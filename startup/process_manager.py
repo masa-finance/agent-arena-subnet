@@ -1,17 +1,57 @@
+"""Process Manager Module.
+
+This module handles the execution of validator and miner processes in the Agent Arena subnet.
+It manages command building, directory preparation, and process execution.
+
+Example:
+    >>> manager = ProcessManager()
+    >>> command = manager.build_validator_command(
+    ...     netuid=249,
+    ...     network="test",
+    ...     wallet_name="subnet_249",
+    ...     wallet_hotkey="validator_1",
+    ...     logging_dir="/root/.bittensor/logs",
+    ...     axon_port=8081,
+    ...     prometheus_port=8082,
+    ...     grafana_port=8083
+    ... )
+    >>> manager.execute_validator(command)
+"""
+
 import os
 import logging
 from typing import List
 
 
 class ProcessManager:
-    """Manages the execution of validator and miner processes."""
+    """Manages the execution of validator and miner processes.
+
+    This class handles:
+    - Directory preparation for logs and wallets
+    - Command building for validators and miners
+    - Process execution with proper arguments
+
+    The manager ensures all necessary directories exist and have proper permissions
+    before executing any processes.
+    """
 
     def __init__(self):
-        """Initialize the process manager."""
+        """Initialize the process manager with logging setup."""
         self.logger = logging.getLogger(__name__)
 
-    def prepare_directories(self):
-        """Prepare necessary directories for process execution."""
+    def prepare_directories(self) -> str:
+        """Prepare necessary directories for process execution.
+
+        Creates required directories with proper permissions:
+        - /root/.bittensor/logs: For process logs
+        - /root/.bittensor/wallets: For wallet storage
+
+        Returns:
+            str: Base directory path (/root/.bittensor)
+
+        Note:
+            Directories are created with 700 permissions for security
+        """
         base_dir = "/root/.bittensor"
         os.makedirs(os.path.join(base_dir, "logs"), mode=0o700, exist_ok=True)
         os.makedirs(os.path.join(base_dir, "wallets"), mode=0o700, exist_ok=True)
@@ -28,7 +68,24 @@ class ProcessManager:
         prometheus_port: int,
         grafana_port: int,
     ) -> List[str]:
-        """Build the validator command with all necessary arguments."""
+        """Build the validator command with all necessary arguments.
+
+        Args:
+            netuid: Network UID (249 for testnet, 59 for mainnet)
+            network: Network name ("test" or "finney")
+            wallet_name: Name of the wallet (format: "subnet_{netuid}")
+            wallet_hotkey: Name of the hotkey (format: "validator_{replica}")
+            logging_dir: Directory for logs
+            axon_port: Port for the validator's axon server
+            prometheus_port: Port for Prometheus metrics
+            grafana_port: Port for Grafana dashboard
+
+        Returns:
+            List[str]: Complete command as a list of arguments
+
+        Note:
+            The command uses the run_validator.py script with appropriate flags
+        """
         base_dir = self.prepare_directories()
         wallet_path = os.path.join(base_dir, "wallets")
 
@@ -63,7 +120,24 @@ class ProcessManager:
         prometheus_port: int,
         grafana_port: int,
     ) -> List[str]:
-        """Build the miner command with all necessary arguments."""
+        """Build the miner command with all necessary arguments.
+
+        Args:
+            wallet_name: Name of the wallet (format: "subnet_{netuid}")
+            wallet_hotkey: Name of the hotkey (format: "miner_{replica}")
+            netuid: Network UID (249 for testnet, 59 for mainnet)
+            network: Network name ("test" or "finney")
+            logging_dir: Directory for logs
+            axon_port: Port for the miner's axon server
+            prometheus_port: Port for Prometheus metrics
+            grafana_port: Port for Grafana dashboard
+
+        Returns:
+            List[str]: Complete command as a list of arguments
+
+        Note:
+            The command uses the run_miner.py script with appropriate flags
+        """
         base_dir = self.prepare_directories()
         wallet_path = os.path.join(base_dir, "wallets")
 
@@ -86,21 +160,29 @@ class ProcessManager:
 
         return command
 
-    def execute_validator(self, command: List[str]):
+    def execute_validator(self, command: List[str]) -> None:
         """Execute the validator process.
 
         Args:
             command: Complete command as a list of arguments
+
+        Note:
+            Uses os.execvp to replace the current process with the validator
+            This means the process will not return unless there's an error
         """
         self.logger.info(f"Executing validator command: {' '.join(command)}")
         # Use execvp to replace the current process
         os.execvp(command[0], command)
 
-    def execute_miner(self, command: List[str]):
+    def execute_miner(self, command: List[str]) -> None:
         """Execute the miner process.
 
         Args:
             command: Complete command as a list of arguments
+
+        Note:
+            Uses os.execvp to replace the current process with the miner
+            This means the process will not return unless there's an error
         """
         self.logger.info(f"Executing miner command: {' '.join(command)}")
         # Use execvp to replace the current process

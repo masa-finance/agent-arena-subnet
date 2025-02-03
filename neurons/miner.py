@@ -37,7 +37,7 @@ class AgentMiner:
 
         self.wallet_name = os.getenv("WALLET_NAME", "miner")
         self.hotkey_name = os.getenv("HOTKEY_NAME", "default")
-        self.port = int(os.getenv("AXON_PORT", 8082))
+        self.port = int(os.getenv("MINER_PORT", 8082))
         self.external_ip = self.get_external_ip()
 
         self.keypair = chain_utils.load_hotkey_keypair(

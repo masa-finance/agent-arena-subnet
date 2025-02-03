@@ -1,23 +1,57 @@
+"""Wallet Manager Module.
+
+This module handles all wallet-related operations for validators and miners in the Agent Arena subnet.
+It manages wallet creation, loading, registration, and hotkey setup.
+
+Example:
+    >>> manager = WalletManager(role="validator", network="test", netuid=249)
+    >>> wallet = manager.load_wallet()
+    >>> uid = manager.register()
+"""
+
 import logging
 import os
 import json
 import bittensor as bt
 import time
 from substrateinterface.exceptions import SubstrateRequestException
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
 class WalletManager:
-    """Manages wallet operations for validators and miners."""
+    """Manages wallet operations for validators and miners.
+
+    This class handles all aspects of wallet management including:
+    - Wallet creation and loading
+    - Coldkey management from mnemonics
+    - Hotkey creation and setup
+    - Registration with the subnet
+    - Hotkey mapping maintenance
+
+    Attributes:
+        role (str): Role of the node ("validator" or "miner")
+        network (str): Network to connect to ("test" or "finney")
+        netuid (int): Network UID to register on (249 for testnet, 59 for mainnet)
+        wallet_name (str): Name of the wallet (format: "subnet_{netuid}")
+        hotkey_name (str): Name of the hotkey (format: "{role}_{replica_num}")
+        wallet (bt.wallet): The loaded bittensor wallet instance
+        subtensor (bt.subtensor): Connection to the subtensor network
+    """
 
     def __init__(self, role: str, network: str, netuid: int):
         """Initialize the wallet manager.
 
         Args:
-            role: Role of the node (validator/miner)
-            network: Network to connect to (test/main)
-            netuid: Network UID to register on
+            role: Role of the node ("validator" or "miner")
+            network: Network to connect to ("test" or "finney")
+            netuid: Network UID to register on (249 for testnet, 59 for mainnet)
+
+        Raises:
+            ValueError: If role is not "validator" or "miner"
+            ValueError: If network is not "test" or "finney"
+            ValueError: If HOTKEY_WALLET or HOTKEY_NAME env vars are not set
         """
         self.role = role
         self.network = network
@@ -25,17 +59,18 @@ class WalletManager:
         self.logger = logging.getLogger(__name__)
         self.subtensor = None
 
-        # Get replica number from env
-        self.replica_num = os.environ.get("REPLICA_NUM", "1")
+        # Get wallet and hotkey names from environment
+        self.wallet_name = os.environ.get("HOTKEY_WALLET")
+        self.hotkey_name = os.environ.get("HOTKEY_NAME")
 
-        # Set wallet name based on subnet and hotkey based on role/replica
-        self.wallet_name = f"subnet_{netuid}"
-        self.hotkey_name = f"{role}_{self.replica_num}"
+        if not self.wallet_name or not self.hotkey_name:
+            raise ValueError(
+                "HOTKEY_WALLET and HOTKEY_NAME environment variables must be set"
+            )
 
-        # Set validator-specific environment variables if this is a validator
-        if role == "validator":
-            os.environ["VALIDATOR_WALLET_NAME"] = self.wallet_name
-            os.environ["VALIDATOR_HOTKEY_NAME"] = self.hotkey_name
+        self.logger.info(
+            f"Using wallet: {self.wallet_name}, hotkey: {self.hotkey_name}"
+        )
 
         # Initialize wallet
         self.wallet = self.load_wallet()
@@ -43,8 +78,19 @@ class WalletManager:
     def load_wallet(self) -> bt.wallet:
         """Load or create wallet based on environment variables.
 
+        This method:
+        1. Initializes subtensor connection
+        2. Creates/loads the wallet
+        3. Sets up coldkey from mnemonic if needed
+        4. Sets up hotkey
+        5. Handles registration if needed
+
         Returns:
-            Loaded wallet
+            bt.wallet: The loaded and configured wallet
+
+        Raises:
+            Exception: If COLDKEY_MNEMONIC is not provided when needed
+            Exception: If registration fails after retries
         """
         # Initialize subtensor - only specify network if it's test
         self.subtensor = (
@@ -140,7 +186,15 @@ class WalletManager:
         return self.wallet
 
     def setup_hotkey(self):
-        """Set up hotkey after coldkey is established."""
+        """Set up hotkey after coldkey is established.
+
+        This method:
+        1. Creates wallet with specific hotkey name
+        2. Creates new hotkey if it doesn't exist
+        3. Uses existing hotkey if found
+
+        The hotkey path is: /root/.bittensor/wallets/{wallet_name}/hotkeys/{hotkey_name}
+        """
         self.logger.info("Setting up hotkey %s", self.hotkey_name)
 
         # First create the wallet with the hotkey name we want and explicit path
@@ -162,8 +216,18 @@ class WalletManager:
     def update_hotkey_mappings(self, uid: int):
         """Update hotkey mappings file with current hotkey info.
 
+        Maintains a JSON file mapping hotkeys to their metadata including:
+        - UID
+        - Role
+        - Network UID
+        - Wallet name
+        - Hotkey name
+
         Args:
             uid: UID assigned to the hotkey
+
+        Note:
+            File is stored at ./.bt-masa/hotkey_mappings.json
         """
         mappings_file = os.path.expanduser("./.bt-masa/hotkey_mappings.json")
         os.makedirs(os.path.dirname(mappings_file), mode=0o700, exist_ok=True)
@@ -186,8 +250,21 @@ class WalletManager:
             "hotkey_name": self.hotkey_name,
         }
 
-    def register(self):
-        """Register wallet with subnet."""
+    def register(self) -> Optional[int]:
+        """Register wallet with subnet.
+
+        Attempts registration with infinite retry on common errors:
+        - Priority too low
+        - Invalid transaction
+        - Other substrate errors
+
+        Returns:
+            int: The assigned UID if registration successful
+            None: If registration fails
+
+        Note:
+            This method will retry indefinitely until registration succeeds
+        """
         self.logger.info("Starting registration for hotkey %s", self.hotkey_name)
 
         while True:

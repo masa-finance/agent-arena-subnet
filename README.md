@@ -19,6 +19,23 @@ Want to run miners or validators? Our Docker deployment system makes it simple:
 - A coldkey mnemonic (required for validators)
 - At least 1 TAO per validator for registration
 - Twitter/X account for your agent
+- Available ports (see Port Allocation below)
+
+### Port Allocation
+
+The system uses sequential port allocation for multiple instances:
+
+Validators:
+- Axon: Starting at 8142 (8142, 8143, 8144, ...)
+- Metrics: Starting at 8001 (8001, 8002, 8003, ...)
+- Grafana: Starting at 3001 (3001, 3002, 3003, ...)
+
+Miners:
+- Axon: Starting at 8242 (8242, 8243, 8244, ...)
+- Metrics: Starting at 8101 (8101, 8102, 8103, ...)
+- Grafana: Starting at 3101 (3101, 3102, 3103, ...)
+
+Each instance gets its own unique set of ports to avoid conflicts.
 
 ### Quick Start
 
@@ -43,12 +60,47 @@ Want to run miners or validators? Our Docker deployment system makes it simple:
    COLDKEY_MNEMONIC="your mnemonic here"
    ```
 
-5. Start your deployment:
+5. Configure your deployment in `.env`:
+   ```env
+   # Number of instances to run (default: 0 validators, 1 miner)
+   VALIDATOR_COUNT=3  # Run 3 validators
+   MINER_COUNT=6     # Run 6 miners
+   
+   # Optional: Override default port ranges
+   VALIDATOR_AXON_PORT=8142     # Validators will use 8142, 8143, 8144
+   VALIDATOR_METRICS_PORT=8001   # Validators will use 8001, 8002, 8003
+   VALIDATOR_GRAFANA_PORT=3001   # Validators will use 3001, 3002, 3003
+   
+   MINER_AXON_PORT=8242         # Miners will use 8242, 8243, 8244, ...
+   MINER_METRICS_PORT=8101       # Miners will use 8101, 8102, 8103, ...
+   MINER_GRAFANA_PORT=3101       # Miners will use 3101, 3102, 3103, ...
+   ```
+
+6. Start your deployment:
    ```bash
    ./start.sh
    ```
 
-That's it! The script handles everything else automatically.
+The script will:
+- Pull the latest Docker image
+- Clean up any existing containers
+- Start the requested number of validators and miners
+- Assign unique ports to each instance
+- Set up wallet management
+- Handle registration
+- Provide real-time status updates
+
+Monitor your deployment:
+```bash
+# Check validator logs (replace N with validator number 1-N)
+docker logs --tail 50 masa_validator_N
+
+# Check miner logs (replace N with miner number 1-N)
+docker logs --tail 50 masa_miner_N
+
+# Check the network status
+btcli subnet metagraph --netuid 249 --network test
+```
 
 For detailed configuration options, monitoring, troubleshooting, and more, see [DOCKER.md](DOCKER.md).
 
