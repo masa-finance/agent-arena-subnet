@@ -1,15 +1,15 @@
 # Docker Deployment for Agent Arena
 
-Run multiple Agent Arena miners and validators easily on a single machine.
+This guide covers the different ways to run Agent Arena nodes using Docker.
 
 ## Prerequisites
 
 - Docker installed
-- Coldkey mnemonic (for validators)
-- TAO for registration
+- A coldkey mnemonic
+- Enough tTAO or real TAO for registration
 - Twitter/X account for your agent
 
-## Simple Key Management
+## Key Management
 
 We keep it simple:
 - Put your coldkey mnemonic in `.env`
@@ -17,75 +17,61 @@ We keep it simple:
 - Each miner/validator gets its own hotkey automatically
 - No manual key management needed
 
-## Quick Start with Docker Compose
+## Deployment Options
 
-Want to run just one node? Use Docker Compose:
+### 1. Single Node with Docker Compose
+The simplest way to run one node:
 
-1. Clone and copy `.env.sample`:
-   ```bash
-   git clone https://github.com/masa-finance/agent-arena-subnet.git
-   cd agent-arena-subnet
-   cp .env.sample .env
-   ```
+```bash
+# Clone and configure
+git clone https://github.com/masa-finance/agent-arena-subnet.git
+cd agent-arena-subnet
+cp .env.sample .env
+# Edit .env with your settings
 
-2. Edit `.env` with your configuration:
+# Run a miner
+docker-compose up
+
+# Or run a validator
+ROLE=validator docker-compose up
+```
+
+### 2. Multi-Node with start.sh
+For running multiple nodes on one machine:
+
+1. Configure `.env`:
    ```env
+   # Required settings
    COLDKEY_MNEMONIC="your mnemonic here"
-   NETUID=249  # for testnet
-   ```
-
-3. Start a miner:
-   ```bash
-   docker-compose up
-   ```
-
-   Or start a validator:
-   ```bash
-   ROLE=validator docker-compose up
-   ```
-
-That's it! Your node will run with the default ports.
-
-## Quick Start (Single Miner with start.sh)
-
-Alternatively, use our start.sh script:
-
-1. Clone and copy `.env.sample`:
-   ```bash
-   git clone https://github.com/masa-finance/agent-arena-subnet.git
-   cd agent-arena-subnet
-   cp .env.sample .env
-   ```
-
-2. Edit `.env` with just these fields:
-   ```env
-   COLDKEY_MNEMONIC="your mnemonic here"
-   MINER_COUNT=1
+   
+   # Specify instance counts
+   VALIDATOR_COUNT=2  # Run 2 validators
+   MINER_COUNT=3     # Run 3 miners
+   
+   # Add verification tweet IDs for miners
    TWEET_VERIFICATION_ID_1="your tweet id"
+   TWEET_VERIFICATION_ID_2="your tweet id"
+   TWEET_VERIFICATION_ID_3="your tweet id"
    ```
 
-3. Start:
+2. Start your nodes:
    ```bash
    ./start.sh
    ```
 
-That's it! Your miner will run on port 8242.
-
-## Running Multiple Instances
-
-Need more miners or validators? Use start.sh and adjust the counts:
-
-```env
-COLDKEY_MNEMONIC="your mnemonic here"
-
-# How many to run
-VALIDATOR_COUNT=3  # Run 3 validators
-MINER_COUNT=6     # Run 6 miners
-```
+3. Monitor your nodes:
+   ```bash
+   # Check logs
+   docker logs --tail 50 masa_validator_1
+   docker logs --tail 50 masa_miner_1
+   
+   # Check subnet status
+   btcli subnet metagraph --netuid 249 --network test
+   ```
 
 ## Port Allocation
 
-Each instance gets its own ports:
+Each instance gets unique ports:
 
 Validators:
 - Axon: 8142, 8143, 8144, ...
@@ -97,29 +83,18 @@ Miners:
 - Metrics: 8101, 8102, 8103, ...
 - Grafana: 3101, 3102, 3103, ...
 
-## Monitoring
-
-```bash
-# Check logs
-docker logs --tail 50 masa_validator_1
-docker logs --tail 50 masa_miner_1
-
-# Check subnet
-btcli subnet metagraph --netuid 249 --network test
-```
-
 ## Cleanup
 
 ```bash
-# Stop and remove containers
+# If using Docker Compose
+docker-compose down
+
+# If using start.sh
 docker ps -a | grep 'masa_' | awk '{print $1}' | xargs -r docker stop
 docker ps -a | grep 'masa_' | awk '{print $1}' | xargs -r docker rm
-
-# Or if using Docker Compose:
-docker-compose down
 ```
 
-## Security
+## Security Best Practices
 
 - Keep `.env` file secure (never commit it)
 - Backup `.bittensor` directory regularly
