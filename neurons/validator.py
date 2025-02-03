@@ -139,9 +139,8 @@ class AgentValidator:
         if response.status_code == 200:
             return response.json()
         else:
-            logger.error(
-                f"Error making non streamed get: {
-                    response.status_code}"
+            logger.warning(
+                f"Error making non streamed GET, Status code: {response.status_code} Message: {response.text}"
             )
             return None
 
@@ -169,9 +168,8 @@ class AgentValidator:
         if response.status_code == 200:
             return response.json()
         else:
-            logger.error(
-                f"Error making non streamed post: {
-                    response.status_code}"
+            logger.warning(
+                f"Error making non streamed POST, Status code: {response.status_code} Message: {response.text}"
             )
             return None
 
@@ -222,10 +220,12 @@ class AgentValidator:
                             node.ip}, Port: {node.port}"
                     )
                 else:
-                    logger.warning(f"Failed to connect to miner {node.hotkey}")
+                    logger.warning(
+                        f"Failed to connect to miner with hotkey: {node.hotkey}"
+                    )
 
         except Exception as e:
-            logger.error("Error in registration check: %s", str(e))
+            logger.error("Error in registration check: %s", e)
 
     async def connect_with_miner(self, miner_address: str, miner_hotkey: str) -> bool:
         """Handshake with a miner"""
@@ -255,7 +255,7 @@ class AgentValidator:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to connect to miner: {str(e)}")
+            logger.warning(f"Failed to connect to miner: {e}")
             return False
 
     async def stop(self) -> None:
@@ -347,14 +347,16 @@ class AgentValidator:
             self.metagraph.sync_nodes()
 
             keys_to_delete = []
-            for hotkey, _ in self.connected_nodes.items():
+            for hotkey in self.connected_nodes:
                 if hotkey not in self.metagraph.nodes:
                     logger.info(
                         f"Hotkey: {hotkey} has been deregistered from the metagraph"
                     )
                     agent = self.registered_agents.get(hotkey)
                     keys_to_delete.append(hotkey)
-                    await self.registrar.deregister_agent(agent)
+
+                    if agent:
+                        await self.registrar.deregister_agent(agent)
 
             for hotkey in keys_to_delete:
                 del self.connected_nodes[hotkey]
