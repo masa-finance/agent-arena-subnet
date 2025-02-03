@@ -53,6 +53,12 @@ start_node() {
     echo "  Grafana: $grafana_port"
 
     # Start the container
+    if [ "$role" = "validator" ]; then
+        ENV_VARS="-e VALIDATOR_WALLET_NAME=subnet_${NETUID} -e VALIDATOR_HOTKEY_NAME=${role}_${instance_num}"
+    else
+        ENV_VARS="-e WALLET_NAME=subnet_${NETUID} -e HOTKEY_NAME=${role}_${instance_num}"
+    fi
+
     docker run -d \
         --name "masa_${role}_${instance_num}" \
         --env-file .env \
@@ -64,6 +70,9 @@ start_node() {
         -e GRAFANA_PORT=$grafana_port \
         -e REPLICA_NUM=$instance_num \
         -e MINER_PORT=$axon_port \
+        -e MASA_BASE_URL=https://test.protocol-api.masa.ai \
+        -e API_URL=https://test.protocol-api.masa.ai \
+        $ENV_VARS \
         -v $(pwd)/.env:/app/.env \
         -v $(pwd)/.bittensor:/root/.bittensor \
         -p $axon_port:$axon_port \
