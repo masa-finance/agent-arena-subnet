@@ -98,9 +98,9 @@ class SemanticScorer(BaseScorer):
         originality_scores = self._calculate_originality(similarity_matrix)
         uniqueness_scores = self._calculate_uniqueness(similarity_matrix)
         
-        # Apply penalties
-        originality_scores = originality_scores * quality_penalties
-        uniqueness_scores = uniqueness_scores * quality_penalties
+        # Apply penalties and handle potential NaN values
+        originality_scores = torch.nan_to_num(originality_scores, nan=0.0) * quality_penalties
+        uniqueness_scores = torch.nan_to_num(uniqueness_scores, nan=0.0) * quality_penalties
         
         return (
             torch.clamp(originality_scores, 0, 1),
@@ -111,13 +111,16 @@ class SemanticScorer(BaseScorer):
         """Calculate originality scores"""
         mean_similarity = similarity_matrix.mean(dim=1)
         std_similarity = similarity_matrix.std(dim=1)
-        return torch.exp(-mean_similarity * 2) * (1 + std_similarity)
+        # Handle edge cases where mean_similarity might be too large
+        scores = torch.exp(torch.clamp(-mean_similarity * 2, min=-10, max=10)) * (1 + std_similarity)
+        return torch.nan_to_num(scores, nan=0.0)
 
     def _calculate_uniqueness(self, similarity_matrix: torch.Tensor) -> torch.Tensor:
         """Calculate uniqueness scores"""
         similar_posts = (similarity_matrix > 
                         self.weights.semantic_config["similarity_threshold"]).sum(dim=1).float()
-        return torch.exp(-similar_posts * 0.8)
+        scores = torch.exp(torch.clamp(-similar_posts * 0.8, min=-10, max=10))
+        return torch.nan_to_num(scores, nan=0.0)
 
     def calculate_score(self, text: str) -> float:
         """Calculate score for a single text"""
@@ -149,8 +152,9 @@ class SemanticScorer(BaseScorer):
                     self.weights.semantic_config['uniqueness'] * uniq_scores
                 ).cpu().numpy()
                 
-                # Apply stronger non-linear scaling for quality emphasis
-                scores = [np.power(score, 0.75) for score in combined_scores]
+                # Handle any remaining NaN values and apply scaling
+                combined_scores = np.nan_to_num(combined_scores, nan=0.0)
+                scores = [np.clip(np.power(score, 0.75), 0, 1) for score in combined_scores]
                 
                 # Clean up GPU memory
                 del embeddings, orig_scores, uniq_scores
