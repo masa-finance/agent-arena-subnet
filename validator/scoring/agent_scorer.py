@@ -1,247 +1,166 @@
-from typing import Dict, List, Any, Tuple, Optional
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime, UTC, timedelta
-from tqdm import tqdm
-from interfaces.types import Tweet
-from fiber.logging_utils import get_logger
-from validator.config.hardware_config import HardwareConfig, PerformanceConfig
-from validator.config.scoring_config import ScoringWeights
-from validator.config.progress_config import ScoringProgressConfig, ShapProgressConfig
-from validator.scoring.scorers.semantic_scorer import SemanticScorer
-from validator.scoring.scorers.engagement_scorer import EngagementScorer
-from validator.scoring.analysis.feature_importance import FeatureImportanceCalculator
-from validator.scoring.scorers.follower_scorer import FollowerScorer
-from validator.scoring.scorers.verification_scorer import VerificationScorer
+from collections import defaultdict
+import numpy as np
+import torch
+from typing import Dict, List, Optional
 from time import time
-from validator.scoring.strategies.base_strategy import BaseScoringStrategy
-from validator.scoring.strategies.default_strategy import DefaultScoringStrategy
+
+from fiber.logging_utils import get_logger
+from validator.scoring.scorers.semantic_scorer import SemanticScorer
+from validator.config.scoring_config import ScoringWeights
+from validator.config.progress_config import ProgressStages, ProgressBarConfig
+from validator.get_agent_posts import GetAgentPosts
+from interfaces.types import Tweet
+
+# Constants
+DEFAULT_LOOKBACK_HOURS = 2
+SEMANTIC_ANALYSIS_DESC = "Semantic Analysis"
 
 logger = get_logger(__name__)
 
 class AgentScorer:
-    """
-    New implementation of the scoring system with improved modularity.
-    This will gradually replace PostsScorer.
-    """
-    def __init__(self, 
-                 validator: Any, 
-                 scoring_hardware_config: Optional[HardwareConfig] = None,
-                 shap_hardware_config: Optional[HardwareConfig] = None,
-                 scoring_strategy: Optional[BaseScoringStrategy] = None):
-        # Initialize configurations
-        self.scoring_config = scoring_hardware_config or PerformanceConfig.get_config()
-        self.shap_config = shap_hardware_config or self.scoring_config
-        self.weights = ScoringWeights()
+    """Scores agents based on their post content using semantic analysis."""
+    
+    def __init__(
+        self,
+        netuid: int,
+        weights: Optional[ScoringWeights] = None,
+        lookback_hours: int = DEFAULT_LOOKBACK_HOURS
+    ):
+        """Initialize the agent scorer.
         
-        # Initialize components
-        self.validator = validator
-        self.scaler = MinMaxScaler(feature_range=(0, 1))
-        self.semantic_scorer = SemanticScorer(self.scoring_config)
-        self.engagement_scorer = EngagementScorer(self.weights)
-        self.follower_scorer = FollowerScorer(self.weights)
-        self.verification_scorer = VerificationScorer(self.weights)
-        self.feature_calculator = None
-        if shap_hardware_config:
-            self.feature_calculator = FeatureImportanceCalculator(
-                config=self.shap_config,
-                weights=self.weights,
-                semantic_scorer=self.semantic_scorer
-            )
+        Args:
+            netuid: The subnet ID to analyze
+            weights: Optional scoring weights configuration
+            lookback_hours: Hours to look back for posts (default 24)
+        """
+        self.netuid = netuid
+        self.weights = weights or ScoringWeights()
+        self.lookback_hours = lookback_hours
+        self.scorer = SemanticScorer(weights=self.weights)
         
-        # Initialize scoring strategy
-        self.scoring_strategy = scoring_strategy or DefaultScoringStrategy(self.weights)
+    async def get_agent_posts(self) -> Dict[str, List[Tweet]]:
+        """Fetch and organize posts by agent for the specified time period."""
+        start_date = datetime.now(UTC) - timedelta(hours=self.lookback_hours)
         
-        self._log_initialization()
-
-    def _log_initialization(self) -> None:
-        """Log initialization details"""
-        logger.info(f"Initialized AgentScorer with scoring hardware config: {self.scoring_config}")
-        logger.info(f"Using scoring device type: {self.scoring_config.device_type}")
-        if self.scoring_config.gpu_memory:
-            logger.info(f"Scoring GPU Memory: {self.scoring_config.gpu_memory}GB")
-            
-        logger.info(f"Using SHAP hardware config: {self.shap_config}")
-        logger.info(f"Using SHAP device type: {self.shap_config.device_type}")
-        if self.shap_config.gpu_memory:
-            logger.info(f"SHAP GPU Memory: {self.shap_config.gpu_memory}GB")
-
-    def _calculate_post_score(self, post: Tweet, semantic_score: float) -> float:
-        """Calculate individual post score using the scoring strategy"""
-        text = post.get("Text", "")
-        
-        # Get verification status
-        user_id = post.get("UserID")
-        is_verified = False
-        if user_id:
-            agent = next(
-                (agent for agent in self.validator.registered_agents.values() 
-                 if agent.UserID == user_id),
-                None
-            )
-            is_verified = bool(agent and agent.IsVerified)
-        
-        # Calculate component scores using new scorers
-        follower_score = self.follower_scorer.calculate_score(post)
-        text_length_ratio = min(len(str(text)), 280) / 280
-        engagement_score = self.engagement_scorer.calculate_score(post)
-        
-        return self.scoring_strategy.calculate_post_score(
-            semantic_score=semantic_score,
-            engagement_score=engagement_score,
-            follower_score=follower_score,
-            text_length_ratio=text_length_ratio,
-            is_verified=is_verified
+        # Initialize posts getter
+        posts_getter = GetAgentPosts(
+            netuid=self.netuid,
+            start_date=start_date,
+            end_date=datetime.now(UTC)
         )
-
-    def calculate_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Optional[Dict[str, float]]]:
-        """Calculate scores and optionally run feature importance analysis"""
-        if not posts:
-            logger.warning("No posts provided for scoring")
-            return {}, None
+        
+        # Fetch all posts
+        all_posts = await posts_getter.get()
+        if not all_posts:
+            logger.warning(f"No posts found in the last {self.lookback_hours} hours")
+            return {}
             
-        try:
-            # Step 1: Filter posts
-            filtered_posts = self._filter_recent_posts(posts)
-            stats = self._calculate_post_stats(filtered_posts)
+        # Group posts by agent
+        agent_posts = defaultdict(list)
+        for post in all_posts:
+            username = post.get('Username')
+            if username:
+                agent_posts[username].append(post)
+                
+        # Sort posts by timestamp for each agent
+        for username, posts in agent_posts.items():
+            posts.sort(key=lambda x: x.get('Timestamp', ''))
             
-            # Step 2: Process posts by agent and verification status
-            verified_posts_by_uid = {}
-            unverified_posts_by_uid = {}
+        return agent_posts
+        
+    def calculate_agent_scores(self, agent_posts: Dict[str, List[Tweet]]) -> Dict[str, float]:
+        """Calculate semantic scores for each agent's posts."""
+        if not agent_posts:
+            return {}
             
-            for post in filtered_posts:
-                uid = self._get_agent_uid(post)
-                if not uid:
-                    continue
-                    
-                if post.get("IsVerified", False):
-                    if uid not in verified_posts_by_uid:
-                        verified_posts_by_uid[uid] = []
-                    verified_posts_by_uid[uid].append(post)
-                else:
-                    if uid not in unverified_posts_by_uid:
-                        unverified_posts_by_uid[uid] = []
-                    unverified_posts_by_uid[uid].append(post)
-            
-            progress_config = ScoringProgressConfig(
-                total_agents=len(verified_posts_by_uid) + len(unverified_posts_by_uid)
-            )
-            
-            with progress_config.create_progress_bar() as main_pbar:
-                main_pbar.set_postfix(**stats)
-                
-                # Calculate raw scores
-                verified_scores = self._calculate_agent_scores(verified_posts_by_uid, main_pbar)
-                unverified_scores = self._calculate_agent_scores(unverified_posts_by_uid, main_pbar)
-                
-                # Apply verification scaling using dedicated scorer
-                verified_scores, unverified_scores = self.verification_scorer.scale_scores(
-                    verified_scores, unverified_scores
-                )
-                
-                # Combine scores
-                final_scores = {**verified_scores, **unverified_scores}
-                
-                # Only run feature importance if calculator is configured
-                feature_importance = None
-                if self.feature_calculator and len(filtered_posts) > 0:
-                    with tqdm(
-                        total=self.shap_config.shap_background_samples,
-                        desc="Calculating feature importance",
-                        position=1,
-                        leave=True
-                    ) as shap_pbar:
-                        feature_importance = self.feature_calculator.calculate(
-                            filtered_posts, 
-                            progress_bar=shap_pbar
-                        )
-                        
-                return final_scores, feature_importance
-                
-        except Exception as e:
-            logger.error(f"Error in calculate_scores: {str(e)}")
-            raise
-
-    def _filter_recent_posts(self, posts: List[Tweet]) -> List[Tweet]:
-        """Filter posts from the last 7 days"""
-        current_time = datetime.now(UTC)
-        scoring_window = timedelta(days=7)
-        return [
-            post for post in posts 
-            if (current_time - datetime.fromtimestamp(post.get("Timestamp", 0), UTC)) <= scoring_window
-        ]
-
-    def _calculate_post_stats(self, posts: List[Tweet]) -> Dict[str, int]:
-        """Calculate post statistics"""
-        return {
-            "total_posts": len(posts),
-            "unique_users": len(set(post.get("UserID") for post in posts)),
-            "posts_with_text": len([p for p in posts if p.get("Text")])
-        }
-
-    def _calculate_agent_scores(self, 
-                              posts_by_uid: Dict[int, List[Tweet]], 
-                              progress_bar: tqdm) -> Dict[int, float]:
-        """Calculate final scores for each agent"""
-        final_scores = {uid: 0.0 for uid in posts_by_uid.keys()}
+        # Create progress bar with semantic status
+        total_posts = sum(len(posts) for posts in agent_posts.values())
+        progress = ProgressBarConfig(
+            desc=SEMANTIC_ANALYSIS_DESC,
+            total=total_posts,
+            initial_status=ProgressStages.get_semantic_status(0, total_posts)
+        ).create_progress_bar()
+        
+        agent_scores = {}
+        processed = 0
         start_time = time()
-        processed_agents = 0
         
-        # Calculate initial scores
-        for uid, agent_posts in posts_by_uid.items():
-            texts = [post.get("Text", "") for post in agent_posts]
-            semantic_scores = self.semantic_scorer.calculate_scores(texts)
+        for username, posts in agent_posts.items():
+            texts = [post.get('Text', '') for post in posts]
+            if not texts:
+                continue
+                
+            post_scores = []
+            for text in texts:
+                score = self.scorer.calculate_score(text)
+                post_scores.append(score)
+                processed += 1
+                
+                # Update progress with rate
+                rate = processed / (time() - start_time)
+                progress.set_postfix(
+                    **ProgressStages.get_semantic_status(processed, total_posts, rate)
+                )
+                progress.update(1)
+                
+            if post_scores:
+                agent_scores[username] = np.mean(post_scores)
             
-            scores = []
-            for post, semantic_score in zip(agent_posts, semantic_scores):
-                try:
-                    score = self._calculate_post_score(post, semantic_score)
-                    if np.isfinite(score):
-                        scores.append(score)
-                except Exception as e:
-                    logger.warning(f"Error processing post for UID {uid}: {str(e)}")
-                    continue
-
-            if scores:
-                mean_score = np.mean(scores)
-                post_count = len(scores)
-                final_scores[uid] = mean_score * np.log1p(post_count)
-            
-            # Update progress
-            processed_agents += 1
-            elapsed_time = time() - start_time
-            rate = processed_agents / elapsed_time if elapsed_time > 0 else 0
-            
-            progress_bar.update(1)
-            progress_bar.set_postfix({
-                "agents": f"{processed_agents}/{len(posts_by_uid)}",
-                "rate": f"{rate:.2f} agents/s"
-            })
-
-        # Apply normalization
-        final_scores = self.scoring_strategy.normalize_scores(final_scores)
-        return final_scores
-
-    def _get_agent_uid(self, post: Tweet) -> Optional[int]:
-        """Get agent UID from post UserID"""
-        user_id = post.get("UserID")
-        if not user_id:
-            return None
+        progress.close()
+        return agent_scores
         
-        # Convert registered agents to UserID -> UID mapping
-        user_id_to_uid = {
-            agent.UserID: int(agent.UID)
-            for agent in self.validator.registered_agents.values()
-        }
+    def analyze_content_stats(self, agent_posts: Dict[str, List[Tweet]]) -> Dict[str, dict]:
+        """Analyze content statistics for each agent."""
+        stats = {}
+        for username, posts in agent_posts.items():
+            texts = [post.get('Text', '') for post in posts]
+            if not texts:
+                continue
+                
+            # Calculate basic statistics
+            lengths = [len(text.split()) for text in texts]
+            
+            # Calculate similarities between consecutive posts more efficiently
+            similarities = []
+            if len(texts) > 1:
+                # Get all embeddings at once for the agent's posts
+                embeddings = self.scorer.model.encode(texts, convert_to_tensor=True)
+                # Calculate similarities between consecutive embeddings
+                for i in range(1, len(embeddings)):
+                    similarity = float(torch.nn.functional.cosine_similarity(
+                        embeddings[i].unsqueeze(0), 
+                        embeddings[i-1].unsqueeze(0)
+                    ))
+                    similarities.append(similarity)
+            
+            stats[username] = {
+                'post_count': len(texts),
+                'avg_length': np.mean(lengths),
+                'max_length': max(lengths),
+                'min_length': min(lengths),
+                'avg_similarity': np.mean(similarities) if similarities else 0,
+                'max_similarity': max(similarities) if similarities else 0,
+                'min_similarity': min(similarities) if similarities else 0
+            }
+            
+        return stats
         
-        return user_id_to_uid.get(user_id)
-
-# For backward compatibility
-class PostsScorer(AgentScorer):
-    """
-    Legacy class maintained for backward compatibility.
-    Inherits from AgentScorer but keeps the old name.
-    """
-    def calculate_agent_scores(self, posts: List[Tweet]) -> Tuple[Dict[int, float], Dict[str, float]]:
-        """Maintain old method name for compatibility"""
-        return self.calculate_scores(posts)
+    async def score_agents(self) -> tuple[Dict[str, float], Dict[str, dict]]:
+        """Score agents and analyze their content.
+        
+        Returns:
+            Tuple of (agent_scores, content_stats)
+        """
+        # Fetch posts
+        agent_posts = await self.get_agent_posts()
+        
+        if not agent_posts:
+            logger.warning("No agent posts found to analyze")
+            return {}, {}
+            
+        # Calculate scores and stats
+        agent_scores = self.calculate_agent_scores(agent_posts)
+        content_stats = self.analyze_content_stats(agent_posts)
+        
+        return agent_scores, content_stats
