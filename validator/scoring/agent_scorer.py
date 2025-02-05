@@ -7,7 +7,9 @@ from time import time
 
 from fiber.logging_utils import get_logger
 from validator.scoring.scorers.semantic_scorer import SemanticScorer
+from validator.scoring.scorers.engagement_scorer import EngagementScorer
 from validator.config.scoring_config import ScoringWeights
+from validator.config.aggregate_weights import AggregateWeights
 from validator.config.progress_config import ProgressStages, ProgressBarConfig
 from validator.get_agent_posts import GetAgentPosts
 from interfaces.types import Tweet
@@ -25,6 +27,7 @@ class AgentScorer:
         self,
         netuid: int,
         weights: Optional[ScoringWeights] = None,
+        aggregate_weights: Optional[AggregateWeights] = None,
         lookback_hours: int = DEFAULT_LOOKBACK_HOURS
     ):
         """Initialize the agent scorer.
@@ -32,12 +35,17 @@ class AgentScorer:
         Args:
             netuid: The subnet ID to analyze
             weights: Optional scoring weights configuration
+            aggregate_weights: Optional weights for combining different scoring components
             lookback_hours: Hours to look back for posts (default 24)
         """
         self.netuid = netuid
         self.weights = weights or ScoringWeights()
+        self.aggregate_weights = aggregate_weights or AggregateWeights()
         self.lookback_hours = lookback_hours
-        self.scorer = SemanticScorer(weights=self.weights)
+        
+        # Initialize scorers
+        self.semantic_scorer = SemanticScorer(weights=self.weights)
+        self.engagement_scorer = EngagementScorer(weights=self.weights)
         
     async def get_agent_posts(self) -> Dict[str, List[Tweet]]:
         """Fetch and organize posts by agent for the specified time period."""
@@ -70,14 +78,14 @@ class AgentScorer:
         return agent_posts
         
     def calculate_agent_scores(self, agent_posts: Dict[str, List[Tweet]]) -> Dict[str, float]:
-        """Calculate semantic scores for each agent's posts."""
+        """Calculate combined scores for each agent's posts."""
         if not agent_posts:
             return {}
             
         # Create progress bar with semantic status
         total_posts = sum(len(posts) for posts in agent_posts.values())
         progress = ProgressBarConfig(
-            desc=SEMANTIC_ANALYSIS_DESC,
+            desc="Analyzing Posts",
             total=total_posts,
             initial_status=ProgressStages.get_semantic_status(0, total_posts)
         ).create_progress_bar()
@@ -86,27 +94,62 @@ class AgentScorer:
         processed = 0
         start_time = time()
         
+        # Initialize engagement scorer with all posts
+        all_posts = [post for posts in agent_posts.values() for post in posts]
+        self.engagement_scorer.initialize_scorer(all_posts)
+        
+        # Track max scores for normalization
+        max_semantic = 0.0
+        max_engagement = 0.0
+        raw_scores = {}
+        
+        # First pass: calculate raw scores and find maximums
         for username, posts in agent_posts.items():
-            texts = [post.get('Text', '') for post in posts]
-            if not texts:
-                continue
+            semantic_scores = []
+            engagement_scores = []
+            
+            for post in posts:
+                # Calculate semantic score
+                text = post.get('Text', '')
+                if text:
+                    semantic_score = self.semantic_scorer.calculate_score(text)
+                    semantic_scores.append(semantic_score)
+                    max_semantic = max(max_semantic, semantic_score)
                 
-            post_scores = []
-            for text in texts:
-                score = self.scorer.calculate_score(text)
-                post_scores.append(score)
+                # Calculate engagement score
+                engagement_score = self.engagement_scorer.calculate_score(post)
+                engagement_scores.append(engagement_score)
+                max_engagement = max(max_engagement, engagement_score)
+                
                 processed += 1
-                
-                # Update progress with rate
                 rate = processed / (time() - start_time)
                 progress.set_postfix(
                     **ProgressStages.get_semantic_status(processed, total_posts, rate)
                 )
                 progress.update(1)
-                
-            if post_scores:
-                agent_scores[username] = np.mean(post_scores)
             
+            if semantic_scores or engagement_scores:
+                semantic_avg = np.mean(semantic_scores) if semantic_scores else 0.0
+                engagement_avg = np.mean(engagement_scores) if engagement_scores else 0.0
+                raw_scores[username] = (semantic_avg, engagement_avg)
+        
+        # Second pass: normalize and combine scores
+        max_semantic = max_semantic if max_semantic > 0 else 1.0
+        max_engagement = max_engagement if max_engagement > 0 else 1.0
+        
+        for username, (semantic_avg, engagement_avg) in raw_scores.items():
+            # Normalize each component
+            normalized_semantic = semantic_avg / max_semantic
+            normalized_engagement = engagement_avg / max_engagement
+            
+            # Combine normalized scores using weights
+            combined_score = (
+                normalized_semantic * self.aggregate_weights.semantic_weight +
+                normalized_engagement * self.aggregate_weights.engagement_weight
+            )
+            
+            agent_scores[username] = combined_score
+        
         progress.close()
         return agent_scores
         
@@ -125,7 +168,7 @@ class AgentScorer:
             similarities = []
             if len(texts) > 1:
                 # Get all embeddings at once for the agent's posts
-                embeddings = self.scorer.model.encode(texts, convert_to_tensor=True)
+                embeddings = self.semantic_scorer.model.encode(texts, convert_to_tensor=True)
                 # Calculate similarities between consecutive embeddings
                 for i in range(1, len(embeddings)):
                     similarity = float(torch.nn.functional.cosine_similarity(
