@@ -13,7 +13,7 @@ and starts the appropriate service with proper configuration.
 Environment Variables:
     ROLE: Service role ("validator" or "miner")
     SUBTENSOR_NETWORK: Network to connect to ("test" or "finney")
-    NETUID: Network UID (249 for testnet, 59 for mainnet)
+    NETUID: Network UID (249 for testnet, 59 for mainnet, defaults to 59)
     VALIDATOR_AXON_PORT: Validator's axon port
     VALIDATOR_METRICS_PORT: Validator's Prometheus port
     VALIDATOR_GRAFANA_PORT: Validator's Grafana port
@@ -110,7 +110,7 @@ def main() -> None:
         # Get environment variables
         role = os.getenv("ROLE", "validator").lower()
         network = os.getenv("SUBTENSOR_NETWORK", "test").lower()
-        netuid = int(os.getenv("NETUID"))
+        netuid = int(os.getenv("NETUID", "59"))  # Default to mainnet subnet 59
         replica_num = os.environ.get("REPLICA_NUM", "1")
 
         logger.info(f"Starting {role} on {network} network (netuid: {netuid})")

@@ -9,8 +9,8 @@ Modules:
     report: Provides status reporting and logging utilities
 
 Environment:
-    Requires a .env file at /app/.env with necessary configuration
-    See .env.example for required variables
+    Optional .env file at /app/.env with configuration overrides
+    See .env.example for available variables
 
 Example:
     To use this module:
@@ -25,11 +25,9 @@ from dotenv import load_dotenv
 from startup.wallet_manager import WalletManager
 from startup.process_manager import ProcessManager
 
-# Load environment variables from .env file
+# Load environment variables from .env file if it exists
 env_path = Path("/app/.env")
 if env_path.exists():
     load_dotenv(env_path)
-else:
-    raise Exception("No .env file found at /app/.env")
 
 __all__ = ["WalletManager", "ProcessManager"]
