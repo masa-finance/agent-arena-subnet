@@ -1,4 +1,4 @@
-name: 'Build and Publish Agent Arena Subnet Images to Docker Hub'
+name: 'Build and Publish Images to Docker Hub'
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - 'v*'  # Only trigger on version tags
 
 jobs:
-  docker:
+  build-and-publish:
     runs-on: ubuntu-latest
     timeout-minutes: 240  # Increased timeout for ARM64 builds
     steps:
