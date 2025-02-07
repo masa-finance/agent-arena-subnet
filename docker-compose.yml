@@ -26,6 +26,7 @@ services:
       - SUBTENSOR_NETWORK=${SUBTENSOR_NETWORK:-finney}
     volumes:
       - ${WALLET_PATH:-~/.bittensor}:/root/.bittensor
+      - .:/app  # Mount the entire codebase
       - ./.env:/app/.env
     ports:
       - "${MINER_AXON_PORT:-8903}:${MINER_AXON_PORT:-8903}"

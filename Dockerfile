@@ -29,14 +29,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install bittensor with torch support
 RUN pip install --no-cache-dir bittensor[torch]
 
-# Copy only the application code
-COPY startup/ ./startup/
-COPY neurons/ ./neurons/
-COPY protocol/ ./protocol/
-COPY scripts/ ./scripts/
-COPY interfaces/ ./interfaces/
-COPY configs/ ./configs/
-
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
