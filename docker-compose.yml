@@ -17,7 +17,7 @@ services:
     env_file: .env
     environment:
       - ROLE=${ROLE:-miner}
-      - WALLET=${WALLET:-default}
+      - WALLET_NAME=${WALLET_NAME:-default}
       - HOTKEY_NAME=${HOTKEY_NAME:-default}
       - MINER_AXON_PORT=${MINER_AXON_PORT:-8903}
       - MINER_METRICS_PORT=${MINER_METRICS_PORT:-8000}

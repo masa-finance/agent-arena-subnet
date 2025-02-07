@@ -13,7 +13,7 @@ and starts the appropriate service with proper configuration.
 Environment Variables:
     ROLE: Service role ("validator" or "miner")
     SUBTENSOR_NETWORK: Network to connect to ("test" or "finney")
-    NETUID: Network UID (249 for testnet, 59 for mainnet, defaults to 59)
+    NETUID: Network UID (249 for testnet, 59 for mainnet)
     VALIDATOR_AXON_PORT: Validator's axon port
     VALIDATOR_METRICS_PORT: Validator's Prometheus port
     VALIDATOR_GRAFANA_PORT: Validator's Grafana port
@@ -116,14 +116,9 @@ def main() -> None:
         logger.info(f"Starting {role} on {network} network (netuid: {netuid})")
 
         # Get wallet name from env, generate hotkey name dynamically
-        wallet = os.getenv("WALLET")
+        wallet_name = os.getenv("WALLET_NAME")
         hotkey_name = f"{role}_{replica_num}"
-
-        # Export these for use by the container
-        os.environ["WALLET"] = wallet
-        os.environ["HOTKEY_NAME"] = hotkey_name
-
-        logger.info(f"Using wallet: {wallet}, hotkey: {hotkey_name}")
+        logger.info(f"Using wallet: {wallet_name}, hotkey: {hotkey_name}")
 
         # Get Docker container ID
         container_id = os.popen("cat /proc/1/cpuset").read().strip().split("/")[-1]
@@ -134,10 +129,14 @@ def main() -> None:
             target_axon_port = int(os.getenv("VALIDATOR_AXON_PORT"))
             target_metrics_port = int(os.getenv("VALIDATOR_METRICS_PORT"))
             target_grafana_port = int(os.getenv("VALIDATOR_GRAFANA_PORT"))
+            os.environ["VALIDATOR_WALLET_NAME"] = wallet_name
+            os.environ["VALIDATOR_HOTKEY_NAME"] = hotkey_name
         else:
             target_axon_port = int(os.getenv("MINER_AXON_PORT"))
             target_metrics_port = int(os.getenv("MINER_METRICS_PORT"))
             target_grafana_port = int(os.getenv("MINER_GRAFANA_PORT"))
+            os.environ["WALLET_NAME"] = wallet_name
+            os.environ["HOTKEY_NAME"] = hotkey_name
 
         logger.info(
             "Target (internal) ports - "
@@ -170,7 +169,7 @@ def main() -> None:
         os.environ["GRAFANA_PORT"] = str(published_grafana_port)
 
         logger.info("Environment variables set:")
-        logger.info(f"WALLET={wallet}")
+        logger.info(f"WALLET_NAME={wallet_name}")
         logger.info(f"HOTKEY_NAME={os.environ['HOTKEY_NAME']}")
         logger.info(f"AXON_PORT={os.environ['AXON_PORT']}")
         logger.info(f"METRICS_PORT={os.environ['METRICS_PORT']}")
@@ -213,7 +212,7 @@ def main() -> None:
             command = process_manager.build_validator_command(
                 netuid=netuid,
                 network=network,
-                wallet_name=wallet,
+                wallet_name=wallet_name,
                 wallet_hotkey=hotkey_name,
                 logging_dir="/root/.bittensor/logs",
                 axon_port=target_axon_port,
@@ -224,7 +223,7 @@ def main() -> None:
             process_manager.execute_validator(command)
         else:
             command = process_manager.build_miner_command(
-                wallet_name=wallet,
+                wallet_name=wallet_name,
                 wallet_hotkey=hotkey_name,
                 netuid=netuid,
                 network=network,
