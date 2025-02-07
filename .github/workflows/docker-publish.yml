@@ -3,8 +3,7 @@ name: 'Build and Publish Agent Arena Subnet Images to Docker Hub'
 on:
   push:
     branches:
-      - feature/docker-compose-up
-      - main
+      - docker-compose-up
     tags:
       - 'v*'  # Only trigger on version tags
 
