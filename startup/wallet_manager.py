@@ -51,7 +51,7 @@ class WalletManager:
         Raises:
             ValueError: If role is not "validator" or "miner"
             ValueError: If network is not "test" or "finney"
-            ValueError: If HOTKEY_WALLET or HOTKEY_NAME env vars are not set
+            ValueError: If WALLET or HOTKEY_NAME env vars are not set
         """
         self.role = role
         self.network = network
@@ -60,13 +60,11 @@ class WalletManager:
         self.subtensor = None
 
         # Get wallet and hotkey names from environment
-        self.wallet_name = os.environ.get("HOTKEY_WALLET")
+        self.wallet_name = os.environ.get("WALLET")
         self.hotkey_name = os.environ.get("HOTKEY_NAME")
 
         if not self.wallet_name or not self.hotkey_name:
-            raise ValueError(
-                "HOTKEY_WALLET and HOTKEY_NAME environment variables must be set"
-            )
+            raise ValueError("WALLET and HOTKEY_NAME environment variables must be set")
 
         self.logger.info(
             f"Using wallet: {self.wallet_name}, hotkey: {self.hotkey_name}"

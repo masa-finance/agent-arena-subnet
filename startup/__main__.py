@@ -108,22 +108,22 @@ def main() -> None:
     """
     try:
         # Get environment variables
-        role = os.getenv("ROLE", "validator").lower()
-        network = os.getenv("SUBTENSOR_NETWORK", "test").lower()
-        netuid = int(os.getenv("NETUID", "59"))  # Default to mainnet subnet 59
+        role = os.getenv("ROLE").lower()
+        network = os.getenv("SUBTENSOR_NETWORK").lower()
+        netuid = int(os.getenv("NETUID"))
         replica_num = os.environ.get("REPLICA_NUM", "1")
 
         logger.info(f"Starting {role} on {network} network (netuid: {netuid})")
 
-        # Calculate and export dynamic values
-        hotkey_wallet = f"subnet_{netuid}"
+        # Get wallet name from env, generate hotkey name dynamically
+        wallet = os.getenv("WALLET")
         hotkey_name = f"{role}_{replica_num}"
 
         # Export these for use by the container
-        os.environ["HOTKEY_WALLET"] = hotkey_wallet
+        os.environ["WALLET"] = wallet
         os.environ["HOTKEY_NAME"] = hotkey_name
 
-        logger.info(f"Using wallet: {hotkey_wallet}, hotkey: {hotkey_name}")
+        logger.info(f"Using wallet: {wallet}, hotkey: {hotkey_name}")
 
         # Get Docker container ID
         container_id = os.popen("cat /proc/1/cpuset").read().strip().split("/")[-1]
@@ -170,7 +170,7 @@ def main() -> None:
         os.environ["GRAFANA_PORT"] = str(published_grafana_port)
 
         logger.info("Environment variables set:")
-        logger.info(f"HOTKEY_WALLET={os.environ['HOTKEY_WALLET']}")
+        logger.info(f"WALLET={wallet}")
         logger.info(f"HOTKEY_NAME={os.environ['HOTKEY_NAME']}")
         logger.info(f"AXON_PORT={os.environ['AXON_PORT']}")
         logger.info(f"METRICS_PORT={os.environ['METRICS_PORT']}")
@@ -213,7 +213,7 @@ def main() -> None:
             command = process_manager.build_validator_command(
                 netuid=netuid,
                 network=network,
-                wallet_name=hotkey_wallet,
+                wallet_name=wallet,
                 wallet_hotkey=hotkey_name,
                 logging_dir="/root/.bittensor/logs",
                 axon_port=target_axon_port,
@@ -224,7 +224,7 @@ def main() -> None:
             process_manager.execute_validator(command)
         else:
             command = process_manager.build_miner_command(
-                wallet_name=hotkey_wallet,
+                wallet_name=wallet,
                 wallet_hotkey=hotkey_name,
                 netuid=netuid,
                 network=network,

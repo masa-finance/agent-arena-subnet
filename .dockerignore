@@ -1,0 +1,30 @@
+# Never copy any environment files
+.env*
+*.env
+
+# Never copy wallet data
+.bittensor/
+wallets/
+**/wallets/
+
+# Never copy git or github files
+.git/
+.github/
+.gitignore
+
+# Development files
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Test files
+tests/
+test_*.sh 

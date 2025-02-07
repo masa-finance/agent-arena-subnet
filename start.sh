@@ -4,15 +4,6 @@ set -e
 # Source .env if it exists
 [ -f .env ] && source .env
 
-# Basic setup
-SUBTENSOR_NETWORK=${SUBTENSOR_NETWORK:-test}
-NETUID=${SUBTENSOR_NETWORK:-test}
-[ "$SUBTENSOR_NETWORK" = "test" ] && NETUID="249" || NETUID="59"
-
-# Set default counts if not provided
-VALIDATOR_COUNT=${VALIDATOR_COUNT:-0}
-MINER_COUNT=${MINER_COUNT:-1}
-
 echo "Starting nodes for network: $SUBTENSOR_NETWORK (subnet $NETUID)"
 echo "Validator count: $VALIDATOR_COUNT"
 echo "Miner count: $MINER_COUNT"
@@ -54,9 +45,9 @@ start_node() {
 
     # Start the container
     if [ "$role" = "validator" ]; then
-        ENV_VARS="-e VALIDATOR_WALLET_NAME=subnet_${NETUID} -e VALIDATOR_HOTKEY_NAME=${role}_${instance_num}"
+        ENV_VARS="-e WALLET=${WALLET} -e VALIDATOR_WALLET_NAME=${WALLET} -e VALIDATOR_HOTKEY_NAME=${role}_${instance_num}"
     else
-        ENV_VARS="-e WALLET_NAME=subnet_${NETUID} -e HOTKEY_NAME=${role}_${instance_num}"
+        ENV_VARS="-e WALLET=${WALLET} -e MINER_WALLET_NAME=${WALLET} -e MINER_HOTKEY_NAME=${role}_${instance_num}"
     fi
 
     docker run -d \
