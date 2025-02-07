@@ -19,9 +19,7 @@ version: '3.8'
 
 services:
   masa-node:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: masaengineering/agent-arena-subnet:${TAG:-latest}
     env_file: .env
     environment:
       - ROLE=${ROLE:-miner}  # Default to miner if not specified
