@@ -3,8 +3,7 @@ name: Update Docker Hub Description
 on:
   push:
     branches:
-      - feature/docker-deployment
-      - main
+      - feature/docker-compose-up
     paths:
       - 'DOCKER.md'
       - '.github/workflows/docker-hub-description.yml'
