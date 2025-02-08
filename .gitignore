@@ -38,6 +38,7 @@ Thumbs.db
 
 # Project specific
 .env
+backup.env.*
 nodes.json
 *.encrypted
 data/*
