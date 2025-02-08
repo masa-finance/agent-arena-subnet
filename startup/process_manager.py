@@ -48,9 +48,6 @@ class ProcessManager:
 
         Returns:
             str: Base directory path (/root/.bittensor)
-
-        Note:
-            Directories are created with 700 permissions for security
         """
         base_dir = "/root/.bittensor"
         os.makedirs(os.path.join(base_dir, "logs"), mode=0o700, exist_ok=True)
@@ -154,11 +151,6 @@ class ProcessManager:
 
         # Set environment for unbuffered output and debug
         os.environ["PYTHONUNBUFFERED"] = "1"
-
-        # Set fiber debug settings if enabled
-        if os.getenv("FIBER_DEBUG", "").lower() == "true":
-            os.environ["FIBER_LOG_LEVEL"] = "DEBUG"
-            self.logger.info("Fiber debug logging enabled")
 
         # Get logging levels from environment or use defaults
         log_level = os.getenv("LOG_LEVEL", "WARNING")

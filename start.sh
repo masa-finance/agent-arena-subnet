@@ -13,15 +13,15 @@ echo "Pulling latest image..."
 docker pull masaengineering/agent-arena-subnet:latest
 
 # Create .bittensor directory if it doesn't exist
-mkdir -p .bittensor
-chmod 777 .bittensor
+mkdir -p ${WALLET_PATH:-$HOME/.bittensor}
+chmod 777 ${WALLET_PATH:-$HOME/.bittensor}
 
 # Base ports
 BASE_VALIDATOR_AXON_PORT=${VALIDATOR_AXON_PORT:-8142}
 BASE_VALIDATOR_METRICS_PORT=${VALIDATOR_METRICS_PORT:-8001}
 BASE_VALIDATOR_GRAFANA_PORT=${VALIDATOR_GRAFANA_PORT:-3001}
 
-BASE_MINER_AXON_PORT=${MINER_AXON_PORT:-8242}
+BASE_MINER_AXON_PORT=${MINER_AXON_PORT:-8082}
 BASE_MINER_METRICS_PORT=${MINER_METRICS_PORT:-8101}
 BASE_MINER_GRAFANA_PORT=${MINER_GRAFANA_PORT:-3101}
 
@@ -47,25 +47,35 @@ start_node() {
     if [ "$role" = "validator" ]; then
         ENV_VARS="-e WALLET=${WALLET} -e VALIDATOR_WALLET_NAME=${WALLET} -e VALIDATOR_HOTKEY_NAME=${role}_${instance_num}"
     else
-        ENV_VARS="-e WALLET=${WALLET} -e MINER_WALLET_NAME=${WALLET} -e MINER_HOTKEY_NAME=${role}_${instance_num}"
+        # For miners, check in order:
+        # 1. REGISTRATION_TWEET_ID_N (for multiple miners)
+        # 2. TWEET_VERIFICATION_ID (legacy)
+        # 3. REGISTRATION_TWEET_ID (docker-compose compatibility)
+        tweet_id_var="REGISTRATION_TWEET_ID_${instance_num}"
+        tweet_id="${!tweet_id_var:-${TWEET_VERIFICATION_ID:-$REGISTRATION_TWEET_ID}}"
+        ENV_VARS="-e WALLET=${WALLET} -e MINER_WALLET_NAME=${WALLET} -e MINER_HOTKEY_NAME=${role}_${instance_num} -e TWEET_VERIFICATION_ID=${tweet_id}"
     fi
 
     docker run -d \
         --name "masa_${role}_${instance_num}" \
         --env-file .env \
         -e ROLE=$role \
-        -e NETUID=$NETUID \
-        -e SUBTENSOR_NETWORK=$SUBTENSOR_NETWORK \
+        -e NETUID=${NETUID:-59} \
+        -e SUBTENSOR_NETWORK=${SUBTENSOR_NETWORK:-finney} \
         -e AXON_PORT=$axon_port \
         -e METRICS_PORT=$metrics_port \
         -e GRAFANA_PORT=$grafana_port \
-        -e REPLICA_NUM=$instance_num \
+        -e MINER_AXON_PORT=$axon_port \
+        -e MINER_METRICS_PORT=$metrics_port \
+        -e MINER_GRAFANA_PORT=$grafana_port \
         -e MINER_PORT=$axon_port \
+        -e REPLICA_NUM=$instance_num \
         -e MASA_BASE_URL=https://test.protocol-api.masa.ai \
         -e API_URL=https://test.protocol-api.masa.ai \
         $ENV_VARS \
+        -v $(pwd):/app \
         -v $(pwd)/.env:/app/.env \
-        -v $(pwd)/.bittensor:/root/.bittensor \
+        -v ${WALLET_PATH:-$HOME/.bittensor}:/root/.bittensor \
         -p $axon_port:$axon_port \
         -p $metrics_port:$metrics_port \
         -p $grafana_port:$grafana_port \

@@ -109,7 +109,9 @@ def main() -> None:
             target_grafana_port = int(os.getenv("MINER_GRAFANA_PORT"))
             os.environ["WALLET_NAME"] = wallet_name
             os.environ["HOTKEY_NAME"] = hotkey_name
-            os.environ["MINER_PORT"] = str(target_axon_port)
+            # Only set MINER_PORT if not already set
+            if "MINER_PORT" not in os.environ:
+                os.environ["MINER_PORT"] = str(target_axon_port)
 
         # Get published ports from Docker Swarm environment
         published_axon_port = int(os.getenv("PUBLISHED_AXON_PORT", target_axon_port))
