@@ -152,8 +152,13 @@ class ProcessManager:
         base_dir = self.prepare_directories()
         wallet_path = os.path.join(base_dir, "wallets")
 
-        # Set environment for unbuffered output
+        # Set environment for unbuffered output and debug
         os.environ["PYTHONUNBUFFERED"] = "1"
+
+        # Set fiber debug settings if enabled
+        if os.getenv("FIBER_DEBUG", "").lower() == "true":
+            os.environ["FIBER_LOG_LEVEL"] = "DEBUG"
+            self.logger.info("Fiber debug logging enabled")
 
         # Get logging levels from environment or use defaults
         log_level = os.getenv("LOG_LEVEL", "WARNING")

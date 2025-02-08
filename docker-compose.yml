@@ -24,6 +24,7 @@ services:
       - MINER_GRAFANA_PORT=${MINER_GRAFANA_PORT:-3000}
       - NETUID=${NETUID:-59}
       - SUBTENSOR_NETWORK=${SUBTENSOR_NETWORK:-finney}
+      - PYTHONUNBUFFERED=1
     volumes:
       - ${WALLET_PATH:-$HOME/.bittensor}:/root/.bittensor
       - .:/app  # Mount the entire codebase
