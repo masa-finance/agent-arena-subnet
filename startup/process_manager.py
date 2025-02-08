@@ -89,8 +89,17 @@ class ProcessManager:
         base_dir = self.prepare_directories()
         wallet_path = os.path.join(base_dir, "wallets")
 
+        # Set environment for unbuffered output
+        os.environ["PYTHONUNBUFFERED"] = "1"
+
+        # Get logging levels from environment or use defaults
+        log_level = os.getenv("LOG_LEVEL", "WARNING")
+        console_level = os.getenv("CONSOLE_LOG_LEVEL", "WARNING")
+        file_level = os.getenv("FILE_LOG_LEVEL", "INFO")
+
         command = [
             "python3",
+            "-u",  # Force unbuffered output
             "scripts/run_validator.py",
             f"--netuid={netuid}",
             f"--wallet.name={wallet_name}",
@@ -98,10 +107,12 @@ class ProcessManager:
             f"--wallet.path={wallet_path}",
             f"--logging.directory={os.path.join(base_dir, 'logs')}",
             f"--logging.logging_dir={os.path.join(base_dir, 'logs')}",
+            f"--logging.level={log_level}",
+            f"--logging.console_level={console_level}",
+            f"--logging.file_level={file_level}",
             f"--axon.port={axon_port}",
             f"--prometheus.port={prometheus_port}",
             f"--grafana.port={grafana_port}",
-            "--logging.debug",
         ]
 
         if network == "test":
@@ -141,8 +152,17 @@ class ProcessManager:
         base_dir = self.prepare_directories()
         wallet_path = os.path.join(base_dir, "wallets")
 
+        # Set environment for unbuffered output
+        os.environ["PYTHONUNBUFFERED"] = "1"
+
+        # Get logging levels from environment or use defaults
+        log_level = os.getenv("LOG_LEVEL", "WARNING")
+        console_level = os.getenv("CONSOLE_LOG_LEVEL", "WARNING")
+        file_level = os.getenv("FILE_LOG_LEVEL", "INFO")
+
         command = [
             "python3",
+            "-u",  # Force unbuffered output
             "scripts/run_miner.py",
             f"--netuid={netuid}",
             f"--wallet.name={wallet_name}",
@@ -150,6 +170,9 @@ class ProcessManager:
             f"--wallet.path={wallet_path}",
             f"--logging.directory={os.path.join(base_dir, 'logs')}",
             f"--logging.logging_dir={os.path.join(base_dir, 'logs')}",
+            f"--logging.level={log_level}",
+            f"--logging.console_level={console_level}",
+            f"--logging.file_level={file_level}",
             f"--axon.port={axon_port}",
             f"--prometheus.port={prometheus_port}",
             f"--grafana.port={grafana_port}",

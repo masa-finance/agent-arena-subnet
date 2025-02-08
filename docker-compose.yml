@@ -25,7 +25,7 @@ services:
       - NETUID=${NETUID:-59}
       - SUBTENSOR_NETWORK=${SUBTENSOR_NETWORK:-finney}
     volumes:
-      - ${WALLET_PATH:-~/.bittensor}:/root/.bittensor
+      - ${WALLET_PATH:-$HOME/.bittensor}:/root/.bittensor
       - .:/app  # Mount the entire codebase
       - ./.env:/app/.env
     ports:
