@@ -106,11 +106,11 @@ class ValidatorRegistration:
                 logger.info("Successfully registered agent!")
                 await self.fetch_registered_agents()
             else:
-                message = f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
-                raise Exception(message)
+                logger.error(
+                    f"Failed to register agent, status code: {response.status_code}, message: {response.text}"
+                )
         except Exception as e:
-            logger.warning(e)
-            raise Exception(e)
+            logger.error(f"Exception occurred during agent registration: {str(e)}")
 
     async def deregister_agent(self, agent: RegisteredAgentResponse) -> bool:
         """Deregister agent with the API
@@ -238,21 +238,15 @@ class ValidatorRegistration:
     async def check_agents_registration(self) -> None:
         unregistered_nodes = []
         try:
-            # Iterate over each connected node to check if it has a registered agent
+            # Iterate over each registered node to check if it has a registered agent
             for hotkey in self.validator.connected_nodes:
-                if (
-                    hotkey not in self.validator.registered_agents
-                    and hotkey in self.validator.metagraph.nodes
-                ):
+                if hotkey not in self.validator.registered_agents:
                     unregistered_nodes.append(hotkey)
-                else:
-                    # hotkey has a registered agent, or doesn't exist on the metagraph (and will get deleted by sync metagraph process), continue
-                    continue
 
             # Log the unregistered nodes
             if unregistered_nodes:
                 logger.info(
-                    "Nodes without registered agents found: %s",
+                    "Unregistered nodes found: %s",
                     ", ".join(node for node in unregistered_nodes),
                 )
             else:
