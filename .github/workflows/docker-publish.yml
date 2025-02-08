@@ -3,7 +3,7 @@ name: 'Build and Publish Images to Docker Hub'
 on:
   push:
     branches:
-      - feature/docker-compose-up
+      - feature/docker-deployment
     tags:
       - 'v*'  # Only trigger on version tags
 
