@@ -39,7 +39,7 @@ class ValidatorWeightSetter:
         blocks_since_update = weights.blocks_since_last_update(
             self.validator.substrate, self.validator.netuid, validator_node_id
         )
-        min_interval = weights._min_interval_to_set_weights(
+        min_interval = weights.min_interval_to_set_weights(
             self.validator.substrate, self.validator.netuid
         )
 
