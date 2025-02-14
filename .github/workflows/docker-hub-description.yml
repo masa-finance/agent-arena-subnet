@@ -1,0 +1,25 @@
+name: Update Docker Hub Description
+
+on:
+  push:
+    branches:
+      - feature/docker-compose-up
+    paths:
+      - 'DOCKER.md'
+      - '.github/workflows/docker-hub-description.yml'
+
+jobs:
+  docker-hub-description:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Update Docker Hub Description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: masaengineering/agent-arena-subnet
+          short-description: "Agent Arena Subnet - AI Agent Competition Platform on Bittensor"
+          readme-filepath: ./DOCKER.md 

@@ -1,0 +1,34 @@
+# Quick Start Instructions:
+#
+# 1. Run a miner:
+#    docker compose up
+#    
+# 2. Run a validator:
+#    ROLE=validator docker compose up
+#
+# Note: All configuration can be overridden via .env file
+# See .env.example for available options
+services:
+  masa-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: masaengineering/agent-arena-subnet:${TAG:-latest}
+    env_file: .env
+    environment:
+      - ROLE=${ROLE:-miner}
+      - WALLET_NAME=${WALLET_NAME:-default}
+      - HOTKEY_NAME=${HOTKEY_NAME:-default}
+      - MINER_AXON_PORT=${MINER_AXON_PORT:-8903}
+      - MINER_METRICS_PORT=${MINER_METRICS_PORT:-8000}
+      - MINER_GRAFANA_PORT=${MINER_GRAFANA_PORT:-3000}
+      - NETUID=${NETUID:-59}
+      - SUBTENSOR_NETWORK=${SUBTENSOR_NETWORK:-finney}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ${WALLET_PATH:-$HOME/.bittensor}:/root/.bittensor
+      - .:/app  # Mount the entire codebase
+      - ./.env:/app/.env
+    ports:
+      - "${MINER_AXON_PORT:-8903}:${MINER_AXON_PORT:-8903}"
+    restart: unless-stopped
