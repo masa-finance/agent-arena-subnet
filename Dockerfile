@@ -1,10 +1,10 @@
-# Use Python 3.12 slim as base image to match production
-FROM --platform=linux/amd64 python:3.12-slim
+# Build stage for compiling dependencies
+FROM --platform=linux/amd64 python:3.12-slim as builder
 
-# Upgrade pip to latest version
+# Upgrade pip
 RUN pip install --no-cache-dir --upgrade pip
 
-# Install system dependencies
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -20,17 +20,31 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy requirements
 COPY requirements.txt .
 
-# Install PyTorch first
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# Install dependencies with their build requirements
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir bittensor[torch]
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Final stage
+FROM --platform=linux/amd64 python:3.12-slim
 
-# Install bittensor with torch support
-RUN pip install --no-cache-dir bittensor[torch]
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
