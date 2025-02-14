@@ -1,6 +1,9 @@
 # Use Python 3.12 slim as base image to match production
 FROM --platform=linux/amd64 python:3.12-slim
 
+# Upgrade pip to latest version
+RUN pip install --no-cache-dir --upgrade pip
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
