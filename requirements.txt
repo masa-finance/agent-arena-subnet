@@ -5,7 +5,7 @@ bittensor-cli==9.0.0
 bittensor-wallet==3.0.3
 
 # Fiber dependency
-fiber @ git+https://github.com/rayonlabs/fiber.git@f41b9a8e22948b9ef31b6a15254ea9942ef20e2e
+fiber @ git+https://github.com/5u6r054/fiber.git@fix/remove-bittensor-commit-reveal-dependency
 
 # Rest of dependencies
 aiohappyeyeballs==2.4.4
