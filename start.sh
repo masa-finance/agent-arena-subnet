@@ -53,7 +53,7 @@ start_node() {
         # 3. REGISTRATION_TWEET_ID (docker-compose compatibility)
         tweet_id_var="REGISTRATION_TWEET_ID_${instance_num}"
         tweet_id="${!tweet_id_var:-${TWEET_VERIFICATION_ID:-$REGISTRATION_TWEET_ID}}"
-        ENV_VARS="-e WALLET=${WALLET} -e MINER_WALLET_NAME=${WALLET} -e MINER_HOTKEY_NAME=${role}_${instance_num} -e TWEET_VERIFICATION_ID=${tweet_id}"
+        ENV_VARS="-e WALLET=${WALLET} -e MINER_WALLET_NAME=${WALLET} -e MINER_HOTKEY_NAME=${role}_${instance_num} -e TWEET_VERIFICATION_ID=${tweet_id} -e LOGGING_LEVEL=INFO -e CONSOLE_LOGGING_LEVEL=INFO"
     fi
 
     docker run -d \
@@ -87,9 +87,11 @@ echo "Cleaning up existing containers..."
 docker ps -a | grep 'masa_' | awk '{print $1}' | xargs -r docker rm -f
 
 # Start validators
-for i in $(seq 1 $VALIDATOR_COUNT); do
-    start_node "validator" $i $BASE_VALIDATOR_AXON_PORT $BASE_VALIDATOR_METRICS_PORT $BASE_VALIDATOR_GRAFANA_PORT
-done
+if [ -n "$VALIDATOR_COUNT" ] && [ "$VALIDATOR_COUNT" -gt 0 ]; then
+    for i in $(seq 1 $VALIDATOR_COUNT); do
+        start_node "validator" $i $BASE_VALIDATOR_AXON_PORT $BASE_VALIDATOR_METRICS_PORT $BASE_VALIDATOR_GRAFANA_PORT
+    done
+fi
 
 # Start miners
 for i in $(seq 1 $MINER_COUNT); do
