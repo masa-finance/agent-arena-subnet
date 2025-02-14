@@ -23,15 +23,14 @@ WORKDIR /app
 # Copy requirements
 COPY requirements.txt .
 
-# Install dependencies with their build requirements
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir bittensor[torch]
+# Install CPU-only PyTorch first to avoid duplicate installations
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Final stage
 FROM --platform=linux/amd64 python:3.12-slim
-
-# Upgrade pip
-RUN pip install --no-cache-dir --upgrade pip
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
