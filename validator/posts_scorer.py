@@ -58,7 +58,7 @@ class PostsScorer:
                     continue
 
                 uid = user_id_to_uid.get(user_id, None)
-                if not uid:
+                if uid is None:
                     skipped_posts += 1
                     continue
 
