@@ -1,8 +1,9 @@
-from typing import List, Any
+from typing import List, Any, Optional
 from datetime import datetime, UTC
 from fiber.logging_utils import get_logger
 import httpx
 import os
+from interfaces.types import Tweet
 
 logger = get_logger(__name__)
 
@@ -21,28 +22,30 @@ class PostsGetter:
             timeout=120,
         )
 
-    async def get(self) -> List[Any]:
-
+    async def get(self) -> List[Optional[Tweet]]:
         posts = await self.fetch_posts_from_api(self.since)
-        logger.info(f"Loaded {len(posts)} posts")
         return posts
 
-    async def fetch_posts_from_api(self, since) -> None:
+    async def fetch_posts_from_api(self, since) -> List[Optional[Tweet]]:
         """Fetch posts from the API and update self.posts"""
+        posts = []
         try:
             response = await self.httpx_client.get(
                 f"{self.api_url}/v1.0.0/subnet59/miners/posts?since={since}"
             )
             if response.status_code == 200:
-                posts_data = response.json()
+                posts_data = dict(response.json())
                 posts = posts_data.get("posts", [])
                 logger.info(f"Successfully fetched {len(posts)} posts from API")
-                return posts
             else:
                 logger.error(
                     f"Failed to fetch posts, status code: {response.status_code}, message: {response.text}"
                 )
-                return []
+        except httpx.RequestError as e:
+            logger.error(f"Request error occurred: {str(e)}")
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred: {str(e)}")
         except Exception as e:
-            logger.error(f"Exception occurred while fetching posts: {str(e)}")
-            return []
+            logger.error(f"Unexpected exception occurred: {str(e)}")
+        finally:
+            return posts
