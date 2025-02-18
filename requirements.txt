@@ -18,9 +18,8 @@ babel==2.16.0
 backoff==2.2.1
 base58==2.1.1
 beautifulsoup4==4.12.3
-bittensor==9.0.0
 bittensor-cli==9.0.0
-bittensor-commit-reveal==0.2.0
+bittensor-commit-reveal==0.1.0
 bittensor-wallet==3.0.3
 bleach==6.2.0
 bt-decode==0.5.0a2
@@ -53,10 +52,10 @@ eth-keys==0.6.0
 eth-typing==5.0.0
 eth-utils==2.2.2
 executing==2.1.0
-fastapi==0.110.3
+fastapi==0.112.0
 fastjsonschema==2.20.0
 feedparser==6.0.11
-fiber @ git+https://github.com/rayonlabs/fiber.git@f41b9a8e22948b9ef31b6a15254ea9942ef20e2e
+fiber @ git+https://github.com/rayonlabs/fiber.git@ac20d5196ee9d43bb696500c021ba446bd6867da
 filelock==3.16.1
 fonttools==4.55.3
 fqdn==1.5.1
@@ -101,7 +100,6 @@ Levenshtein==0.26.1
 loguru==0.7.3
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
-masa-ai==0.2.7
 matplotlib==3.10.0
 matplotlib-inline==0.1.7
 mdit-py-plugins==0.4.2

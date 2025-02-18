@@ -1,4 +1,4 @@
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 version_split = __version__.split(".")
 version_numerical = (
     (100 * int(version_split[0]))
