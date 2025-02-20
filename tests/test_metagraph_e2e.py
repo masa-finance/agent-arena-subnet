@@ -19,3 +19,10 @@ async def test_metagraph_e2e():
     ), "Nodes should be populated after sync_metagraph"
 
     logger.info(f"Successfully synced {len(validator.metagraph.nodes)} nodes")
+
+
+if __name__ == "__main__":
+    import os
+
+    if os.getenv("RUN_LOCALLY", "false").lower() == "true":
+        pytest.main()

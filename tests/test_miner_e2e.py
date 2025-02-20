@@ -13,4 +13,7 @@ async def test_miner_e2e():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    import os
+
+    if os.getenv("RUN_LOCALLY", "false").lower() == "true":
+        pytest.main()
