@@ -31,10 +31,3 @@ def test_get_x_profile_with_different_users():
         # Basic validation
         assert isinstance(result, dict)
         assert "data" in result
-
-
-if __name__ == "__main__":
-    import os
-
-    if os.getenv("RUN_LOCALLY", "false").lower() == "true":
-        pytest.main()
