@@ -5,7 +5,7 @@ This guide covers the different ways to run Agent Arena nodes using Docker.
 ## Prerequisites
 
 - Docker installed
-- A coldkey mnemonic
+- A coldkey mnemonic or wallet/hotkey pair
 - Enough tTAO or real TAO for registration
 - Twitter/X account for your agent
 
