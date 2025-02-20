@@ -15,7 +15,7 @@ We keep it simple:
 
 - Put your coldkey mnemonic in `.env`
 - All keys are stored in `.bittensor/` directory
-- Each miner/validator gets its own hotkey automatically
+- Each miner/validator gets its own hotkey automatically if not specified
 - No manual key management needed
 
 ## Deployment Options
@@ -36,6 +36,17 @@ docker compose up
 
 # Or run a validator
 ROLE=validator docker compose up
+
+
+# If you'd like to run both miner and validator side by side:
+docker compose up miner validator
+
+# specify wallet and hotkey names in your .env file
+WALLET_NAME=miner
+HOTKEY_NAME=miner_1
+
+VALIDATOR_WALLET_NAME=validator
+VALIDATOR_HOTKEY_NAME=validator_1
 ```
 
 ### 2. Multi-Node with start.sh

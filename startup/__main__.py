@@ -99,6 +99,7 @@ def main() -> None:
         if role == "validator":
             os.environ["VALIDATOR_WALLET_NAME"] = wallet_name
             os.environ["VALIDATOR_HOTKEY_NAME"] = hotkey_name
+
             target_axon_port = int(os.getenv("VALIDATOR_AXON_PORT"))
             target_metrics_port = int(os.getenv("VALIDATOR_METRICS_PORT"))
             target_grafana_port = int(os.getenv("VALIDATOR_GRAFANA_PORT"))
