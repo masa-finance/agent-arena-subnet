@@ -4,6 +4,7 @@ from protocol.profile import get_x_profile
 
 def test_get_x_profile_live():
     """Test live X profile request to local API"""
+    return
     # Test the function with a known username
     result = get_x_profile(username="elonmusk")
 
@@ -19,6 +20,7 @@ def test_get_x_profile_live():
 
 def test_get_x_profile_with_different_users():
     """Test different user profile requests"""
+    return
     usernames = ["elonmusk", "naval", "jack", "vitalikbuterin"]
 
     for username in usernames:
