@@ -41,7 +41,7 @@ jobs:
         run: |
           pip install 'pytest==7.2.2' pytest-cov pytest-asyncio
 
-      - name: Run miner tests
+      - name: Run tests
         run: |
           python -m pytest \
             --cov \
@@ -50,18 +50,7 @@ jobs:
             -W ignore::DeprecationWarning \
             -W ignore::PendingDeprecationWarning \
             -W ignore::RuntimeWarning \
-            tests/test_miner.py
-
-      - name: Run validator tests
-        run: |
-          python -m pytest \
-            --cov \
-            --cov-append \
-            --cov-report=xml \
-            -W ignore::DeprecationWarning \
-            -W ignore::PendingDeprecationWarning \
-            -W ignore::RuntimeWarning \
-            tests/test_validator.py
+            tests/
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v4
