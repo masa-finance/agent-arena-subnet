@@ -15,8 +15,3 @@ def setup_logging():
 
 def test_registration():
     pass
-
-
-if __name__ == "__main__":
-    setup_logging()
-    test_registration()

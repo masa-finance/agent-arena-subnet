@@ -11,9 +11,6 @@ logger = get_logger(__name__)
 class PostsGetter:
     def __init__(self, netuid: int):
         self.netuid = netuid
-        a_week_ago_in_seconds = 7 * 24 * 60 * 60
-        self.since = int(datetime.now(UTC).timestamp()) - a_week_ago_in_seconds
-
         self.api_key = os.getenv("API_KEY", None)
         self.api_url = os.getenv("API_URL", "https://test.protocol-api.masa.ai")
         self.httpx_client = httpx.AsyncClient(
@@ -23,7 +20,9 @@ class PostsGetter:
         )
 
     async def get(self) -> List[Optional[Tweet]]:
-        posts = await self.fetch_posts_from_api(self.since)
+        a_week_ago_in_seconds = 7 * 24 * 60 * 60
+        since = int(datetime.now(UTC).timestamp()) - a_week_ago_in_seconds
+        posts = await self.fetch_posts_from_api(since)
         return posts
 
     async def fetch_posts_from_api(self, since) -> List[Optional[Tweet]]:
